@@ -2,13 +2,15 @@
           [ start/0,
             spawn/3,                    % :Goal, -Id, +Options
             send/2,                     % +Id, +Message
+            receive/1,                  % +Clauses
             self/1                      % -Id
           ]).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 
 :- meta_predicate
-    spawn(1, -, +).
+    spawn(0, -, +),
+    receive(:).
 
 :- debug(dispatch).
 
@@ -42,7 +44,7 @@ next_dispatch_queue(Q) :-
 make_workers(N) :-
     dispatch_queue(Queue),
     forall(between(1, N, _),
-           (   thread_create(work(Queue), Tid, []),
+           (   thread_create(work(Queue), Tid, [alias(dispatch)]),
                assertz(worker(Tid))
            )).
 
@@ -54,6 +56,7 @@ work(Queue) :-
 
 dispatch_event(Pid, Message) :-
     engine_post(Pid, Message, Ok),
+    debug(dispatch, 'Received ~p', [Ok]),
     assertion(Ok == true).
 
 
@@ -63,24 +66,34 @@ dispatch_event(Pid, Message) :-
 		 *******************************/
 
 spawn(Goal, Engine, Options) :-
-    engine_create([], process(Goal, []), Engine, Options).
-
-process(Goal, Messages0) :-
-    engine_fetch(Message),
-    engine_self(Self),
-    debug(dispatch, '~p received ~p', [Self, Message]),
-    process_dispatch(Goal, [Message|Messages0], Messages),
-    engine_yield(true),
-    process(Goal, Messages).
-
-process_dispatch(Goal, Messages0, Messages) :-
-    select(Message, Messages0, Messages),
-    call(Goal, Message),
-    !.
+    engine_create(true, run(Goal), Engine, Options).
 
 self(Pid) :-
     engine_self(Pid).
 
+run(Goal) :-
+    b_setval(event_queue, []),
+    call(Goal).
+
+receive(M:{Clauses}) :-
+    engine_fetch(NewMessage),
+    debug(dispatch, 'Process received ~p', [NewMessage]),
+    b_getval(event_queue, Messages0),
+    select(Message, [NewMessage|Messages0], Messages1),
+    receive_clause(Clauses, Message, Body),
+    !,
+    b_setval(event_queue, Messages1),
+    call(M:Body).
+
+receive_clause((C1;C2), Message, Body) :-
+    !,
+    (   receive_clause(C1, Message, Body)
+    ;   receive_clause(C2, Message, Body)
+    ).
+receive_clause((Head->Body), Head, Body) :-
+    debug(dispatch, 'Body: ~p', [Body]).
+
 send(Pid, Message) :-
     next_dispatch_queue(Queue),
     thread_send_message(Queue, event(Pid, Message)).
+
