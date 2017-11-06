@@ -10,6 +10,7 @@
 :- meta_predicate
     spawn(1, -, +).
 
+:- debug(dispatch).
 
 		 /*******************************
 		 *             STATE		*
@@ -47,8 +48,9 @@ make_workers(N) :-
 
 work(Queue) :-
     thread_get_message(Queue, event(Pid, Message)),
+    debug(dispatch, 'Got ~p', [event(Pid, Message)]),
     dispatch_event(Pid, Message),
-    worker(Queue).
+    work(Queue).
 
 dispatch_event(Pid, Message) :-
     engine_post(Pid, Message, Ok),
@@ -65,8 +67,10 @@ spawn(Goal, Engine, Options) :-
 
 process(Goal, Messages0) :-
     engine_fetch(Message),
-    engine_yield(true),
+    engine_self(Self),
+    debug(dispatch, '~p received ~p', [Self, Message]),
     process_dispatch(Goal, [Message|Messages0], Messages),
+    engine_yield(true),
     process(Goal, Messages).
 
 process_dispatch(Goal, Messages0, Messages) :-
