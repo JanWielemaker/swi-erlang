@@ -11,7 +11,6 @@ ping :-
                 format('Ping received ~d~n', [N]),
                 N2 is N - 1,
                 send(Pong, N2),
-                engine_yield(true),
                 ping
             }).
 
@@ -21,6 +20,5 @@ pong(Ping) :-
               self(Pong),
               format('Pong: Sending ~p to ~p~n', [N-Pong, Ping]),
               send(Ping, N-Pong),
-              engine_yield(true),
               pong(Ping)
             }).

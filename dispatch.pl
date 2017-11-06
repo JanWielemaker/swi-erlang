@@ -72,13 +72,15 @@ self(Pid) :-
     engine_self(Pid).
 
 run(Goal) :-
-    b_setval(event_queue, []),
     call(Goal).
 
 receive(M:{Clauses}) :-
+    (   nb_current(event_queue, Messages0)
+    ->  engine_yield(true)
+    ;   Messages0 = []
+    ),
     engine_fetch(NewMessage),
     debug(dispatch, 'Process received ~p', [NewMessage]),
-    b_getval(event_queue, Messages0),
     select(Message, [NewMessage|Messages0], Messages1),
     receive_clause(Clauses, Message, Body),
     !,
