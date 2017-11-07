@@ -1,6 +1,6 @@
 :- module(dispatch,
           [ start/0,
-            spawn/1,                    % :Goal
+            flush/0,
             spawn/3,                    % :Goal, -Id, +Options
             send/2,                     % +Id, +Message
             (!)/2,			% +Id, +Message
@@ -16,7 +16,6 @@
 :- use_module(library(lists)).
 
 :- meta_predicate
-    spawn(0),
     spawn(0, -, +),
     receive(:).
 
@@ -109,7 +108,11 @@ self(Pid) :-
     !,
     Me = Pid.
 self(Pid) :-
-    engine_self(Pid).
+    engine_self(Me),
+    !,
+    Me = Pid.
+self(thread(Tid)) :-
+    thread_self(Tid).
 
 run(Goal, Options) :-
     setup_call_catcher_cleanup(
@@ -136,11 +139,7 @@ link(Parent, Child) :-
     assertz(linked_child(Parent, Child)).
 
 receive(M:{Clauses}) :-
-    (   nb_current(event_queue, Messages0)
-    ->  engine_yield(true)
-    ;   Messages0 = []
-    ),
-    engine_fetch(NewMessage),
+    process_get_message(Message, Messages0),
     debug(dispatch, 'Process received ~p', [NewMessage]),
     (   select(Message, [NewMessage|Messages0], Messages1),
         receive_clause(Clauses, Message, Body)
@@ -148,6 +147,21 @@ receive(M:{Clauses}) :-
         call(M:Body)
     ;   receive(M:{Clauses})
     ).
+
+process_get_message(Message, Messages) :-
+    engine_self(_),
+    !,
+    (   nb_current(event_queue, Messages)
+    ->  engine_yield(true)
+    ;   Messages = []
+    ),
+    engine_fetch(Message).
+process_get_message(Message, Messages) :-
+    (   nb_current(event_queue, Messages)
+    ->  true
+    ;   Messages = []
+    ),
+    thread_get_message(!(Message)).
 
 receive_clause((C1;C2), Message, Body) :-
     !,
@@ -176,6 +190,9 @@ Pid ! Message :-
 send(Pid, Message) :-
     hook_send(Pid, Message),
     !.
+send(thread(Tid), Message) :-
+    !,
+    thread_send_message(Tid, !(Message)).
 send(Pid, Message) :-
     send_local(Pid, user, Message).
 
@@ -187,15 +204,20 @@ send_local(Pid, Type, Message) :-
 destroy_process(Pid) :-
     send_local(Pid, admin, destroy).
 
+%!  flush
+%
+%   Print all pending messages
 
-		 /*******************************
-		 *            PROLOG		*
-		 *******************************/
+flush :-
+    thread_self(Me),
+    thread_get_message(Me, !(X), [timeout(0)]),
+    !,
+    print_message(informational, received(X)),
+    flush.
+flush.
 
-spawn(Goal) :-
-    start,
-    spawn(run_goal, Pid, []),
-    send(Pid, run(Goal)).
+:- multifile
+    prolog:message//1.
 
-run_goal :-
-    receive({ run(Goal) -> call(Goal) }).
+prolog:message(received(X)) -->
+    [ 'Got ~p'-[X] ].
