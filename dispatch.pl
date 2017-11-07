@@ -2,7 +2,7 @@
           [ start/0,
             spawn/1,                    % :Goal
             spawn/3,                    % :Goal, -Id, +Options
-            send/2,                     % +Id, +Message
+            send_local/2,                     % +Id, +Message
             receive/1,                  % +Clauses
             link/2,                     % +Parent, +Child
             self/1,                     % -Id
@@ -85,10 +85,15 @@ dispatch_event(Pid, user, Message) :-
 %   Spawn a new process.
 
 spawn(Goal, Engine, Options) :-
-    engine_create(true, run(Goal, Options), Engine, Options).
+    engine_create(true, run(Goal, Options), Engine, Options),
+    (   option(link(true), Options)
+    ->  self(Me),
+        link(Me, Engine)
+    ;   true
+    ).
 
 self(Pid) :-
-    thread_self(Pid).
+    engine_self(Pid).
 
 run(Goal, Options) :-
     setup_call_catcher_cleanup(
@@ -100,7 +105,7 @@ run(Goal, Options) :-
 down(Reason, Options) :-
     option(monitor(Pid), Options),
     self(Me),
-    send(Pid, down(Me, Reason)),
+    send_local(Pid, down(Me, Reason)),
     destroy_children(Me).
 
 destroy_children(Me) :-
@@ -144,15 +149,16 @@ receive_clause((HeadAndGuard -> Body), Message, Body) :- !,
     ),
     debug(dispatch, 'Body: ~p', [Body]).
 
-send(Pid, Message) :-
-    send(Pid, user, Message).
+send_local(Pid, Message) :-
+    send_local(Pid, user, Message).
 
-send(Pid, Type, Message) :-
+send_local(Pid, Type, Message) :-
+    start,
     next_dispatch_queue(Queue),
     thread_send_message(Queue, event(Pid, Type, Message)).
 
 destroy_process(Pid) :-
-    send(Pid, admin, destroy).
+    send_local(Pid, admin, destroy).
 
 
 		 /*******************************
@@ -162,7 +168,7 @@ destroy_process(Pid) :-
 spawn(Goal) :-
     start,
     spawn(run_goal, Pid, []),
-    send(Pid, run(Goal)).
+    send_local(Pid, run(Goal)).
 
 run_goal :-
     receive({ run(Goal) -> call(Goal) }).
