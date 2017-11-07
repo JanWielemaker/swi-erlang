@@ -50,6 +50,12 @@ node_action(send, Data, _WebSocket) :-
     term_string(Message, String),
     thread_property(Engine, id(Id)),
     send(Engine, Message).
+node_action(send, Data, _WebSocket) :-
+    _{thread:Id, prolog:String} :< Data,
+    !,
+    term_string(Message, String),
+    thread_property(Engine, id(Id)),
+    send(thread(Engine), Message).
 node_action(_Action, Data, _WebSocket) :-
     debug(ws, 'Got unknown data: ~p', [Data]).
 
@@ -81,6 +87,11 @@ spawn_remote(Node, Goal, process(Node,Id), _Options) :-
 %
 %   Send a message to a remote process.
 
+send_remote(process(Node,thread(Id)), Message) :-
+    !,
+    connection(Node, Socket),
+    term_string(Message, String),
+    ws_send(Socket, json(_{action:send, thread:Id, prolog:String})).
 send_remote(process(Node,Id), Message) :-
     connection(Node, Socket),
     term_string(Message, String),
@@ -91,9 +102,15 @@ send_remote(process(Node,Id), Message) :-
 %   Get a global identifier for self.
 
 self_remote(process(Node, Id)) :-
-    self_node(Node),
     engine_self(Engine),
+    !,
+    self_node(Node),
     thread_property(Engine, id(Id)).
+self_remote(process(Node, thread(Id))) :-
+    thread_self(Thread),
+    !,
+    self_node(Node),
+    thread_property(Thread, id(Id)).
 
 		 /*******************************
 		 *    EXTEND LOCAL PROCESSES	*
