@@ -1,12 +1,16 @@
 :- module(dispatch,
           [ start/0,
             flush/0,
+            spawn/1,                    % :Goal
+            spawn/2,                    % :Goal, -Id
             spawn/3,                    % :Goal, -Id, +Options
             send/2,                     % +Id, +Message
             (!)/2,			% +Id, +Message
             receive/1,                  % +Clauses
             link/2,                     % +Parent, +Child
             self/1,                     % -Id
+            register/2,                 % +Alias, +Pid
+            unregister/1,		% +Alias
 
             op(1000, xfx, when),
             op(800, xfx, !)
@@ -16,6 +20,8 @@
 :- use_module(library(lists)).
 
 :- meta_predicate
+    spawn(0),
+    spawn(0, -),
     spawn(0, -, +),
     receive(:).
 
@@ -32,6 +38,7 @@
 		 *******************************/
 
 :- dynamic
+    registered/2,                       % Name, Id
     dispatch_queue/1,
     worker/1,
     linked_child/2.                     % Parent, Child
@@ -88,9 +95,17 @@ dispatch_event(Pid, user, Message) :-
 		 *            PROCESSES		*
 		 *******************************/
 
-%!  spawn(:Goal, -Pid, +Options)
+%!  spawn(:Goal) is det.
+%!  spawn(:Goal, -Pid) is det.
+%!  spawn(:Goal, -Pid, +Options) is det.
 %
 %   Spawn a new process.
+
+spawn(Goal) :-
+    spawn(Goal, _, []).
+
+spawn(Goal, Engine) :-
+    spawn(Goal, Engine, []).
 
 spawn(Goal, Engine, Options) :-
     select_option(monitor(true), Options, Options1),
@@ -202,6 +217,10 @@ receive_clause((HeadAndGuard -> Body), Message, Body) :- !,
 Pid ! Message :-
     send(Pid, Message).
 
+send(Alias, Message) :-
+    registered(Alias, Pid),
+    !,
+    send(Pid, Message).
 send(Pid, Message) :-
     hook_send(Pid, Message),
     !.
@@ -218,6 +237,15 @@ send_local(Pid, Type, Message) :-
 
 destroy_process(Pid) :-
     send_local(Pid, admin, destroy).
+
+%!  register(+Alias, +Pid) is det.
+%!  unregister(+Alias) is det.
+
+register(Alias, Pid) :-
+    asserta(registered(Alias, Pid)).
+
+unregister(Alias) :-
+    retractall(registered(Alias, _)).
 
 %!  flush
 %
