@@ -101,7 +101,8 @@ spawn(Goal, Engine, Options) :-
     ->  self(Me),
         link(Me, Engine)
     ;   true
-    ).
+    ),
+    send(Engine, '$start').
 
 self(Pid) :-
     hook_self(Me),
@@ -139,27 +140,33 @@ link(Parent, Child) :-
     assertz(linked_child(Parent, Child)).
 
 receive(M:{Clauses}) :-
-    process_get_message(Message, Messages0),
+    process_get_message(Message, Queue0),
     debug(dispatch, 'Process received ~p', [NewMessage]),
-    (   select(Message, [NewMessage|Messages0], Messages1),
+    (   select(Message, [NewMessage|Queue0], Queue1),
         receive_clause(Clauses, Message, Body)
-    ->  b_setval(event_queue, Messages1),
+    ->  b_setval(event_queue, Queue1),
         call(M:Body)
     ;   receive(M:{Clauses})
     ).
 
-process_get_message(Message, Messages) :-
+process_get_message(Message, Queue) :-
     engine_self(_),
     !,
-    (   nb_current(event_queue, Messages)
+    (   nb_current(event_queue, Queue0)
     ->  engine_yield(true)
-    ;   Messages = []
+    ;   Queue0 = []
     ),
-    engine_fetch(Message).
-process_get_message(Message, Messages) :-
-    (   nb_current(event_queue, Messages)
+    engine_fetch(Message0),
+    (   Message0 == '$start'
+    ->  engine_yield(true),
+        process_get_message(Message, Queue)
+    ;   Message = Message0,
+        Queue = Queue0
+    ).
+process_get_message(Message, Queue) :-
+    (   nb_current(event_queue, Queue)
     ->  true
-    ;   Messages = []
+    ;   Queue = []
     ),
     thread_get_message(!(Message)).
 
