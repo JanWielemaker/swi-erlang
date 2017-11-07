@@ -3,19 +3,15 @@
 :- use_module(dispatch).
 :- use_module(library(debug)).
 
-%:- debug(ws).
-%:- debug(dispatch).
-
-:- op(800, xfx, !).
-
-Pid ! Msg :- send_remote(Pid, Msg).
+% :- debug(ws).
+% :- debug(dispatch).
 
 s(N, Msg) :-
     spawn(start(N, Msg)).
 
 start(NumberProcesses, Message) :-
     get_time(Start),
-    self_remote(Self),
+    self(Self),
     create(NumberProcesses, Self, Message),
     receive({ Msg ->
               get_time(End),
@@ -27,7 +23,7 @@ create(1, NextProcess, Message) :- !,
 create(NumberProcesses, NextProcess, Message) :-
     Port is (NumberProcesses mod 2) + 3060,
     r(Port, loop(NextProcess), Prev),
-    self_remote(Me),
+    self(Me),
     link(Me, Prev),
     NumberProcesses1 is NumberProcesses - 1,
     create(NumberProcesses1, Prev, Message).
@@ -40,4 +36,4 @@ loop(NextProcess) :-
 
 r(Port, Goal, Id) :-
     format(atom(URL), 'http://localhost:~w/erlang', [Port]),
-    spawn_remote(URL, Goal, Id, []).
+    spawn(Goal, Id, [node(URL)]).

@@ -8,6 +8,7 @@
 :- use_module(library(http/websocket)).
 :- use_module(library(http/http_host)).
 :- use_module(library(debug)).
+:- use_module(library(option)).
 
 :- dynamic
     websocket/3,                           % Node, Thread, Socket
@@ -48,7 +49,7 @@ node_action(send, Data, _WebSocket) :-
     !,
     term_string(Message, String),
     thread_property(Engine, id(Id)),
-    send_local(Engine, Message).
+    send(Engine, Message).
 node_action(_Action, Data, _WebSocket) :-
     debug(ws, 'Got unknown data: ~p', [Data]).
 
@@ -91,5 +92,24 @@ send_remote(process(Node,Id), Message) :-
 
 self_remote(process(Node, Id)) :-
     self_node(Node),
-    self(Engine),
+    engine_self(Engine),
     thread_property(Engine, id(Id)).
+
+		 /*******************************
+		 *    EXTEND LOCAL PROCESSES	*
+		 *******************************/
+
+:- multifile
+    dispatch:hook_self/1.
+
+dispatch:hook_self(Me) :-
+    self_remote(Me).
+
+dispatch:hook_spawn(Goal, Engine, Options) :-
+    select_option(node(Node), Options, RestOptions),
+    !,
+    spawn_remote(Node, Goal, Engine, RestOptions).
+
+dispatch:hook_send(process(Node, Id), Message) :-
+    !,
+    send_remote(process(Node,Id), Message).

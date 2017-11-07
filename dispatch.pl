@@ -2,11 +2,14 @@
           [ start/0,
             spawn/1,                    % :Goal
             spawn/3,                    % :Goal, -Id, +Options
-            send_local/2,                     % +Id, +Message
+            send/2,                     % +Id, +Message
+            (!)/2,			% +Id, +Message
             receive/1,                  % +Clauses
             link/2,                     % +Parent, +Child
             self/1,                     % -Id
-            op(1000, xfx, when)
+
+            op(1000, xfx, when),
+            op(800, xfx, !)
           ]).
 :- use_module(library(debug)).
 :- use_module(library(option)).
@@ -18,6 +21,12 @@
     receive(:).
 
 % :- debug(dispatch).
+
+:- multifile
+    hook_self/1,
+    hook_spawn/3,
+    hook_send/2.
+
 
 		 /*******************************
 		 *             STATE		*
@@ -85,6 +94,9 @@ dispatch_event(Pid, user, Message) :-
 %   Spawn a new process.
 
 spawn(Goal, Engine, Options) :-
+    hook_spawn(Goal, Engine, Options),
+    !.
+spawn(Goal, Engine, Options) :-
     engine_create(true, run(Goal, Options), Engine, Options),
     (   option(link(true), Options)
     ->  self(Me),
@@ -92,6 +104,10 @@ spawn(Goal, Engine, Options) :-
     ;   true
     ).
 
+self(Pid) :-
+    hook_self(Me),
+    !,
+    Me = Pid.
 self(Pid) :-
     engine_self(Pid).
 
@@ -105,7 +121,7 @@ run(Goal, Options) :-
 down(Reason, Options) :-
     option(monitor(Pid), Options),
     self(Me),
-    send_local(Pid, down(Me, Reason)),
+    send(Pid, down(Me, Reason)),
     destroy_children(Me).
 
 destroy_children(Me) :-
@@ -149,7 +165,18 @@ receive_clause((HeadAndGuard -> Body), Message, Body) :- !,
     ),
     debug(dispatch, 'Body: ~p', [Body]).
 
-send_local(Pid, Message) :-
+%!  send(+Pid, +Message) is det.
+%!  !(+Pid, +Message) is det.
+%
+%   Send Message to Pid.
+
+Pid ! Message :-
+    send(Pid, Message).
+
+send(Pid, Message) :-
+    hook_send(Pid, Message),
+    !.
+send(Pid, Message) :-
     send_local(Pid, user, Message).
 
 send_local(Pid, Type, Message) :-
@@ -168,7 +195,7 @@ destroy_process(Pid) :-
 spawn(Goal) :-
     start,
     spawn(run_goal, Pid, []),
-    send_local(Pid, run(Goal)).
+    send(Pid, run(Goal)).
 
 run_goal :-
     receive({ run(Goal) -> call(Goal) }).

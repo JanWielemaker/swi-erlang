@@ -1,9 +1,5 @@
 :- use_module(dispatch).
 
-:- op(800, xfx, !).
-
-Pid ! Msg :- send(Pid, Msg).
-
 s(N, Msg) :-
     spawn(start(N, Msg)).
 
@@ -19,11 +15,9 @@ start(NumberProcesses, Message) :-
 create(1, NextProcess, Message) :- !,
     NextProcess ! Message.
 create(NumberProcesses, NextProcess, Message) :-
-    spawn(loop(NextProcess), Prev, [
-        %link(true)
-    ]),
-    self(Me),
-    link(Me, Prev),
+    spawn(loop(NextProcess), Prev,
+          [ link(true)
+          ]),
     NumberProcesses1 is NumberProcesses - 1,
     create(NumberProcesses1, Prev, Message).
 
