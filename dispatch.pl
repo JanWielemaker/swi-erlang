@@ -168,7 +168,10 @@ receive(M:{Clauses}) :-
     (   select(Message, [NewMessage|Queue0], Queue1),
         receive_clause(Clauses, Message, Body)
     ->  b_setval(event_queue, Queue1),
-        call(M:Body)
+        (   call(M:Body)
+        *-> true
+        ;   format('Body failed: ~p~n', [M:Body])
+        )
     ;   receive(M:{Clauses})
     ).
 
