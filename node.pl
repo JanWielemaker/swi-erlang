@@ -33,10 +33,11 @@ node_loop(WebSocket) :-
     ).
 
 node_action(spawn, Data, WebSocket) :-
-    _{thread:Creator, prolog:String} :< Data,
+    _{thread:Creator, prolog:String, options:OptionString} :< Data,
     !,
     term_string(Goal, String),
-    spawn(Goal, Engine, []),
+    term_string(Options, OptionString),
+    spawn(Goal, Engine, Options),
     thread_property(Engine, id(Id)),
     ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:Id})).
 node_action(spawned, Data, _WebSocket) :-
@@ -75,12 +76,13 @@ connection(Node, Socket) :-
 %
 %   Spawn a process on a remote node.
 
-spawn_remote(Node, Goal, process(Node,Id), _Options) :-
+spawn_remote(Node, Goal, process(Node,Id), Options) :-
     connection(Node, Socket),
     term_string(Goal, String),
+    term_string(OptionString, Options),
     thread_self(Me),
     thread_property(Me, id(MyId)),
-    ws_send(Socket, json(_{action:spawn, thread:MyId, prolog:String})),
+    ws_send(Socket, json(_{action:spawn, thread:MyId, prolog:String, options:OptionString})),
     thread_get_message(Me, spawned(Id)).
 
 %!  send_remote(Id, Message) :-
@@ -130,7 +132,11 @@ dispatch:hook_spawn(Goal, Engine, Options) :-
 dispatch:hook_send(process(Node, Id), Message) :-
     !,
     (   self_node(Node)
-    ->  thread_property(Engine, id(Id)),
-        send(Engine, Message)
+    ->  (   Id = thread(Tid)
+        ->  thread_property(Thread, id(Tid)),
+            send(thread(Thread), Message)
+        ;   thread_property(Engine, id(Id)),
+            send(Engine, Message)
+        )
     ;   send_remote(process(Node,Id), Message)
     ).

@@ -93,9 +93,17 @@ dispatch_event(Pid, user, Message) :-
 %   Spawn a new process.
 
 spawn(Goal, Engine, Options) :-
+    select_option(monitor(true), Options, Options1),
+    !,
+    self(Me),
+    spawn2(Goal, Engine, [monitor(Me)|Options1]).
+spawn(Goal, Engine, Options) :-
+    spawn2(Goal, Engine, Options).
+
+spawn2(Goal, Engine, Options) :-
     hook_spawn(Goal, Engine, Options),
     !.
-spawn(Goal, Engine, Options) :-
+spawn2(Goal, Engine, Options) :-
     engine_create(true, run(Goal, Options), Engine, Options),
     (   option(link(true), Options)
     ->  self(Me),
