@@ -140,7 +140,7 @@ link(Parent, Child) :-
     assertz(linked_child(Parent, Child)).
 
 receive(M:{Clauses}) :-
-    process_get_message(Message, Queue0),
+    process_get_message(NewMessage, Queue0),
     debug(dispatch, 'Process received ~p', [NewMessage]),
     (   select(Message, [NewMessage|Queue0], Queue1),
         receive_clause(Clauses, Message, Body)
