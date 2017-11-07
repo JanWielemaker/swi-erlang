@@ -112,4 +112,8 @@ dispatch:hook_spawn(Goal, Engine, Options) :-
 
 dispatch:hook_send(process(Node, Id), Message) :-
     !,
-    send_remote(process(Node,Id), Message).
+    (   self_node(Node)
+    ->  thread_property(Engine, id(Id)),
+        send(Engine, Message)
+    ;   send_remote(process(Node,Id), Message)
+    ).
