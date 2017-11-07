@@ -21,7 +21,9 @@ node_manager(Request) :-
 node_loop(WebSocket) :-
     ws_receive(WebSocket, Message, [format(json)]),
     (   Message.opcode == close
-    ->  true
+    ->  retractall(websocket(_,_,WebSocket)),
+        thread_self(Me),
+        thread_detach(Me)
     ;   Data = Message.data,
         debug(ws, 'Got ~p', [Data]),
         atom_string(Action, Data.action),
