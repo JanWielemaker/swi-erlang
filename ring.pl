@@ -5,25 +5,16 @@
 Pid ! Msg :- send(Pid, Msg).
 
 s(N, Msg) :-
-    start,
-    spawn(hello, Pid, []),
-    Pid ! start(N, Msg).
-
-hello :-
-    get_time(Start),
-    receive({
-        start(N, Msg) -> start(N, Msg),
-        hello
-        ; hello ->
-        get_time(End),
-        Time is End - Start,
-        writeln(hello(Time))
-    }).
-
+    spawn(start(N, Msg)).
 
 start(NumberProcesses, Message) :-
+    get_time(Start),
     self(Self),
-    create(NumberProcesses, Self, Message).
+    create(NumberProcesses, Self, Message),
+    receive({ Msg ->
+              get_time(End),
+              Wall is End - Start,
+              writeln(Msg-Wall) }).
 
 create(1, NextProcess, Message) :- !,
     NextProcess ! Message.

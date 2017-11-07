@@ -1,5 +1,6 @@
 :- module(dispatch,
           [ start/0,
+            spawn/1,                    % :Goal
             spawn/3,                    % :Goal, -Id, +Options
             send/2,                     % +Id, +Message
             receive/1,                  % +Clauses
@@ -12,10 +13,11 @@
 :- use_module(library(lists)).
 
 :- meta_predicate
+    spawn(0),
     spawn(0, -, +),
     receive(:).
 
-%:- debug(dispatch).
+% :- debug(dispatch).
 
 		 /*******************************
 		 *             STATE		*
@@ -131,13 +133,15 @@ receive_clause((C1;C2), Message, Body) :-
     (   receive_clause(C1, Message, Body)
     ;   receive_clause(C2, Message, Body)
     ).
-receive_clause((Head -> when(Guard, Body)), Message, Body) :- !,
-    subsumes_term(Head, Message),
-    Head = Message,
-    once(Guard).
-receive_clause((Head->Body), Message, Body) :-
-    subsumes_term(Head, Message),
-    Head = Message,
+receive_clause((HeadAndGuard -> Body), Message, Body) :- !,
+    (   subsumes_term(when(Head,Guard), HeadAndGuard)
+    ->  when(Head,Guard) = HeadAndGuard,
+        subsumes_term(Head, Message),
+        Head = Message,
+        call(Guard)
+    ;   subsumes_term(HeadAndGuard, Message),
+        HeadAndGuard = Message
+    ),
     debug(dispatch, 'Body: ~p', [Body]).
 
 send(Pid, Message) :-
@@ -149,3 +153,16 @@ send(Pid, Type, Message) :-
 
 destroy_process(Pid) :-
     send(Pid, admin, destroy).
+
+
+		 /*******************************
+		 *            PROLOG		*
+		 *******************************/
+
+spawn(Goal) :-
+    start,
+    spawn(run_goal, Pid, []),
+    send(Pid, run(Goal)).
+
+run_goal :-
+    receive({ run(Goal) -> call(Goal) }).
