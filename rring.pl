@@ -3,11 +3,8 @@
 :- use_module(dispatch).
 :- use_module(library(debug)).
 
-% :- debug(ws).
-% :- debug(dispatch).
-
-s(N, Msg) :-
-    spawn(start(N, Msg)).
+%:- debug(ws).
+%:- debug(dispatch).
 
 start(NumberProcesses, Message) :-
     get_time(Start),
