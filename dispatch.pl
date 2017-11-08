@@ -174,27 +174,18 @@ receive(Clauses) :-
     process_queue(Queue0),
     self(Self),
     debug(dispatch(receive), '~p queue: ~p', [Self, Queue0]),
-    dispatch(Queue0, Clauses, Queue1),
-    (   Queue0 == Queue1
-    ->  process_get_message(New),
+    (   select(Message, Queue0, Queue1),
+        receive_clause(Clauses, Message, Body)
+    ->  b_setval(event_queue, Queue1),
+        call_body(Clauses, Body)
+    ;   process_get_message(New),
         b_setval(event_queue, [New|Queue0]),
         receive(Clauses)
-    ;   true
     ).
 
-dispatch(Queue0, Clauses, Queue) :-
-    select(Message, Queue0, Queue1),
-    receive_clause(Clauses, Message, Body),
-    !,
-    b_setval(event_queue, Queue1),
-    Clauses = M:_,
+call_body(M:_, Body) :-
     debug(dispatch(call), 'Calling ~p', [M:Body]),
-    call_body(M:Body),
-    dispatch(Queue1, Clauses, Queue).
-dispatch(Queue, _, Queue).
-
-call_body(Body) :-
-    (   call(Body)
+    (   call(M:Body)
     *-> true
     ;   format('Body failed: ~p~n', [Body])
     ).
