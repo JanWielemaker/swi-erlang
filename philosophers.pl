@@ -3,6 +3,15 @@
 % -module(philosophers).
 % -export([dining/0]).
 
+:- debug(dispatch(send)).
+:- debug(dispatch(receive)).
+:- debug(dispatch(wakeup)).
+:- debug(dispatch(down)).
+
+bt(Id, Depth) :-
+    thread_property(E, id(Id)),
+    engine_post(E, backtrace(Depth), _).
+
 sleep :-
     Time is random_float/3,
     sleep(Time).
@@ -27,10 +36,12 @@ doForks(ForkList) :-
 areAvailable(Forks, Have) :-
     self(Self),
     forks ! {available, Forks, Self},
+    writeln(forks=Forks),
     receive({
 		{areAvailable, false} -> Have = false;
 		{areAvailable, true} -> Have = true
-    }).
+    }),
+    writeln(have=Have).
 
 
 processWaitList([], false).
@@ -54,7 +65,9 @@ doWaiter(WaitList, ClientCount, EatingCount, Busy) :-
 			WaitList1 = [Client|WaitList],	%% add to waiting list
                         (   Busy == false,
                             EatingCount<2
-                        ->  processWaitList(WaitList1, Busy1)
+                        ->  writeln(waitlist1=WaitList1),
+                            processWaitList(WaitList1, Busy1),
+                            format("Busy: ~p~n", [Busy1])
                         ;   Busy1 = Busy
                         ),
 			doWaiter(WaitList1, ClientCount, EatingCount, Busy1);
@@ -109,11 +122,17 @@ dining :-	AllForks = [1, 2, 3, 4, 5],
                 spawn(doWaiter([], Clients, 0, false), WaiterPid),
 		register(waiter, WaiterPid),
 		Life_span = 20,
-		spawn(philosopher('Aristotle', {5, 1}, Life_span)),
-		spawn(philosopher('Kant', {1, 2}, Life_span)),
-		spawn(philosopher('Spinoza', {2, 3}, Life_span)),
-		spawn(philosopher('Marx', {3, 4}, Life_span)),
-		spawn(philosopher('Russel', {4, 5}, Life_span)),
+		spawn(philosopher('Aristotle', {5, 1}, Life_span), Aristotle),
+		spawn(philosopher('Kant', {1, 2}, Life_span), Kant),
+		spawn(philosopher('Spinoza', {2, 3}, Life_span), Spinoza),
+		spawn(philosopher('Marx', {3, 4}, Life_span), Marx),
+		spawn(philosopher('Russel', {4, 5}, Life_span), Russel),
+
+                register(aristotle, Aristotle),
+                register(kant, Kant),
+                register(spinoza, Spinoza),
+                register(marx, Marx),
+                register(russel, Russel),
 
 		receive({
 			{allgone} -> format("Dining room closed.~n")

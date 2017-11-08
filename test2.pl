@@ -1,5 +1,8 @@
 :- use_module(dispatch).
 
+:- debug(dispatch).
+:- debug(dispatch(_)).
+
 pp :-
     spawn(ping, Ping, [alias(ping)]),
     spawn(pong(Ping), Pong, [alias(pong)]),
