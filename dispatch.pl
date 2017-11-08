@@ -53,7 +53,7 @@ start :-
     !.
 start :-
     make_dispatch_queues(1),
-    make_workers(1).
+    make_workers(5).
 
 
 make_dispatch_queues(N) :-
@@ -67,8 +67,9 @@ next_dispatch_queue(Q) :-
 
 make_workers(N) :-
     dispatch_queue(Queue),
-    forall(between(1, N, _),
-           (   thread_create(work(Queue), Tid, [alias(dispatch)]),
+    forall(between(1, N, I),
+           (   atom_concat(dispatch_, I, Alias),
+               thread_create(work(Queue), Tid, [alias(Alias)]),
                assertz(worker(Tid))
            )).
 
@@ -146,10 +147,14 @@ run(Goal, Options) :-
         down(Catcher, Options)).
 
 down(Reason, Options) :-
-    option(monitor(Pid), Options),
-    self(Me),
-    send(Pid, down(Me, Reason)),
-    destroy_children(Me).
+    self(Self),
+    debug(dispatch(down), '~p down on ~p', [Self, Reason]),
+    (   option(monitor(Pid), Options)
+    ->  send(Pid, down(Self, Reason))
+    ;   true
+    ),
+    retractall(registered(_, Self)),
+    destroy_children(Self).
 
 destroy_children(Me) :-
     forall(retract(linked_child(Me, Child)),
@@ -197,17 +202,27 @@ process_get_queue([Message|Queue]) :-
         b_setval(event_queue, [])
     ),
     engine_fetch(Message0),
-    (   Message0 == '$start'
-    ->  engine_yield(true),
-        engine_fetch(Message)
-    ;   Message = Message0
-    ).
+    service_message(Message0, Message).
 process_get_queue([Message|Queue]) :-
     (   nb_current(event_queue, Queue)
     ->  true
     ;   Queue = []
     ),
     thread_get_message(!(Message)).
+
+service_message(Message0, Message) :-
+    ground(Message0),
+    service_message(Message0), !,
+    engine_yield(true),
+    engine_fetch(Message1),
+    service_message(Message1, Message).
+service_message(Message, Message).
+
+service_message('$start').
+service_message(backtrace(Depth)) :-
+    set_prolog_flag(backtrace_goal_depth, 10),
+    backtrace(Depth).
+
 
 receive_clause(_M:{Clauses}, Message, Body) :-
     receive_clause2(Clauses, Message, Body).
