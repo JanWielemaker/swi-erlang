@@ -173,6 +173,7 @@ dispatch(Queue0, Clauses, Queue) :-
     receive_clause(Clauses, Message, Body),
     !,
     Clauses = M:_,
+    debug(dispatch, 'Calling ~p', [M:Body]),
     call_body(M:Body),
     dispatch(Queue1, Clauses, Queue).
 dispatch(Queue, _, Queue).
@@ -186,17 +187,16 @@ call_body(Body) :-
 process_get_message(Message, Queue) :-
     engine_self(_),
     !,
-    (   nb_current(event_queue, Queue0)
+    (   nb_current(event_queue, Queue)
     ->  engine_yield(true)
-    ;   Queue0 = [],
+    ;   Queue = [],
         b_setval(event_queue, [])
     ),
     engine_fetch(Message0),
     (   Message0 == '$start'
     ->  engine_yield(true),
-        process_get_message(Message, Queue)
-    ;   Message = Message0,
-        Queue = Queue0
+        engine_fetch(Message)
+    ;   Message = Message0
     ).
 process_get_message(Message, Queue) :-
     (   nb_current(event_queue, Queue)
