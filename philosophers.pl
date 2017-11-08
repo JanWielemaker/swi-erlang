@@ -3,17 +3,19 @@
 % -module(philosophers).
 % -export([dining/0]).
 
-:- debug(dispatch(send)).
-:- debug(dispatch(receive)).
-:- debug(dispatch(wakeup)).
-:- debug(dispatch(down)).
+d :-
+   /* debug(dispatch(send)),
+    debug(dispatch(receive)),
+    debug(dispatch(wakeup)),
+    debug(dispatch(down)), */
+    tmon,
+    interactor,
+    debug,
+    dining.
 
-bt(Id, Depth) :-
-    thread_property(E, id(Id)),
-    engine_post(E, backtrace(Depth), _).
-
+sleep :- !.
 sleep :-
-    Time is random_float/3,
+    Time is random_float/10,
     sleep(Time).
 
 doForks(ForkList) :-
@@ -36,12 +38,10 @@ doForks(ForkList) :-
 areAvailable(Forks, Have) :-
     self(Self),
     forks ! {available, Forks, Self},
-    writeln(forks=Forks),
     receive({
 		{areAvailable, false} -> Have = false;
 		{areAvailable, true} -> Have = true
-    }),
-    writeln(have=Have).
+    }).
 
 
 processWaitList([], false).
@@ -65,9 +65,7 @@ doWaiter(WaitList, ClientCount, EatingCount, Busy) :-
 			WaitList1 = [Client|WaitList],	%% add to waiting list
                         (   Busy == false,
                             EatingCount<2
-                        ->  writeln(waitlist1=WaitList1),
-                            processWaitList(WaitList1, Busy1),
-                            format("Busy: ~p~n", [Busy1])
+                        ->  processWaitList(WaitList1, Busy1)
                         ;   Busy1 = Busy
                         ),
 			doWaiter(WaitList1, ClientCount, EatingCount, Busy1);
@@ -81,27 +79,28 @@ doWaiter(WaitList, ClientCount, EatingCount, Busy) :-
 			doWaiter(WaitList, ClientCount, EatingCount1, R1) ;
 		{leaving} ->
                         ClientCount1 is ClientCount - 1,
-
+		        flag(left_received, N, N+1),
 			doWaiter(WaitList, ClientCount1, EatingCount, Busy)
         }).
 
 
 philosopher(Name, _Forks, 0) :-
         format("~s is leaving.~n", [Name]),
-	waiter ! {leaving}.
+	waiter ! {leaving},
+        flag(left, N, N+1).
 philosopher(Name, Forks, Cycle) :-
 	self(Self),
 
-	format("~s is thinking.~n", [Name]),
+	format("~s is thinking (cycle ~w).~n", [Name, Cycle]),
 	sleep,
 
-	format("~s is hungry.~n", [Name]),
+	format("~s is hungry (cycle ~w).~n", [Name, Cycle]),
 	waiter ! {waiting, {Self, Forks}}, %%sit at table
 
 	receive({
 		{served}-> forks ! {grabforks, Forks},	%%grab forks
 			waiter ! {eating, {Self, Forks}},	%%start eating
-			format("~s is eating.~n", [Name])
+			format("~s is eating (cycle ~w).~n", [Name, Cycle])
         }),
 
 	sleep,
