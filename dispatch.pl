@@ -162,17 +162,25 @@ destroy_children(Me) :-
 link(Parent, Child) :-
     assertz(linked_child(Parent, Child)).
 
-receive(M:{Clauses}) :-
+receive(Clauses) :-
     process_get_message(NewMessage, Queue0),
     debug(dispatch, 'Process received ~p', [NewMessage]),
-    (   select(Message, [NewMessage|Queue0], Queue1),
-        receive_clause(Clauses, Message, Body)
-    ->  b_setval(event_queue, Queue1),
-        (   call(M:Body)
-        *-> true
-        ;   format('Body failed: ~p~n', [M:Body])
-        )
-    ;   receive(M:{Clauses})
+    dispatch([NewMessage|Queue0], Clauses, Queue1),
+    b_setval(event_queue, Queue1).
+
+dispatch(Queue0, Clauses, Queue) :-
+    select(Message, Queue0, Queue1),
+    receive_clause(Clauses, Message, Body),
+    !,
+    Clauses = M:_,
+    call_body(M:Body),
+    dispatch(Queue1, Clauses, Queue).
+dispatch(Queue, _, Queue).
+
+call_body(Body) :-
+    (   call(Body)
+    *-> true
+    ;   format('Body failed: ~p~n', [Body])
     ).
 
 process_get_message(Message, Queue) :-
@@ -180,7 +188,8 @@ process_get_message(Message, Queue) :-
     !,
     (   nb_current(event_queue, Queue0)
     ->  engine_yield(true)
-    ;   Queue0 = []
+    ;   Queue0 = [],
+        b_setval(event_queue, [])
     ),
     engine_fetch(Message0),
     (   Message0 == '$start'
@@ -196,12 +205,15 @@ process_get_message(Message, Queue) :-
     ),
     thread_get_message(!(Message)).
 
-receive_clause((C1;C2), Message, Body) :-
+receive_clause(_M:{Clauses}, Message, Body) :-
+    receive_clause2(Clauses, Message, Body).
+
+receive_clause2((C1;C2), Message, Body) :-
     !,
-    (   receive_clause(C1, Message, Body)
-    ;   receive_clause(C2, Message, Body)
+    (   receive_clause2(C1, Message, Body)
+    ;   receive_clause2(C2, Message, Body)
     ).
-receive_clause((HeadAndGuard -> Body), Message, Body) :- !,
+receive_clause2((HeadAndGuard -> Body), Message, Body) :- !,
     (   subsumes_term(when(Head,Guard), HeadAndGuard)
     ->  when(Head,Guard) = HeadAndGuard,
         subsumes_term(Head, Message),
@@ -210,7 +222,7 @@ receive_clause((HeadAndGuard -> Body), Message, Body) :- !,
     ;   subsumes_term(HeadAndGuard, Message),
         HeadAndGuard = Message
     ),
-    debug(dispatch, 'Body: ~p', [Body]).
+    debug(dispatch(match), 'Message: ~p, body: ~p', [Message, Body]).
 
 %!  send(+Pid, +Message) is det.
 %!  !(+Pid, +Message) is det.
