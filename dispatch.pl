@@ -74,10 +74,10 @@ make_workers(N) :-
 
 work(Queue) :-
     thread_get_message(Queue, event(Pid, Type, Message)),
-    debug(dispatch, 'Got ~p', [event(Pid, Type, Message)]),
+    debug(dispatch(queue), 'Got ~p', [event(Pid, Type, Message)]),
     (   dispatch_event(Pid, Type, Message)
     ->  true
-    ;   debug(dispatch, 'FAILED ~p', [event(Pid, Type, Message)])
+    ;   debug(dispatch(dispatch), 'FAILED ~p', [event(Pid, Type, Message)])
     ),
     work(Queue).
 
@@ -85,10 +85,10 @@ dispatch_event(Pid, admin, destroy) :-
     !,
     engine_destroy(Pid).
 dispatch_event(Pid, user, Message) :-
+    debug(dispatch(wakeup), 'Wakeup ~p for ~p', [Pid, Message]),
     engine_post(Pid, Message, Ok),
-    debug(dispatch, 'Received ~p', [Ok]),
+    debug(dispatch(wakeup), 'Wakeup ~p replied ~p', [Pid, Ok]),
     assertion(Ok == true).
-
 
 
 		 /*******************************
@@ -163,17 +163,21 @@ link(Parent, Child) :-
     assertz(linked_child(Parent, Child)).
 
 receive(Clauses) :-
-    process_get_message(NewMessage, Queue0),
-    debug(dispatch, 'Process received ~p', [NewMessage]),
-    dispatch([NewMessage|Queue0], Clauses, Queue1),
-    b_setval(event_queue, Queue1).
+    process_get_queue(Queue0),
+    self(Me),
+    debug(dispatch(receive), '~p queue: ~p', [Me, Queue0]),
+    dispatch(Queue0, Clauses, Queue1),
+    (   Queue0 == Queue1
+    ->  receive(Clauses)
+    ;   b_setval(event_queue, Queue1)
+    ).
 
 dispatch(Queue0, Clauses, Queue) :-
     select(Message, Queue0, Queue1),
     receive_clause(Clauses, Message, Body),
     !,
     Clauses = M:_,
-    debug(dispatch, 'Calling ~p', [M:Body]),
+    debug(dispatch(call), 'Calling ~p', [M:Body]),
     call_body(M:Body),
     dispatch(Queue1, Clauses, Queue).
 dispatch(Queue, _, Queue).
@@ -184,7 +188,7 @@ call_body(Body) :-
     ;   format('Body failed: ~p~n', [Body])
     ).
 
-process_get_message(Message, Queue) :-
+process_get_queue([Message|Queue]) :-
     engine_self(_),
     !,
     (   nb_current(event_queue, Queue)
@@ -198,7 +202,7 @@ process_get_message(Message, Queue) :-
         engine_fetch(Message)
     ;   Message = Message0
     ).
-process_get_message(Message, Queue) :-
+process_get_queue([Message|Queue]) :-
     (   nb_current(event_queue, Queue)
     ->  true
     ;   Queue = []
@@ -248,6 +252,7 @@ send(Pid, Message) :-
 send_local(Pid, Type, Message) :-
     start,
     next_dispatch_queue(Queue),
+    debug(dispatch(send), 'Sending ~p ! ~p', [Pid, Message]),
     thread_send_message(Queue, event(Pid, Type, Message)).
 
 destroy_process(Pid) :-
@@ -279,3 +284,8 @@ flush.
 
 prolog:message(received(X)) -->
     [ 'Got ~p'-[X] ].
+
+user:portray(Engine) :-
+    is_engine(Engine),
+    registered(Alias, Engine),
+    writeq(Alias).
