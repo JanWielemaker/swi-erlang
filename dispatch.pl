@@ -89,10 +89,18 @@ dispatch_event(Pid, admin, destroy) :-
     !,
     engine_destroy(Pid).
 dispatch_event(Pid, user, Message) :-
+    catch(post_true(Pid, Message), E,
+          (   format('Failed to deliver ~p to ~p~n', [Message, Pid]),
+              print_message(error, E))).
+
+post_true(Pid, Message) :-
     debug(dispatch(wakeup), 'Wakeup ~p for ~p', [Pid, Message]),
     engine_post(Pid, Message, Ok),
     debug(dispatch(wakeup), 'Wakeup ~p replied ~p', [Pid, Ok]),
     assertion(Ok == true).
+
+
+
 
 
 		 /*******************************
