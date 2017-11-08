@@ -12,6 +12,9 @@
             register/2,                 % +Alias, +Pid
             unregister/1,		% +Alias
 
+            dump_backtrace/2,           % +Id, +Depth
+            dump_queue/2,               % +Id, -Queue
+
             op(1000, xfx, when),
             op(800, xfx, !)
           ]).
@@ -168,19 +171,22 @@ link(Parent, Child) :-
     assertz(linked_child(Parent, Child)).
 
 receive(Clauses) :-
-    process_get_queue(Queue0),
-    self(Me),
-    debug(dispatch(receive), '~p queue: ~p', [Me, Queue0]),
+    process_queue(Queue0),
+    self(Self),
+    debug(dispatch(receive), '~p queue: ~p', [Self, Queue0]),
     dispatch(Queue0, Clauses, Queue1),
     (   Queue0 == Queue1
-    ->  receive(Clauses)
-    ;   b_setval(event_queue, Queue1)
+    ->  process_get_message(New),
+        b_setval(event_queue, [New|Queue0]),
+        receive(Clauses)
+    ;   true
     ).
 
 dispatch(Queue0, Clauses, Queue) :-
     select(Message, Queue0, Queue1),
     receive_clause(Clauses, Message, Body),
     !,
+    b_setval(event_queue, Queue1),
     Clauses = M:_,
     debug(dispatch(call), 'Calling ~p', [M:Body]),
     call_body(M:Body),
@@ -193,35 +199,37 @@ call_body(Body) :-
     ;   format('Body failed: ~p~n', [Body])
     ).
 
-process_get_queue([Message|Queue]) :-
+process_queue(Queue) :-
+    nb_current(event_queue, Queue),
+    !.
+process_queue([]).
+
+process_get_message(Message) :-
     engine_self(_),
     !,
-    (   nb_current(event_queue, Queue)
+    (   nb_current(event_queue, _)
     ->  engine_yield(true)
-    ;   Queue = [],
-        b_setval(event_queue, [])
+    ;   b_setval(event_queue, [])
     ),
     engine_fetch(Message0),
     service_message(Message0, Message).
-process_get_queue([Message|Queue]) :-
-    (   nb_current(event_queue, Queue)
-    ->  true
-    ;   Queue = []
-    ),
+process_get_message(Message) :-
     thread_get_message(!(Message)).
 
 service_message(Message0, Message) :-
-    ground(Message0),
-    service_message(Message0), !,
-    engine_yield(true),
+    nonvar(Message0),
+    service_message2(Message0, Reply), !,
+    engine_yield(Reply),
     engine_fetch(Message1),
     service_message(Message1, Message).
 service_message(Message, Message).
 
-service_message('$start').
-service_message(backtrace(Depth)) :-
+service_message2('$start', true).
+service_message2('$backtrace'(Depth), true) :-
     set_prolog_flag(backtrace_goal_depth, 10),
     backtrace(Depth).
+service_message2('$queue', Queue) :-
+    process_queue(Queue).
 
 
 receive_clause(_M:{Clauses}, Message, Body) :-
@@ -294,13 +302,29 @@ flush :-
     flush.
 flush.
 
-:- multifile
-    prolog:message//1.
+		 /*******************************
+		 *             DEBUG		*
+		 *******************************/
 
-prolog:message(received(X)) -->
-    [ 'Got ~p'-[X] ].
+dump_backtrace(Id, Depth) :-
+    thread_property(E, id(Id)), !,
+    engine_post(E, '$backtrace'(Depth), _).
+
+dump_queue(Id, Queue) :-
+    thread_property(E, id(Id)), !,
+    engine_post(E, '$queue', Queue).
 
 user:portray(Engine) :-
     is_engine(Engine),
     registered(Alias, Engine),
     writeq(Alias).
+
+		 /*******************************
+		 *            MESSAGES		*
+		 *******************************/
+
+:- multifile
+    prolog:message//1.
+
+prolog:message(received(X)) -->
+    [ 'Got ~p'-[X] ].
