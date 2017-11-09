@@ -21,6 +21,7 @@
 :- use_module(library(debug)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
+:- use_module(library(time)).
 
 :- meta_predicate
     spawn(0),
@@ -95,12 +96,44 @@ dispatch_event(Pid, user, Message) :-
 
 post_true(Pid, Message) :-
     debug(dispatch(wakeup), 'Wakeup ~p for ~p', [Pid, Message]),
-    engine_post(Pid, Message, Ok),
-    debug(dispatch(wakeup), 'Wakeup ~p replied ~p', [Pid, Ok]),
-    assertion(Ok == true).
+    engine_post(Pid, Message, Reply),
+    debug(dispatch(wakeup), 'Wakeup ~p replied ~p', [Pid, Reply]),
+    (   nonvar(Reply),
+        Reply = timeout(TimeOut, Deadline)
+    ->  schedule_timeout(Pid, TimeOut, Deadline)
+    ;   assertion(Reply == true)
+    ).
 
+		 /*******************************
+		 *           TIMEOUT		*
+		 *******************************/
 
+%!  schedule_timeout(+Pid, +TimeOut, +Deadline)
+%
+%   Add a timeout(TimeOut) message to the queue of Pid at Deadline.
 
+schedule_timeout(Pid, TimeOut, Deadline) :-
+    catch(thread_send_message(scheduler, timeout(Pid, TimeOut, Deadline)),
+          error(existence_error(message_queue, scheduler), _),
+          with_mutex(scheduler,
+                     schedule_timeout_start(Pid, TimeOut, Deadline))).
+
+schedule_timeout_start(Pid, TimeOut, Deadline) :-
+    start_scheduler,
+    thread_send_message(scheduler, timeout(Pid, TimeOut, Deadline)).
+
+start_scheduler :-
+    thread_create(scheduler, _, [alias(scheduler), detached(true)]).
+
+scheduler :-
+    thread_get_message(Message),
+    schedule(Message),
+    scheduler.
+
+schedule(timeout(Pid, TimeOut, Deadline)) :-
+    alarm_at(Deadline, send(Pid, after(TimeOut)), _,
+             [ remove(true)
+             ]).
 
 
 		 /*******************************
@@ -186,6 +219,10 @@ receive(Clauses) :-
         receive_clause(Clauses, Message, Body)
     ->  b_setval(event_queue, Queue1),
         call_body(Clauses, Body)
+    ;   timeout(Clauses, Time)
+    ->  process_get_message(New, Time),
+        b_setval(event_queue, [New|Queue0]),
+        receive(Clauses)
     ;   process_get_message(New),
         b_setval(event_queue, [New|Queue0]),
         receive(Clauses)
@@ -203,6 +240,12 @@ process_queue(Queue) :-
     !.
 process_queue([]).
 
+%!  process_get_message(-Message) is det.
+%!  process_get_message(-Message, +TimeOut, -TimedOut)
+%
+%   Wait for a message.  If  no   message  arrived  before TimeOut unify
+%   TimedOut with `true`.
+
 process_get_message(Message) :-
     engine_self(_),
     !,
@@ -215,6 +258,28 @@ process_get_message(Message) :-
 process_get_message(Message) :-
     thread_get_message(!(Message)).
 
+process_get_message(Message, TimeOut) :-
+    engine_self(_),
+    !,
+    (   nb_current(event_queue, _)
+    ->  get_time(Now),
+        Deadline is Now+TimeOut,
+        engine_yield(timeout(TimeOut, Deadline))
+    ;   b_setval(event_queue, [])
+    ),
+    engine_fetch(Message0),
+    (   nonvar(Message0),
+        Message0 = after(_)
+    ->  Message = Message0
+    ;   service_message(Message0, Message)
+    ).
+process_get_message(Message, TimeOut) :-
+    thread_self(Self),
+    (   thread_get_message(Self, !(Message), [timeout(TimeOut)])
+    ->  true
+    ;   Message = after(TimeOut)
+    ).
+
 service_message(Message0, Message) :-
     nonvar(Message0),
     service_message2(Message0, Reply), !,
@@ -223,6 +288,7 @@ service_message(Message0, Message) :-
     service_message(Message1, Message).
 service_message(Message, Message).
 
+service_message2(after(_), true).
 service_message2('$start', true).
 service_message2('$backtrace'(Depth), true) :-
     set_prolog_flag(backtrace_goal_depth, 10),
@@ -249,6 +315,9 @@ receive_clause2((HeadAndGuard -> Body), Message, Body) :- !,
         HeadAndGuard = Message
     ),
     debug(dispatch(match), 'Message: ~p, body: ~p', [Message, Body]).
+
+timeout(Clauses, Time) :-
+    receive_clause(Clauses, after(Time), _).
 
 %!  send(+Pid, +Message) is det.
 %!  !(+Pid, +Message) is det.
