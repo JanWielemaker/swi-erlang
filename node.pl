@@ -79,7 +79,7 @@ connection(Node, Socket) :-
 spawn_remote(Node, Goal, process(Node,Id), Options) :-
     connection(Node, Socket),
     term_string(Goal, String),
-    term_string(OptionString, Options),
+    term_string(Options, OptionString),
     thread_self(Me),
     thread_property(Me, id(MyId)),
     ws_send(Socket, json(_{action:spawn, thread:MyId, prolog:String, options:OptionString})),
