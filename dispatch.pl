@@ -264,6 +264,12 @@ process_get_message(Message) :-
     thread_get_message(!(Message)).
 
 process_get_message(Message, TimeOut) :-
+    TimeOut =:= 0,
+    !,
+    self(Self),
+    send(Self, after(TimeOut)),
+    process_get_message(Message).
+process_get_message(Message, TimeOut) :-
     engine_self(_),
     !,
     (   nb_current(event_queue, _)
@@ -293,7 +299,8 @@ service_message(Message0, Message) :-
     service_message(Message1, Message).
 service_message(Message, Message).
 
-service_message2(after(_), true).
+service_message2(after(TimeOut), true) :-
+    TimeOut > 0.
 service_message2('$start', true).
 service_message2('$backtrace'(Depth), true) :-
     set_prolog_flag(backtrace_goal_depth, 10),
