@@ -91,8 +91,12 @@ dispatch_event(Pid, admin, destroy) :-
     engine_destroy(Pid).
 dispatch_event(Pid, user, Message) :-
     catch(post_true(Pid, Message), E,
-          (   format('Failed to deliver ~p to ~p~n', [Message, Pid]),
-              print_message(error, E))).
+          post_failed(E, Pid, Message)).
+
+post_failed(_, _, after(_)) :- !.
+post_failed(E, Pid, Message) :-
+    format('Failed to deliver ~p to ~p~n', [Message, Pid]),
+    print_message(error, E).
 
 post_true(Pid, Message) :-
     debug(dispatch(wakeup), 'Wakeup ~p for ~p', [Pid, Message]),
@@ -220,7 +224,8 @@ receive(Clauses) :-
     ->  b_setval(event_queue, Queue1),
         call_body(Clauses, Body)
     ;   timeout(Clauses, Time)
-    ->  process_get_message(New, Time),
+    ->  debug(dispatch(timeout), '~p: wait for ~p sec.', [Self, Time]),
+        process_get_message(New, Time),
         b_setval(event_queue, [New|Queue0]),
         receive(Clauses)
     ;   process_get_message(New),
@@ -316,8 +321,23 @@ receive_clause2((HeadAndGuard -> Body), Message, Body) :- !,
     ),
     debug(dispatch(match), 'Message: ~p, body: ~p', [Message, Body]).
 
-timeout(Clauses, Time) :-
-    receive_clause(Clauses, after(Time), _).
+%!  timeout(:Clauses, -Timeout) is semidet.
+%
+%   True when Clauses contains a after(TimeOut) message.
+
+timeout(_M:{Clauses}, Timeout) :-
+    timeout(Clauses, Timeout).
+
+timeout((C1;C2), Timeout) :-
+    !,
+    (   timeout(C1, Timeout)
+    ->  true
+    ;   timeout(C2, Timeout)
+    ).
+timeout((After -> _Body), Timeout) :-
+    subsumes_term(after(_), After),
+    after(Timeout) = After.
+
 
 %!  send(+Pid, +Message) is det.
 %!  !(+Pid, +Message) is det.
