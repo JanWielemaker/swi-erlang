@@ -1,18 +1,22 @@
 :- module(srctext,
-          [ with_source/2                       % :Goal, +Options
+          [ with_source/2,              % :Goal, +Options
+            source_data/2               % ?SourceID, ?Data
           ]).
 :- use_module(library(modules)).
-:- use_module(library(settings)).
 :- use_module(library(option)).
 :- use_module(library(apply)).
 :- use_module(library(http/http_open)).
 
 :- meta_predicate
-    with_source(0, +).
+    with_source(0, +),
+    pengine_prepare_source(:, +).
 
 :- multifile
     prepare_module/3,               % +Module, +Application, +Options
     prepare_goal/3.                 % +GoalIn, -GoalOut, +Options
+
+:- dynamic
+    source_data/2.                  % +Id, ?Data
 
 %!  with_source(:Goal, +Options)
 %
@@ -23,14 +27,31 @@
 %       to a random name.
 %     - application(+Application)
 %       Module to inherit from.  Default is `user`.
+%     - source_id(+Atom)
+%       Specifies the identifier we give to the source.  Default
+%       is the module name.
+%     - debug(+Boolean)
+%       If true, keep the source code around.
+%     - sandboxed(+Boolean)
+%       If `true`, enforce sandboxing while loading the code
+%     - program_space(+Limit)
+%       Limit the size of the temporary module (limits the size of the
+%       program and dynamic predicates created by it).
 
 with_source(Goal, Options) :-
+    strip_module(Goal, _Spec, Plain),
     option(application(Application), Options, user),
     option(module(Module), Options, _),
-    in_temporary_module(
-        Module,
-        pengine_prepare_source(Application, Options),
-        Goal).
+    call_cleanup(
+        in_temporary_module(
+            Module,
+            pengine_prepare_source(Application, Options),
+            Module:Plain),
+        cleanup_data(Module, Options)).
+
+cleanup_data(Module, Options) :-
+    option(source_id(ID), Options, Module),
+    retractall(source_data(ID, _)).
 
 %!  pengine_prepare_source(:Application, +Options) is det.
 %
@@ -40,8 +61,10 @@ with_source(Goal, Options) :-
 %           sources.
 
 pengine_prepare_source(Module:Application, Options) :-
-    setting(Application:program_space, SpaceLimit),
-    set_module(Module:program_space(SpaceLimit)),
+    (   option(program_space(SpaceLimit), Options)
+    ->  set_module(Module:program_space(SpaceLimit))
+    ;   true
+    ),
     delete_import_module(Module, user),
     add_import_module(Module, Application, start),
     prep_module(Module, Application, Options).
@@ -49,9 +72,10 @@ pengine_prepare_source(Module:Application, Options) :-
 prep_module(Module, Application, Options) :-
     maplist(copy_flag(Module, Application), [var_prefix]),
     forall(prepare_module(Module, Application, Options), true),
+    partition(source_option, Options, Sources, Options1),
     setup_call_cleanup(
         '$set_source_module'(OldModule, Module),
-        maplist(process_create_option(Module), Options),
+        maplist(load_source(Module, Options1), Sources),
         '$set_source_module'(OldModule)).
 
 copy_flag(Module, Application, Flag) :-
@@ -60,30 +84,30 @@ copy_flag(Module, Application, Flag) :-
     set_prolog_flag(Module:Flag, Value).
 copy_flag(_, _, _).
 
-process_create_option(Application, src_text(Text)) :-
+source_option(src_text(_)).
+source_option(src_url(_)).
+
+load_source(Module, Options, src_text(Text)) :-
     !,
-    pengine_src_text(Text, Application).
-process_create_option(Application, src_url(URL)) :-
+    load_src_text(Text, Module, Options).
+load_source(Module, Options, src_url(URL)) :-
     !,
-    pengine_src_url(URL, Application).
-process_create_option(_, _).
+    load_src_url(URL, Module, Options).
 
 
                  /*******************************
                  *        COMPILE SOURCE        *
                  *******************************/
 
-/** pengine_src_text(+SrcText, +Module) is det
+/** load_src_text(+SrcText, +Module, +Options) is det
 
 Asserts the clauses defined in SrcText in   the  private database of the
 current Pengine. This  predicate  processes   the  `src_text'  option of
 pengine_create/1.
 */
 
-pengine_src_text(Src, Module) :-
-    pengine_self(Self),
-    format(atom(ID), 'pengine://~w/src', [Self]),
-    extra_load_options(Self, Options),
+load_src_text(Src, Module, Options) :-
+    option(source_id(ID), Options, Module),
     setup_call_cleanup(
         open_chars_stream(Src, Stream),
         load_files(Module:ID,
@@ -93,7 +117,7 @@ pengine_src_text(Src, Module) :-
                    | Options
                    ]),
         close(Stream)),
-    keep_source(Self, ID, Src).
+    keep_source(ID, Src, Options).
 
 system:'#file'(File, _Line) :-
     prolog_load_context(stream, Stream),
@@ -101,7 +125,7 @@ system:'#file'(File, _Line) :-
     set_stream(Stream, record_position(false)),
     set_stream(Stream, record_position(true)).
 
-%%   pengine_src_url(+URL, +Module) is det
+%%   load_src_url(+URL, +Module, Options) is det
 %
 %    Asserts the clauses defined in URL in   the private database of the
 %    current Pengine. This predicate processes   the `src_url' option of
@@ -109,13 +133,9 @@ system:'#file'(File, _Line) :-
 %
 %    @tbd: make a sensible guess at the encoding.
 
-pengine_src_url(URL, Module) :-
-    pengine_self(Self),
-    uri_encoded(path, URL, Path),
-    format(atom(ID), 'pengine://~w/url/~w', [Self, Path]),
-    extra_load_options(Self, Options),
-    (   get_pengine_application(Self, Application),
-        setting(Application:debug_info, false)
+load_src_url(URL, Module, Options) :-
+    option(source_id(ID), Options, Module),
+    (   option(debug(false), Options, false)
     ->  setup_call_cleanup(
             http_open(URL, Stream, []),
             ( set_stream(Stream, encoding(utf8)),
@@ -140,23 +160,15 @@ pengine_src_url(URL, Module) :-
                        | Options
                        ]),
             close(Stream)),
-        keep_source(Self, ID, Src)
+        keep_source(ID, Src, Options)
     ).
 
 
-extra_load_options(Pengine, Options) :-
-    pengine_not_sandboxed(Pengine),
-    !,
-    Options = [].
-extra_load_options(_, [sandboxed(true)]).
-
-
-keep_source(Pengine, ID, SrcText) :-
-    get_pengine_application(Pengine, Application),
-    setting(Application:debug_info, true),
+keep_source(ID, SrcText, Options) :-
+    option(debug(true), Options),
     !,
     to_string(SrcText, SrcString),
-    assertz(pengine_data(Pengine, source(ID, SrcString))).
+    assertz(source_data(ID, source(ID, SrcString))).
 keep_source(_, _, _).
 
 to_string(String, String) :-
