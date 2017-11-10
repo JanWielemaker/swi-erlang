@@ -2,7 +2,7 @@
 :- use_module(library(debug)).
 
 :- debug(ws).
-:- debug(dispatch).
+:- debug(dispatch(_)).
 
 /** <module> Test handling source
 
