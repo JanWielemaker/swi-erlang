@@ -59,6 +59,7 @@
 :- use_module(library(lists)).
 :- use_module(library(time)).
 :- use_module(library(error)).
+:- use_module(library(broadcast)).
 
 :- meta_predicate
     spawn(0),
@@ -382,6 +383,7 @@ down(Reason, Options) :-
     ),
     self_local(SelfLocal),
     retractall(registered(_, _, SelfLocal)),
+    broadcast(actor(down, SelfLocal)),
     destroy_children(Self).
 
 down_reason(_, Reason) :-
