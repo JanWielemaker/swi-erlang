@@ -1,8 +1,8 @@
 :- use_module(erlang).
 :- use_module(library(debug)).
 
-%:- debug(ws).
-%:- debug(dispatch).
+:- debug(ws).
+:- debug(dispatch).
 
 /** <module> Test handling source
 
