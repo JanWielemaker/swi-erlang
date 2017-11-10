@@ -6,6 +6,7 @@
             spawn/3,                    % :Goal, -Id, +Options
             send/2,                     % +Id, +Message
             (!)/2,			% +Id, +Message
+            exit/1,                     % +Reason
             exit/2,                     % +Id, +Reason
             receive/1,                  % +Clauses
             link/2,                     % +Parent, +Child
@@ -99,10 +100,17 @@ dispatch_event(Pid, user, Message) :-
     catch(post_true(Pid, Message), E,
           post_failed(E, Pid, Message)).
 
-post_failed(_, _, after(_)) :- !.
+post_failed(_, _, after(_)) :-
+    !.
+post_failed(_, Pid, _) :-
+    exit_reason(Pid, _),
+    !.
 post_failed(E, Pid, Message) :-
-    format('Failed to deliver ~p to ~p~n', [Message, Pid]),
-    print_message(error, E).
+    (   debugging(dispatch(delivery))
+    ->  Level = warning
+    ;   Level = silent
+    ),
+    print_message(Level, actor(delivery_failed(Pid, Message, E))).
 
 post_true(Pid, Message) :-
     debug(dispatch(wakeup), 'Wakeup ~p for ~p', [Pid, Message]),
@@ -113,6 +121,15 @@ post_true(Pid, Message) :-
     ->  schedule_timeout(Pid, TimeOut, Deadline)
     ;   assertion(Reply == true)
     ).
+
+%!  exit(+Reason)
+%
+%   Exit the current process.
+
+exit(Reason) :-
+    self_local(Self),
+    asserta(exit_reason(Self, Reason)),
+    abort.
 
 %!  exit(+Pid, +Reason)
 
@@ -225,10 +242,13 @@ self(Pid) :-
     !,
     Me = Pid.
 self(Pid) :-
+    self_local(Pid).
+
+self_local(Pid) :-
     engine_self(Me),
     !,
     Me = Pid.
-self(thread(Tid)) :-
+self_local(thread(Tid)) :-
     thread_self(Tid).
 
 run(Goal, Options) :-
@@ -250,11 +270,8 @@ down(Reason, Options) :-
     destroy_children(Self).
 
 down_reason(_, Reason) :-
-    (   engine_self(Engine)
-    ->  true
-    ;   thread_self(Engine)
-    ),
-    retract(exit_reason(Engine, Reason)).
+    self_local(Self),
+    retract(exit_reason(Self, Reason)).
 down_reason(Reason, Reason).
 
 destroy_children(Me) :-
@@ -449,7 +466,7 @@ flush :-
     thread_self(Me),
     thread_get_message(Me, !(X), [timeout(0)]),
     !,
-    print_message(informational, received(X)),
+    print_message(informational, actor(received(X))),
     flush.
 flush.
 
@@ -477,5 +494,11 @@ user:portray(Engine) :-
 :- multifile
     prolog:message//1.
 
-prolog:message(received(X)) -->
+prolog:message(actor(Message)) -->
+    message(Message).
+
+message(received(X)) -->
     [ 'Got ~p'-[X] ].
+message(delivery_failed(Pid, Message, E)) -->
+    [ 'Delivery to ~p of ~p failed:'-[Pid, Message], nl ],
+    '$messages':translate_message(E).

@@ -5,6 +5,7 @@
             spawn/3,                    % :Goal, -Id, +Options
             send/2,                     % +Id, +Message
             (!)/2,			% +Id, +Message
+            exit/1,                     % +Reason
             exit/2,                     % +Id, +Reason
             receive/1,                  % +Clauses
             link/2,                     % +Parent, +Child
