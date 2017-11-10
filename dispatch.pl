@@ -112,7 +112,7 @@ start(_) :-
     !.
 start(Options) :-
     option(queues(Queues), Options, 1),
-    option(workers(Workers), Options, 0),
+    option(workers(Workers), Options, 1),
     make_dispatch_queues(Queues),
     make_workers(Workers).
 
@@ -129,7 +129,7 @@ next_dispatch_queue(Q) :-
 make_workers(N) :-
     dispatch_queue(Queue),
     forall(between(1, N, _),
-           make_worker(Queue, [ timeout(1) ])).
+           make_worker(Queue, [])).
 
 make_worker(Queue, Options) :-
     gensym(dispatch, Alias),
