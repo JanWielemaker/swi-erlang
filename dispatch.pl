@@ -91,12 +91,30 @@
 		 *           CONTROL		*
 		 *******************************/
 
+%!  start is det.
+%!  start(+Options) is det.
+%
+%   Start the message dispatcher for the current process. Options are:
+%
+%     - queues(+Count)
+%     Number of queues used to dispatch messages.  Currently must
+%     be `1`.
+%     - workers(+Count)
+%     Number of workers used to activate engines.  Default `5`.
+%
+%   @tbd Use multiple queues
+
 start :-
+    start([]).
+
+start(_) :-
     dispatch_queue(_),
     !.
-start :-
-    make_dispatch_queues(1),
-    make_workers(5).
+start(Options) :-
+    option(queues(Queues), Options, 1),
+    option(workers(Workers), Options, 5),
+    make_dispatch_queues(Queues),
+    make_workers(Workers).
 
 
 make_dispatch_queues(N) :-
