@@ -34,7 +34,8 @@
 :- multifile
     hook_self/1,
     hook_spawn/3,
-    hook_send/2.
+    hook_send/2,
+    hook_goal/3.
 
 
 		 /*******************************
@@ -157,17 +158,24 @@ spawn(Goal, Engine) :-
     spawn(Goal, Engine, []).
 
 spawn(Goal, Engine, Options) :-
-    select_option(monitor(true), Options, Options1),
+    hook_goal(Goal, Goal1, Options),
     !,
-    self(Me),
-    spawn2(Goal, Engine, [monitor(Me)|Options1]).
+    spawn2(Goal1, Engine, Options).
 spawn(Goal, Engine, Options) :-
     spawn2(Goal, Engine, Options).
 
 spawn2(Goal, Engine, Options) :-
+    select_option(monitor(true), Options, Options1),
+    !,
+    self(Me),
+    spawn3(Goal, Engine, [monitor(Me)|Options1]).
+spawn2(Goal, Engine, Options) :-
+    spawn3(Goal, Engine, Options).
+
+spawn3(Goal, Engine, Options) :-
     hook_spawn(Goal, Engine, Options),
     !.
-spawn2(Goal, Engine, Options) :-
+spawn3(Goal, Engine, Options) :-
     engine_create(true, run(Goal, Options), Engine, Options),
     (   option(link(true), Options)
     ->  self(Me),

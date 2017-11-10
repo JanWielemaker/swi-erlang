@@ -1,8 +1,5 @@
-:- use_module(node).
-:- use_module(node_server).
-:- use_module(dispatch).
+:- use_module(erlang).
 :- use_module(library(debug)).
-:- use_module(srctext).
 
 %:- debug(ws).
 %:- debug(dispatch).
@@ -19,9 +16,8 @@ $ swipl -g 'node_server(localhost:3060)' remote.pl
 */
 
 test(Options) :-
-    spawn(with_source(hello,
-                      [ src_text("hello :- writeln(hello), sleep(1), hello.")
-                      ]),
-          _Id,
-          Options).
+    spawn(hello, _Id,
+          [ src_text("hello :- writeln(hello), sleep(1), hello.")
+          | Options
+          ]).
 

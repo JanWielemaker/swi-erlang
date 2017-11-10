@@ -37,7 +37,7 @@ node_action(spawn, Data, WebSocket) :-
     !,
     term_string(Goal, String),
     term_string(Options, OptionString),
-    spawn(Goal, Engine, Options),
+    spawn(Goal, Engine, [sandboxed(true)|Options]),
     thread_property(Engine, id(Id)),
     ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:Id})).
 node_action(spawned, Data, _WebSocket) :-
