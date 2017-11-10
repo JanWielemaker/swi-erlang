@@ -80,7 +80,7 @@
 		 *******************************/
 
 :- dynamic
-    registered/2,                       % Name, Id
+    registered/3,                       % Name, Parent, Child
     dispatch_queue/1,
     worker/1,
     linked_child/2,                     % Parent, Child
@@ -236,7 +236,15 @@ schedule(timeout(Pid, TimeOut, Deadline)) :-
 %!  spawn(:Goal, -Pid) is det.
 %!  spawn(:Goal, -Pid, +Options) is det.
 %
-%   Spawn a new process.
+%   Spawn a new process.  Options:
+%
+%     - monitor(+BoolOrPid)
+%       Send monitor events to the creator if the argument is `true`
+%       or the provided `Pid`.
+%     - link(+Bool)
+%       If true, exit the spawned process if we exit.
+%     - alias(+Atom)
+%       Register the process under this name.
 
 spawn(Goal) :-
     spawn(Goal, _, []).
@@ -260,9 +268,17 @@ spawn2(Goal, Engine, Options) :-
     spawn3(Goal, Engine, Options).
 
 spawn3(Goal, Engine, Options) :-
+    select_option(alias(Alias), Options, Options1),
+    !,
+    spawn4(Goal, Engine, Options1),
+    register(Alias, Engine).
+spawn3(Goal, Engine, Options) :-
+    spawn4(Goal, Engine, Options).
+
+spawn4(Goal, Engine, Options) :-
     hook_spawn(Goal, Engine, Options),
     !.
-spawn3(Goal, Engine, Options) :-
+spawn4(Goal, Engine, Options) :-
     engine_create(true, run(Goal, Options), Engine, Options),
     (   option(link(true), Options)
     ->  self(Me),
@@ -300,7 +316,8 @@ down(Reason, Options) :-
     ->  send(Pid, down(Self, Reason1))
     ;   true
     ),
-    retractall(registered(_, Self)),
+    self_local(SelfLocal),
+    retractall(registered(_, _, SelfLocal)),
     destroy_children(Self).
 
 down_reason(_, Reason) :-
@@ -465,7 +482,8 @@ send(Pid, Message) :-
     ->  instantiation_error(Pid)
     ).
 send(Alias, Message) :-
-    registered(Alias, Pid),
+    registered(Alias, SelfLocal, Pid),
+    self_local(SelfLocal),
     !,
     send(Pid, Message).
 send(Pid, Message) :-
@@ -484,13 +502,18 @@ send_local(Pid, Type, Message) :-
     thread_send_message(Queue, event(Pid, Type, Message)).
 
 %!  register(+Alias, +Pid) is det.
-%!  unregister(+Alias) is det.
+%!  unregister(?Alias) is det.
+%
+%   Register the given Pid under the alias Alias.
 
 register(Alias, Pid) :-
-    asserta(registered(Alias, Pid)).
+    must_be(atom, Alias),
+    self_local(Self),
+    asserta(registered(Alias, Self, Pid)).
 
 unregister(Alias) :-
-    retractall(registered(Alias, _)).
+    self_local(Self),
+    retractall(registered(Alias, Self, _)).
 
 %!  flush
 %
@@ -518,7 +541,7 @@ dump_queue(Id, Queue) :-
 
 user:portray(Engine) :-
     is_engine(Engine),
-    registered(Alias, Engine),
+    registered(Alias, _, Engine),
     writeq(Alias).
 
 		 /*******************************
