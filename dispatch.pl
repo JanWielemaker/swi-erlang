@@ -82,7 +82,6 @@
 :- dynamic
     registered/3,                       % Name, Parent, Child
     dispatch_queue/1,
-    worker/1,
     linked_child/2,                     % Parent, Child
     exit_reason/2.                      % Pid, Reason
 
@@ -112,7 +111,7 @@ start(_) :-
     !.
 start(Options) :-
     option(queues(Queues), Options, 1),
-    option(workers(Workers), Options, 5),
+    option(workers(Workers), Options, 0),
     make_dispatch_queues(Queues),
     make_workers(Workers).
 
@@ -128,20 +127,26 @@ next_dispatch_queue(Q) :-
 
 make_workers(N) :-
     dispatch_queue(Queue),
-    forall(between(1, N, I),
-           (   atom_concat(dispatch_, I, Alias),
-               thread_create(work(Queue), Tid, [alias(Alias)]),
-               assertz(worker(Tid))
-           )).
+    forall(between(1, N, _),
+           make_worker(Queue, [ timeout(1) ])).
 
-work(Queue) :-
-    thread_get_message(Queue, event(Pid, Type, Message)),
-    debug(dispatch(queue), 'Got ~p', [event(Pid, Type, Message)]),
-    (   dispatch_event(Pid, Type, Message)
-    ->  true
-    ;   debug(dispatch(dispatch), 'FAILED ~p', [event(Pid, Type, Message)])
-    ),
-    work(Queue).
+make_worker(Queue, Options) :-
+    gensym(dispatch, Alias),
+    thread_create(work(Queue, Options), _,
+                  [ alias(Alias),
+                    detached(true)
+                  ]).
+
+work(Queue, Options) :-
+    (   thread_get_message(Queue, event(Pid, Type, Message), Options)
+    ->  debug(dispatch(queue), 'Got ~p', [event(Pid, Type, Message)]),
+        (   dispatch_event(Pid, Type, Message)
+        ->  true
+        ;   debug(dispatch(dispatch), 'FAILED ~p', [event(Pid, Type, Message)])
+        ),
+        work(Queue, Options)
+    ;   true                            % no work, stop
+    ).
 
 dispatch_event(Pid, user, Message) :-
     nonvar(Message),
@@ -173,6 +178,40 @@ post_true(Pid, Message) :-
     ->  schedule_timeout(Pid, TimeOut, Deadline)
     ;   assertion(Reply == true)
     ).
+
+%!  schedule_workers(+Queue)
+%
+%   If Queue has pending messages, consider extending the number of
+%   worker threads.
+
+schedule_workers(Queue) :-
+    message_queue_property(Queue, size(Size)),
+    (   Size == 0
+    ->  true
+    ;   consider_worker_pool(Queue)
+    ).
+
+consider_worker_pool(Queue) :-
+    catch(thread_send_message(worker_pool_manager, consider(Queue)),
+          error(existence_error(message_queue, worker_pool_manager), _),
+          with_mutex(scheduler,
+                     consider_worker_pool_start(Queue))).
+
+consider_worker_pool_start(Queue) :-
+    start_worker_pool_manager,
+    thread_send_message(worker_pool_manager, consider(Queue)).
+
+start_worker_pool_manager :-
+    thread_create(worker_pool_manager, _, [alias(worker_pool_manager), detached(true)]).
+
+worker_pool_manager :-
+    thread_get_message(Message),
+    worker_pool_manager(Message),
+    worker_pool_manager.
+
+worker_pool_manager(consider(Queue)) :-
+    make_worker(Queue, [timeout(1)]).
+
 
 %!  exit(+Reason)
 %
@@ -524,6 +563,7 @@ send_local(Pid, Type, Message) :-
     start,
     next_dispatch_queue(Queue),
     debug(dispatch(send), 'Sending ~p ! ~p', [Pid, Message]),
+    schedule_workers(Queue),
     thread_send_message(Queue, event(Pid, Type, Message)).
 
 %!  register(+Alias, +Pid) is det.
