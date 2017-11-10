@@ -6,6 +6,7 @@
 :- use_module(library(option)).
 :- use_module(library(apply)).
 :- use_module(library(http/http_open)).
+:- use_module(library(sandbox)).
 
 :- meta_predicate
     with_source(0, +),
@@ -46,12 +47,21 @@ with_source(Goal, Options) :-
         in_temporary_module(
             Module,
             pengine_prepare_source(Application, Options),
-            Module:Plain),
+            execute(Module:Plain, Options)),
         cleanup_data(Module, Options)).
 
 cleanup_data(Module, Options) :-
     option(source_id(ID), Options, Module),
     retractall(source_data(ID, _)).
+
+execute(Goal, Options) :-
+    option(sandboxed(true), Options),
+    !,
+    safe_goal(Goal),
+    call(Goal).
+execute(Goal, _Options) :-
+    call(Goal).
+
 
 %!  pengine_prepare_source(:Application, +Options) is det.
 %

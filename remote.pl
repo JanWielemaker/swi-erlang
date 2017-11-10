@@ -21,3 +21,11 @@ test(Options) :-
           | Options
           ]).
 
+sandbox(Options) :-
+    spawn(hello, _Id,
+          [ src_text("hello :-
+			  open('/dev/null', read, In),
+                          writeln(In).
+		     ")
+          | Options
+          ]).
