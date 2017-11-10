@@ -6,6 +6,7 @@
             spawn/3,                    % :Goal, -Id, +Options
             send/2,                     % +Id, +Message
             (!)/2,			% +Id, +Message
+            exit/2,                     % +Id, +Reason
             receive/1,                  % +Clauses
             link/2,                     % +Parent, +Child
             self/1,                     % -Id
@@ -22,6 +23,7 @@
 :- use_module(library(option)).
 :- use_module(library(lists)).
 :- use_module(library(time)).
+:- use_module(library(error)).
 
 :- meta_predicate
     spawn(0),
@@ -46,7 +48,8 @@
     registered/2,                       % Name, Id
     dispatch_queue/1,
     worker/1,
-    linked_child/2.                     % Parent, Child
+    linked_child/2,                     % Parent, Child
+    exit_reason/2.                      % Pid, Reason
 
 
 		 /*******************************
@@ -87,9 +90,11 @@ work(Queue) :-
     ),
     work(Queue).
 
-dispatch_event(Pid, admin, destroy) :-
+dispatch_event(Pid, user, Message) :-
+    nonvar(Message),
+    Message = '$exit'(Reason),
     !,
-    engine_destroy(Pid).
+    exit_engine(Pid, Reason).
 dispatch_event(Pid, user, Message) :-
     catch(post_true(Pid, Message), E,
           post_failed(E, Pid, Message)).
@@ -108,6 +113,37 @@ post_true(Pid, Message) :-
     ->  schedule_timeout(Pid, TimeOut, Deadline)
     ;   assertion(Reply == true)
     ).
+
+%!  exit(+Pid, +Reason)
+
+exit(Pid, Reason) :-
+    send(Pid, '$exit'(Reason)).
+
+%!  exit_engine(+Pid) is det.
+%!  exit_engine(+Pid, +Reason) is det.
+%
+%   Cause a process to exit with Reason.
+
+exit_engine(Pid, Reason) :-
+    asserta(exit_reason(Pid, Reason)),
+    exit_engine(Pid).
+
+exit_engine(Pid) :-
+    thread_property(Pid, engine(true)),
+    (   thread_property(Pid, status(running))
+    ->  debug(dispatch(exit), 'Aborting engine ~p', [Pid]),
+        catch(thread_signal(Pid, abort), _, true),
+        engine_next_reified(Pid, Status),
+        debug(dispatch(exit), 'Status: ~p~n', [Status])
+    ;   true
+    ),
+    engine_destroy(Pid).
+exit_engine(Pid) :-
+    debug(dispatch(exit), 'Aborting thread ~p', [Pid]),
+    thread_signal(Pid, abort),
+    thread_join(Pid, Status),
+    debug(dispatch(exit), 'Status: ~p~n', [Status]).
+
 
 		 /*******************************
 		 *           TIMEOUT		*
@@ -203,18 +239,27 @@ run(Goal, Options) :-
         down(Catcher, Options)).
 
 down(Reason, Options) :-
+    down_reason(Reason, Reason1),
     self(Self),
-    debug(dispatch(down), '~p down on ~p', [Self, Reason]),
+    debug(dispatch(down), '~p down on ~p', [Self, Reason1]),
     (   option(monitor(Pid), Options)
-    ->  send(Pid, down(Self, Reason))
+    ->  send(Pid, down(Self, Reason1))
     ;   true
     ),
     retractall(registered(_, Self)),
     destroy_children(Self).
 
+down_reason(_, Reason) :-
+    (   engine_self(Engine)
+    ->  true
+    ;   thread_self(Engine)
+    ),
+    retract(exit_reason(Engine, Reason)).
+down_reason(Reason, Reason).
+
 destroy_children(Me) :-
     forall(retract(linked_child(Me, Child)),
-           destroy_process(Child)).
+           exit(Child, normal)).
 
 %!  link(+Parent, +Child) is det.
 %
@@ -362,6 +407,12 @@ timeout((After -> _Body), Timeout) :-
 Pid ! Message :-
     send(Pid, Message).
 
+send(Pid, Message) :-
+    (   var(Message)
+    ->  instantiation_error(Message)
+    ;   var(Pid)
+    ->  instantiation_error(Pid)
+    ).
 send(Alias, Message) :-
     registered(Alias, Pid),
     !,
@@ -380,9 +431,6 @@ send_local(Pid, Type, Message) :-
     next_dispatch_queue(Queue),
     debug(dispatch(send), 'Sending ~p ! ~p', [Pid, Message]),
     thread_send_message(Queue, event(Pid, Type, Message)).
-
-destroy_process(Pid) :-
-    send_local(Pid, admin, destroy).
 
 %!  register(+Alias, +Pid) is det.
 %!  unregister(+Alias) is det.
