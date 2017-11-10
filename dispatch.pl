@@ -202,8 +202,8 @@ exit_engine(Pid) :-
     (   thread_property(Pid, status(running))
     ->  debug(dispatch(exit), 'Aborting engine ~p', [Pid]),
         catch(thread_signal(Pid, abort), _, true),
-        engine_next_reified(Pid, Status),
-        debug(dispatch(exit), 'Status: ~p~n', [Status])
+        engine_next_reified(Pid, _0Status),
+        debug(dispatch(exit), 'Status: ~p~n', [_0Status])
     ;   true
     ),
     engine_destroy(Pid).
