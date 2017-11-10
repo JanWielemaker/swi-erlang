@@ -35,12 +35,12 @@
 :- module(node,
           [ spawn_remote/4,                     % +Node, :Goal, -Id, +Options
             send_remote/2,                      % +Id, +Message
-            self_remote/1                       % -Id
+            self_remote/1,                      % -Id
+            register_node_self/1                % +URL
           ]).
 :- use_module(dispatch).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/websocket)).
-:- use_module(library(http/http_host)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
 
@@ -48,7 +48,7 @@
     websocket/3,                           % Node, Thread, Socket
     self_node/1.                           % Node
 
-:- http_handler(root(erlang), node_manager, [spawn([])]).
+:- http_handler(root(erlang), node_manager, [spawn([]), id(erlang)]).
 
 node_manager(Request) :-
     http_upgrade_to_websocket(node_loop, [], Request).
@@ -147,6 +147,14 @@ self_remote(process(Node, thread(Id))) :-
     !,
     self_node(Node),
     thread_property(Thread, id(Id)).
+
+%!  register_node_self(+URL)
+%
+%   Register the name by which this node is known
+
+register_node_self(URL) :-
+    asserta(self_node(URL)).
+
 
 		 /*******************************
 		 *    EXTEND LOCAL PROCESSES	*

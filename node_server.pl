@@ -38,13 +38,57 @@
           ]).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_host), []).
+:- use_module(library(settings)).
+:- use_module(node).
+
+%!  node_server is det.
+%!  node_server(+Address) is det.
+%
+%   Start the HTTP server for   accepting websocket connections. Address
+%   is either of the form `localhost:Port` or a plain `Port`. Default is
+%   `localhost:3060`.
+%
+%   This predicate sets the notion of   the node's _self_ address, which
+%   is needed for self/1.  This is determined as follows:
+%
+%     - If the address is `localhost:Port`, use
+%       http://localhost:Port/Path
+%     - If the setting http:public_host is provided, use that
+%     - Else use the host as known by gethostname/1.
 
 node_server :-
     node_server(localhost:3060).
 
-node_server(localhost:Port) :-
-    format(atom(URL), 'http://localhost:~w/erlang', [Port]),
-    assertz(node:self_node(URL)),
+node_server(Address) :-
     http_server(http_dispatch,
-                [ port(localhost:Port)
-                ]).
+                [ port(Address)
+                ]),
+    server_url(Address, URL),
+    register_node_self(URL).
+
+server_url(localhost:Port, URL) :-
+    !,
+    http_location_by_id(erlang, Path),
+    format(atom(URL), 'http://localhost:~w~w', [Port, Path]).
+server_url(_Port, URL) :-
+    setting(http:public_host, Host),
+    Host \== '',
+    !,
+    setting(http:public_port, Port),
+    setting(http:public_scheme, Scheme),
+    make_url(Scheme, Host, Port, URL).
+server_url(Port, URL) :-
+    gethostname(Host),
+    http_server_property(Port, scheme(Scheme)),
+    make_url(Scheme, Host, Port, URL).
+
+make_url(Scheme, Host, Port, URL) :-
+    http_location_by_id(erlang, Path),
+    (   default_port(Scheme, Port)
+    ->  format(atom(URL), '~w://~w~w', [Scheme, Host, Path])
+    ;   format(atom(URL), '~w://~w:~w~w', [Scheme, Host, Port, Path])
+    ).
+
+default_port(http, 80).
+default_port(https, 443).
