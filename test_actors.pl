@@ -38,6 +38,10 @@
 :- use_module(library(plunit)).
 :- use_module(erlang).
 
+%:- debug(dispatch).
+%:- debug(dispatch(_)).
+%:- debug(pingpong).
+
 test_actors :-
     run_tests([ actor
               ]).
@@ -46,25 +50,29 @@ test_actors :-
 
 test(ping_pong) :-
     self(Self),
-    spawn(ping(Self), Ping, [alias(ping)]),
-    spawn(pong(Ping), Pong, [alias(pong)]),
+    context_module(Application),
+    spawn(ping(Self), Ping, [alias(ping), application(Application)]),
+    spawn(pong(Ping), Pong, [alias(pong), application(Application)]),
     send(Pong, 3),
     receive({ done -> true }).
 
 ping(Main) :-
-    receive({   0-_ -> Main ! done
+    receive({   0-Pong ->
+                Pong ! done,
+                Main ! done
             ;   N-Pong ->
-                format('Ping received ~d~n', [N]),
+                debug(pingpong, 'Ping received ~d~n', [N]),
                 N2 is N - 1,
                 Pong ! N2,
-                ping
+                ping(Main)
             }).
 
 pong(Ping) :-
-    receive({ N ->
-              format('Pong received ~d~n', [N]),
+    receive({ done->true;
+              N ->
+              debug(pingpong, 'Pong received ~d~n', [N]),
               self(Pong),
-              format('Pong: Sending ~p to ~p~n', [N-Pong, Ping]),
+              debug(pingpong, 'Pong: Sending ~p to ~p~n', [N-Pong, Ping]),
               Ping ! N-Pong,
               pong(Ping)
             }).

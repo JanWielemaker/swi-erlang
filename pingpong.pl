@@ -1,27 +1,33 @@
-:- use_module(dispatch).
+:- use_module(erlang).
 
-:- debug(dispatch).
-:- debug(dispatch(_)).
+% :- debug(dispatch).
+% :- debug(dispatch(_)).
+:- debug(pingpong).
 
-pp :-
-    spawn(ping, Ping, [alias(ping)]),
+pp(N) :-
+    self(Self),
+    spawn(ping(Self), Ping, [alias(ping)]),
     spawn(pong(Ping), Pong, [alias(pong)]),
-    send(Pong, 3).
+    send(Pong, N),
+    receive({done->true}).
 
-ping :-
-    receive({   0-_ -> true
+ping(Main) :-
+    receive({   0-Pong ->
+                send(Pong, done),
+                send(Main, done)
             ;   N-Pong ->
-                format('Ping received ~d~n', [N]),
+                debug(pingpong, 'Ping received ~d', [N]),
                 N2 is N - 1,
                 send(Pong, N2),
-                ping
+                ping(Main)
             }).
 
 pong(Ping) :-
-    receive({ N ->
-              format('Pong received ~d~n', [N]),
+    receive({ done -> true;
+              N ->
+              debug(pingpong, 'Pong received ~d', [N]),
               self(Pong),
-              format('Pong: Sending ~p to ~p~n', [N-Pong, Ping]),
+              debug(pingpong, 'Pong: Sending ~p to ~p', [N-Pong, Ping]),
               send(Ping, N-Pong),
               pong(Ping)
             }).
