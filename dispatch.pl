@@ -112,7 +112,7 @@ start(_) :-
     !.
 start(Options) :-
     option(queues(Queues), Options, 1),
-    option(workers(Workers), Options, 1),
+    option(workers(Workers), Options, 5),
     make_dispatch_queues(Queues),
     make_workers(Workers).
 
