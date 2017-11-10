@@ -192,16 +192,23 @@ exit(Pid, Reason) :-
 %!  exit_engine(+Pid, +Reason) is det.
 %
 %   Cause a process to exit with Reason.
+%
+%   @bug Currently stops a possibly running   engine using the exception
+%   `abort`.    Eventually,    this    should     use    abort/0,    but
+%   engine_next_reified/2 is based on catch/3 and  thus cannot catch the
+%   aborted exception.
 
 exit_engine(Pid, Reason) :-
     asserta(exit_reason(Pid, Reason)),
-    exit_engine(Pid).
+    catch(exit_engine(Pid),
+          error(existence_error(_,_), _),
+          true).
 
 exit_engine(Pid) :-
     thread_property(Pid, engine(true)),
     (   thread_property(Pid, status(running))
     ->  debug(dispatch(exit), 'Aborting engine ~p', [Pid]),
-        catch(thread_signal(Pid, abort), _, true),
+        catch(thread_signal(Pid, throw(abort)), _, true),
         engine_next_reified(Pid, _0Status),
         debug(dispatch(exit), 'Status: ~p~n', [_0Status])
     ;   true
