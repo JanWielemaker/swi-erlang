@@ -43,10 +43,12 @@
 :- use_module(library(http/websocket)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
+:- use_module(library(broadcast)).
 
 :- dynamic
-    websocket/3,                           % Node, Thread, Socket
-    self_node/1.                           % Node
+    websocket/3,                        % Node, Thread, Socket
+    self_node/1,                        % Node
+    actor_uuid/2.                       % Engine, ID
 
 :- http_handler(root(erlang), node_manager, [spawn([]), id(erlang)]).
 
@@ -72,18 +74,21 @@ node_action(spawn, Data, WebSocket) :-
     term_string(Goal, String),
     term_string(Options, OptionString),
     spawn(Goal, Engine, [sandboxed(true)|Options]),
-    thread_property(Engine, id(Id)),
-    ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:Id})).
+    actor_uuid(UUID),
+    asserta(actor_uuid(Engine, UUID)),
+    ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:UUID})).
 node_action(spawned, Data, _WebSocket) :-
     _{thread:CreatorId, pid:Id} :< Data,
     !,
     thread_property(Creator, id(CreatorId)),
-    thread_send_message(Creator, spawned(Id)).
+    canonical_id(Id, CannId),
+    thread_send_message(Creator, spawned(CannId)).
 node_action(send, Data, _WebSocket) :-
-    _{receiver:Id, prolog:String} :< Data,
+    _{receiver:UUIDString, prolog:String} :< Data,
     !,
     term_string(Message, String),
-    thread_property(Engine, id(Id)),
+    atom_string(UUID, UUIDString),
+    actor_uuid(Engine, UUID),
     send(Engine, Message).
 node_action(send, Data, _WebSocket) :-
     _{thread:Id, prolog:String} :< Data,
@@ -93,6 +98,18 @@ node_action(send, Data, _WebSocket) :-
     send(thread(Engine), Message).
 node_action(_Action, Data, _WebSocket) :-
     debug(ws, 'Got unknown data: ~p', [Data]).
+
+:- listen(actor(down, Engine),
+          retractall(actor_uuid(Engine, _))).
+
+actor_uuid(Module) :-
+        uuid(Module, [version(4)]).
+
+canonical_id(Raw, ID) :-
+    (   string(Raw)
+    ->  atom_string(ID, Raw)
+    ;   ID = Raw
+    ).
 
 %!  connection(+Node, -Socket)
 %
