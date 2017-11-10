@@ -77,4 +77,42 @@ pong(Ping) :-
               pong(Ping)
             }).
 
+test(link, Down == N) :-
+    N = 10,
+    self(Self),
+    context_module(Application),
+    spawn(linked(N, Self, Application), Id,
+          [ link(true),
+            application(Application),
+            monitor(true)
+          ]),
+    receive({ready->true}),
+    exit(Id, done),
+    receive_all(N, List),
+    length(List, Down).
+
+receive_all(0, []) :-
+    !.
+receive_all(N, List) :-
+    receive({ after(1) ->
+              List = [];
+              H ->
+              List = [H|T],
+              N2 is N - 1,
+              receive_all(N2, T)
+            }).
+
+linked(1, Main, _) :-
+    !,
+    Main ! ready,
+    receive({}).
+linked(N, Main, Application) :-
+    N2 is N - 1,
+    spawn(linked(N2, Main, Application), _,
+          [ link(true),
+            application(Application),
+            monitor(Main)
+          ]),
+    receive({}).
+
 :- end_tests(actor).
