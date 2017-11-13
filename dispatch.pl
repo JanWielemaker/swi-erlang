@@ -422,10 +422,7 @@ receive(Clauses) :-
 
 call_body(M:_, Body) :-
     debug(dispatch(call), 'Calling ~p', [M:Body]),
-    (   call(M:Body)
-    *-> true
-    ;   format('Body failed: ~p~n', [Body])
-    ).
+    call(M:Body).
 
 process_queue(Queue) :-
     nb_current(event_queue, Queue),
