@@ -91,7 +91,7 @@ session2(Pid, Parent, Exit) :-
 guarded_session(Pid, Parent, Exit) :-
     receive({
         pengine:ask(Goal, Options) ->
-            ask(Goal, Options, Pid, Parent)
+            ask(Goal, Pid, Parent, Options)
     }),
     (   Exit == true
     ->  true
@@ -99,7 +99,7 @@ guarded_session(Pid, Parent, Exit) :-
     ).
     
 
-ask(Goal, Options, Self, Parent) :-
+ask(Goal, Self, Parent, Options) :-
     option(template(Template), Options, Goal),
     option(limit(Limit), Options, 1),
     State = count(Limit),
