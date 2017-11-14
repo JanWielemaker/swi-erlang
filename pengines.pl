@@ -50,7 +50,6 @@
 :- use_module(erlang).
 
 
-
 %!  pengine_spawn(-Pid) is det.
 %!  pengine_spawn(-Pid, +Options) is det.
 %
@@ -58,7 +57,7 @@
 %
 %     - exit(+Bool)
 %       Determines if the pengine session must exit after having run 
-%       a goal to completion. Defaults to false.
+%       a query to completion. Defaults to false.
 
 pengine_spawn(Pid) :-
     pengine_spawn(Pid, []).
@@ -138,11 +137,11 @@ findn(N, Template, Goal, Solutions) :-
 %
 %     - template(+Template)
 %       Template is a variable (or a term containing variables) 
-%       shared with the query. By default, the template is identical
-%       to the goal.
+%       shared with Query. By default, the template is identical to
+%       Query.
 %     - limit(+Integer)
 %       Retrieve solutions in lists of length Integer rather than one
-%       by one. A value of 1 means a unary list (default). Other
+%       by one. Thus, a value of 1 means a unary list (default). Other
 %       integers indicate the maximum number of solutions to retrieve
 %       in one batch.
 
@@ -197,12 +196,12 @@ pengine_output(Term) :-
 %   Send Prompt to the parent process and wait for input. Prompt may
 %   be any term, compound or atomic.
 
-pengine_input(Prompt, Answer) :-
+pengine_input(Prompt, Input) :-
     self(Self),
     parent(Parent),
     Parent ! prompt(Self, Prompt),
     receive({
-        input(Parent, Answer) ->
+        input(Parent, Input) ->
             true
     }).
 
@@ -217,11 +216,11 @@ pengine_respond(Pid, Term) :-
     Pid ! input(Self, Term).
     
 
-%!  pengine_spawn(+Pid) is det.
+%!  pengine_abort(+Pid) is det.
 %
 %   Tell pengine Pid to abort any query that it currently runs. If
-%   successful, delivers a message \texttt{abort(Pid)} to the mailbox
-%   of the process that called pengine_spawn/2-3.
+%   successful, delivers a message abort(Pid) to the mailbox of the
+%   process that called pengine_spawn/2-3.
 
 pengine_abort(Pid) :-
     catch(thread_signal(Pid, throw(exit_query)), _, true).
