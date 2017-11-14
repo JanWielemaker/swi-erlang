@@ -47,8 +47,7 @@
             pengine_respond/2                   % +Pid, +Answer
           ]).
 
-:- use_module(dispatch).
-:- use_module(srctext).
+:- use_module(erlang).
 
 
 
@@ -67,7 +66,10 @@ pengine_spawn(Pid) :-
 pengine_spawn(Pid, Options) :-
     self(Self),
     option(exit(Exit), Options, false),
-    spawn(session(Pid, Self, Exit), Pid, Options). 
+    spawn(session(Pid, Self, Exit), Pid, [
+          application(pengines)
+        | Options
+    ]).
 
 
 :- thread_local parent/1.
@@ -123,9 +125,9 @@ findn0(State, Template, Query, Solutions, Error) :-
     catch(findn(State, Template, Query, Solutions), Error, true).
     
 
-findn(N, Templ, Goal, Sols) :- 
-    findnsols(N, Templ, Goal, Sols), 
-    Sols \== [].
+findn(N, Template, Goal, Solutions) :- 
+    findnsols(N, Template, Goal, Solutions), 
+    Solutions \== [].
 
 
 
