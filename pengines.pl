@@ -97,7 +97,7 @@ guarded_session(Module:Pid, Parent, Exit) :-
     }),
     (   Exit == true
     ->  true
-    ;   guarded_session(Pid, Parent, Exit)
+    ;   guarded_session(Module:Pid, Parent, Exit)
     ).
     
 
