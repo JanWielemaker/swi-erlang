@@ -42,9 +42,9 @@
             pengine_next/2,                     % +Pid, +Options
             pengine_stop/1,                     % +Pid                   
             pengine_abort/1,                    % +Pid    
-            pengine_output/1,                   % +Term
             pengine_input/2,                    % +Prompt, ?Answer
-            pengine_respond/2                   % +Pid, +Answer
+            pengine_respond/2,                  % +Pid, +Answer
+            pengine_output/1                    % +Term
           ]).
 
 :- use_module(erlang).
@@ -65,7 +65,7 @@ pengine_spawn(Pid) :-
 pengine_spawn(Pid, Options) :-
     self(Self),
     option(exit(Exit), Options, false),
-    spawn(session(Pid, Self, Exit), Pid, [
+    spawn((context_module(M), session(Pid, Self, Exit, M)), Pid, [
           application(pengines)
         | Options
     ]).
@@ -73,36 +73,36 @@ pengine_spawn(Pid, Options) :-
 
 :- thread_local parent/1.
 
-session(Pid, Parent, Exit) :-
+session(Pid, Parent, Exit, M) :-
     assertz(parent(Parent)),
-    session2(Pid, Parent, Exit).
+    session2(Pid, Parent, Exit, M).
 
-session2(Pid, Parent, Exit) :-
-    catch(guarded_session(Pid, Parent, Exit), Exception, true),
+session2(Pid, Parent, Exit, M) :-
+    catch(guarded_session(Pid, Parent, Exit, M), Exception, true),
     (   Exception == exit_query
     ->  Parent ! abort(Pid),
-        session2(Pid, Parent, Exit)
+        session2(Pid, Parent, Exit, M)
     ;   nonvar(Exception)
     ->  throw(Exception)
     ;   true
     ).
 
-guarded_session(Pid, Parent, Exit) :-
+guarded_session(Pid, Parent, Exit, M) :-
     receive({
         pengine:ask(Goal, Options) ->
-            ask(Goal, Pid, Parent, Options)
+            ask(Goal, Pid, Parent, M, Options)
     }),
     (   Exit == true
     ->  true
-    ;   guarded_session(Pid, Parent, Exit)
+    ;   guarded_session(Pid, Parent, Exit, M)
     ).
     
 
-ask(Goal, Self, Parent, Options) :-
+ask(Goal, Self, Parent, M, Options) :-
     option(template(Template), Options, Goal),
     option(limit(Limit), Options, 1),
     State = count(Limit),
-    (   call_cleanup(findn0(State, Template, Goal, Solutions, Error), Det=true),
+    (   call_cleanup(findn0(State, Template, M:Goal, Solutions, Error), Det=true),
         (   var(Error)
         ->  (   var(Det)
             ->  Parent ! success(Self, Solutions, true),
@@ -123,11 +123,9 @@ ask(Goal, Self, Parent, Options) :-
 findn0(State, Template, Query, Solutions, Error) :-
     catch(findn(State, Template, Query, Solutions), Error, true).
     
-
 findn(N, Template, Goal, Solutions) :- 
     findnsols(N, Template, Goal, Solutions), 
     Solutions \== [].
-
 
 
 %!  pengine_ask(+Pid, :Query) is det.
