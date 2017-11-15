@@ -166,6 +166,42 @@ test(exit, Results == foo) :-
     receive({
         down(Pid, Results) -> true
     }).
+    
+test(output, Results = [a,b,.]) :-
+    pengine_spawn(Pid, [ 
+        exit(true),
+        monitor(true)
+    ]),
+    pengine_ask(Pid, (pengine_output(a), pengine_output(b)), [
+        template(.)
+    ]),
+    collect_answers(Pid, Results),
+    receive({
+        down(Pid, exit) -> true
+    }).
+    
+test(input, Results = true) :-
+    pengine_spawn(Pid, [ 
+        exit(true),
+        monitor(true)
+    ]),
+    pengine_ask(Pid, (pengine_input(prompt, In), pengine_output(In)), [
+        template(.)
+    ]),
+    receive({
+        prompt(Pid, prompt) ->
+            pengine_respond(Pid, hello)
+    }),
+    receive({
+        output(Pid, hello) -> true
+    }),
+    receive({
+        success(Pid, [.], false) -> true
+    }),
+    receive({
+        down(Pid, exit) -> 
+            Results = true
+    }).
 
 :- end_tests(local_pengines).
 
@@ -186,7 +222,10 @@ collect_answers(Pid, Results) :-
         failure(Pid) ->
             Results = [];
         error(Pid, Results) ->
-            true 
+            true;
+        output(Pid, Head) ->
+            Results = [Head|Tail],
+            collect_answers(Pid, Tail)
     }).
     
 
