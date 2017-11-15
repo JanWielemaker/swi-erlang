@@ -47,7 +47,7 @@
             pengine_output/1                    % +Term
           ]).
 
-:- use_module(erlang).
+:- use_module(dispatch).
 
 
 %!  pengine_spawn(-Pid) is det.
