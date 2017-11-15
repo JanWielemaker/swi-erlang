@@ -49,6 +49,9 @@
 
 :- use_module(dispatch).
 
+:- meta_predicate 
+    session(:, +, +).
+
 
 %!  pengine_spawn(-Pid) is det.
 %!  pengine_spawn(-Pid, +Options) is det.
@@ -65,7 +68,7 @@ pengine_spawn(Pid) :-
 pengine_spawn(Pid, Options) :-
     self(Self),
     option(exit(Exit), Options, false),
-    spawn((context_module(M), session(Pid, Self, Exit, M)), Pid, [
+    spawn(session(Pid, Self, Exit), Pid, [
           application(pengines)
         | Options
     ]).
@@ -73,36 +76,36 @@ pengine_spawn(Pid, Options) :-
 
 :- thread_local parent/1.
 
-session(Pid, Parent, Exit, M) :-
+session(Pid, Parent, Exit) :-
     assertz(parent(Parent)),
-    session2(Pid, Parent, Exit, M).
+    session2(Pid, Parent, Exit).
 
-session2(Pid, Parent, Exit, M) :-
-    catch(guarded_session(Pid, Parent, Exit, M), Exception, true),
+session2(Pid, Parent, Exit) :-
+    catch(guarded_session(Pid, Parent, Exit), Exception, true),
     (   Exception == exit_query
     ->  Parent ! abort(Pid),
-        session2(Pid, Parent, Exit, M)
+        session2(Pid, Parent, Exit)
     ;   nonvar(Exception)
     ->  throw(Exception)
     ;   true
     ).
 
-guarded_session(Pid, Parent, Exit, M) :-
+guarded_session(Module:Pid, Parent, Exit) :-
     receive({
         pengine:ask(Goal, Options) ->
-            ask(Goal, Pid, Parent, M, Options)
+            ask(Module:Goal, Pid, Parent, Options)
     }),
     (   Exit == true
     ->  true
-    ;   guarded_session(Pid, Parent, Exit, M)
+    ;   guarded_session(Pid, Parent, Exit)
     ).
     
 
-ask(Goal, Self, Parent, M, Options) :-
+ask(Goal, Self, Parent, Options) :-
     option(template(Template), Options, Goal),
     option(limit(Limit), Options, 1),
     State = count(Limit),
-    (   call_cleanup(findn0(State, Template, M:Goal, Solutions, Error), Det=true),
+    (   call_cleanup(findn0(State, Template, Goal, Solutions, Error), Det=true),
         (   var(Error)
         ->  (   var(Det)
             ->  Parent ! success(Self, Solutions, true),
