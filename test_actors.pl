@@ -37,16 +37,18 @@
           ]).
 :- use_module(library(plunit)).
 :- use_module(erlang).
+:- use_module(pengines).
 
 %:- debug(dispatch).
 %:- debug(dispatch(_)).
 %:- debug(pingpong).
 
 test_actors :-
-    run_tests([ actor
+    run_tests([ local_actors,
+                local_pengines
               ]).
 
-:- begin_tests(actor).
+:- begin_tests(local_actors).
 
 test(ping_pong) :-
     self(Self),
@@ -115,4 +117,43 @@ linked(N, Main, Application) :-
           ]),
     receive({}).
 
-:- end_tests(actor).
+:- end_tests(local_actors).
+
+
+
+:- begin_tests(local_pengines).
+
+test(simple, Results = [a,b,c]) :-
+    pengine_spawn(Pid, [ 
+        src_text("p(a). p(b). p(c)."),
+        exit(true),
+        monitor(true)
+    ]),
+    pengine_ask(Pid, p(X), [
+        template(X)
+    ]),
+    wait_answers(Pid, Results),
+    receive({
+        down(Pid, exit) -> true
+    }).
+
+:- end_tests(local_pengines).
+
+
+                 /*******************************
+                 *           UTILITIES          *
+                 *******************************/
+
+
+wait_answers(Pid, Results) :-
+    receive({
+        success(Pid, Heads, true) ->
+            pengine_next(Pid),
+            wait_answers(Pid, Tail),
+            append(Heads, Tail, Results);
+        success(Pid, Results, false) ->
+            true        
+    }).
+    
+
+
