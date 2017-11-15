@@ -37,7 +37,6 @@
           ]).
 :- use_module(library(plunit)).
 :- use_module(erlang).
-:- use_module(pengines).
 
 %:- debug(dispatch).
 %:- debug(dispatch(_)).
