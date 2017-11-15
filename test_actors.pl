@@ -180,7 +180,7 @@ test(output, Results = [a,b,.]) :-
         down(Pid, exit) -> true
     }).
     
-test(input, Results = true) :-
+test(input, Results == true) :-
     pengine_spawn(Pid, [ 
         exit(true),
         monitor(true)
