@@ -131,9 +131,40 @@ test(simple, Results = [a,b,c]) :-
     pengine_ask(Pid, p(X), [
         template(X)
     ]),
-    wait_answers(Pid, Results),
+    collect_answers(Pid, Results),
     receive({
         down(Pid, exit) -> true
+    }).
+    
+test(failure, Results = []) :-
+    pengine_spawn(Pid, [ 
+        exit(true),
+        monitor(true)
+    ]),
+    pengine_ask(Pid, fail),
+    collect_answers(Pid, Results),
+    receive({
+        down(Pid, exit) -> true
+    }).
+    
+test(error, Results = error(_,_)) :-
+    pengine_spawn(Pid, [ 
+        exit(true),
+        monitor(true)
+    ]),
+    pengine_ask(Pid, undefined),
+    collect_answers(Pid, Results),
+    receive({
+        down(Pid, exit) -> true
+    }).
+    
+test(exit, Results == foo) :-
+    pengine_spawn(Pid, [ 
+        monitor(true)
+    ]),
+    exit(Pid, foo),
+    receive({
+        down(Pid, Results) -> true
     }).
 
 :- end_tests(local_pengines).
@@ -144,14 +175,18 @@ test(simple, Results = [a,b,c]) :-
                  *******************************/
 
 
-wait_answers(Pid, Results) :-
+collect_answers(Pid, Results) :-
     receive({
         success(Pid, Heads, true) ->
             pengine_next(Pid),
-            wait_answers(Pid, Tail),
+            collect_answers(Pid, Tail),
             append(Heads, Tail, Results);
         success(Pid, Results, false) ->
-            true        
+            true;
+        failure(Pid) ->
+            Results = [];
+        error(Pid, Results) ->
+            true 
     }).
     
 
