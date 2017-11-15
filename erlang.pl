@@ -35,20 +35,32 @@
 :- module(erlang,
           [ flush/0,                    % From dispatch
             spawn/1,                    % :Goal
-            spawn/2,                    % :Goal, -Id
-            spawn/3,                    % :Goal, -Id, +Options
-            send/2,                     % +Id, +Message
-            (!)/2,			% +Id, +Message
+            spawn/2,                    % :Goal, -Pid
+            spawn/3,                    % :Goal, -Pid, +Options
+            send/2,                     % +Pid, +Message
+            (!)/2,			            % +Pid, +Message
             exit/1,                     % +Reason
-            exit/2,                     % +Id, +Reason
+            exit/2,                     % +Pid, +Reason
             receive/1,                  % +Clauses
             link/2,                     % +Parent, +Child
-            self/1,                     % -Id
+            self/1,                     % -Pid
             register/2,                 % +Alias, +Pid
-            unregister/1,		% +Alias
+            unregister/1,		        % +Alias
+           
+            pengine_spawn/1,            % -Pid
+            pengine_spawn/2,            % -Pid, +Options
+            pengine_ask/2,              % +Pid, +Query
+            pengine_ask/3,              % +Pid, +Query, +Options
+            pengine_next/1,             % +Pid
+            pengine_next/2,             % +Pid, +Options
+            pengine_stop/1,             % +Pid                   
+            pengine_abort/1,            % +Pid    
+            pengine_input/2,            % +Prompt, ?Answer
+            pengine_respond/2,          % +Pid, +Answer
+            pengine_output/1,           % +Term
 
-            dump_backtrace/2,           % +Id, +Depth
-            dump_queue/2,               % +Id, -Queue
+            dump_backtrace/2,           % +Pid, +Depth
+            dump_queue/2,               % +Pid, -Queue
 
             op(1000, xfx, when),
             op(800, xfx, !),
@@ -60,6 +72,7 @@
 :- use_module(node).
 :- use_module(node_server).
 :- use_module(srctext).
+:- use_module(pengines).
 :- use_module(library(option)).
 
 :- multifile
