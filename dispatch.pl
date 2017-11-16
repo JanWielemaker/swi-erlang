@@ -36,20 +36,20 @@
           [ start/0,
             flush/0,
             spawn/1,                    % :Goal
-            spawn/2,                    % :Goal, -Id
-            spawn/3,                    % :Goal, -Id, +Options
-            send/2,                     % +Id, +Message
-            (!)/2,			% +Id, +Message
+            spawn/2,                    % :Goal, -Pid
+            spawn/3,                    % :Goal, -Pid, +Options
+            send/2,                     % +Pid, +Message
+            (!)/2,                      % +Pid, +Message
             exit/1,                     % +Reason
-            exit/2,                     % +Id, +Reason
-            receive/1,                  % +Clauses
+            exit/2,                     % +Pid, +Reason
+            receive/1,                  % +ReceiveClauses
             link/2,                     % +Parent, +Child
-            self/1,                     % -Id
+            self/1,                     % -Pid
             register/2,                 % +Alias, +Pid
-            unregister/1,		% +Alias
+            unregister/1,               % +Alias
 
-            dump_backtrace/2,           % +Id, +Depth
-            dump_queue/2,               % +Id, -Queue
+            dump_backtrace/2,           % +Pid, +Depth
+            dump_queue/2,               % +Pid, -Queue
 
             op(1000, xfx, when),
             op(800, xfx, !)
@@ -76,20 +76,20 @@
     hook_goal/3.
 
 
-		 /*******************************
-		 *             STATE		*
-		 *******************************/
+         /*******************************
+         *             STATE            *
+         *******************************/
 
 :- dynamic
     registered/3,                       % Name, Parent, Child
-    dispatch_queue/1,
+    dispatch_queue/1,                   % MessageQueue
     linked_child/2,                     % Parent, Child
     exit_reason/2.                      % Pid, Reason
 
 
-		 /*******************************
-		 *           CONTROL		*
-		 *******************************/
+         /*******************************
+         *           CONTROL            *
+         *******************************/
 
 %!  start is det.
 %!  start(+Options) is det.
@@ -261,9 +261,9 @@ exit_engine(Pid) :-
     debug(dispatch(exit), 'Status: ~p~n', [Status]).
 
 
-		 /*******************************
-		 *           TIMEOUT		*
-		 *******************************/
+         /*******************************
+         *           TIMEOUT            *
+         *******************************/
 
 %!  schedule_timeout(+Pid, +TimeOut, +Deadline)
 %
@@ -293,9 +293,9 @@ schedule(timeout(Pid, TimeOut, Deadline)) :-
              ]).
 
 
-		 /*******************************
-		 *            PROCESSES		*
-		 *******************************/
+         /*******************************
+         *            PROCESSES        *
+         *******************************/
 
 %!  spawn(:Goal) is det.
 %!  spawn(:Goal, -Pid) is det.
@@ -591,9 +591,9 @@ flush :-
     flush.
 flush.
 
-		 /*******************************
-		 *             DEBUG		*
-		 *******************************/
+         /*******************************
+         *             DEBUG            *
+         *******************************/
 
 dump_backtrace(Id, Depth) :-
     thread_property(E, id(Id)), !,
@@ -608,9 +608,9 @@ user:portray(Engine) :-
     registered(Alias, _, Engine),
     writeq(Alias).
 
-		 /*******************************
-		 *            MESSAGES		*
-		 *******************************/
+         /*******************************
+         *            MESSAGES          *
+         *******************************/
 
 :- multifile
     prolog:message//1.
