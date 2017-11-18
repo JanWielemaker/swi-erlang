@@ -105,10 +105,13 @@ ask(Goal, Self, Parent, Options) :-
 % TODO: Currently only works when sandboxed = false, probably due
 % to offset/2 not being made and declared as safe.
 
+ask(Goal0, Self, Parent, Options) :-
+    strip_module(Goal0, M, Goal),
     option(template(Template), Options, Goal),
+    option(offset(Offset), Options, 0),
     option(limit(Limit), Options, 1),
     State = count(Limit),
-    (   call_cleanup(findn0(State, Template, Goal, Solutions, Error), Det=true),
+    (   call_cleanup(findn0(State, Template, M:offset(Offset, Goal), Solutions, Error), Det=true),
         (   var(Error)
         ->  (   var(Det)
             ->  Parent ! success(Self, Solutions, true),
