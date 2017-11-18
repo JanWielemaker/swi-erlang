@@ -46,13 +46,15 @@
             pengine_respond/2,                  % +Pid, +Answer
             pengine_output/1                    % +Term
           ]).
-
 :- use_module(dispatch).
+
+:- use_module(library(debug)).
 
 :- meta_predicate 
     session(:, +, +).
 
-
+    
+    
 %!  pengine_spawn(-Pid) is det.
 %!  pengine_spawn(-Pid, +Options) is det.
 %
@@ -100,9 +102,8 @@ guarded_session(Module:Pid, Parent, Exit) :-
     ->  true
     ;   guarded_session(Module:Pid, Parent, Exit)
     ).
-    
 
-ask(Goal, Self, Parent, Options) :-
+
 % TODO: Currently only works when sandboxed = false, probably due
 % to offset/2 not being made and declared as safe.
 
@@ -129,9 +130,10 @@ ask(Goal0, Self, Parent, Options) :-
         )
     ;   Parent ! failure(Self)
     ).
-    
-findn0(State, Template, Query, Solutions, Error) :-
-    catch(findn(State, Template, Query, Solutions), Error, true).
+
+        
+findn0(State, Template, Goal, Solutions, Error) :-
+    catch(findn(State, Template, Goal, Solutions), Error, true).
     
 findn(N, Template, Goal, Solutions) :- 
     findnsols(N, Template, Goal, Solutions), 
