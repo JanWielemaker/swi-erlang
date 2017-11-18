@@ -67,8 +67,9 @@ pengine_spawn(Pid) :-
 
 pengine_spawn(Pid, Options) :-
     self(Self),
+    option(reply_to(Target), Options, Self),
     option(exit(Exit), Options, false),
-    spawn(session(Pid, Self, Exit), Pid, [
+    spawn(session(Pid, Target, Exit), Pid, [
           application(pengines)
         | Options
     ]).
