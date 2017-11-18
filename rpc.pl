@@ -155,3 +155,67 @@ wait_answer(Query, Pid) :-
     }).
 
 
+
+         /*******************************
+         *  PROMISES (asynchronous RPC) *
+         *******************************/
+
+
+%!  promise(+URI, +Query, -Reference) is det.
+%!  promise(+URI, +Query, -Reference, +Options) is det.
+%
+%   Make asynchronous call to node URI with Query. Options:
+%
+%     - template(+Template)
+%       Template is a variable (or a term containing variables) 
+%       shared with Query. By default, the template is identical to
+%       Query.
+%     - offset(+Integer)
+%       Retrieve the slice of solutions to Query starting from Integer.
+%       Default is 0.
+%     - limit(+Integer)
+%       Integer indicates the maximum number of solutions to retrieve
+%       in one batch. A value of 1 means a unary list (default).
+
+promise(URI, Query, Reference) :-
+    promise(URI, Query, Reference, []).
+    
+promise(URI, Query, Reference, Options) :-
+    reference_uuid(Reference),
+    thread_self(Self),
+    option(template(Template), Options, Query),
+    option(offset(Offset), Options, 0),
+    option(limit(Limit), Options, 1),
+    thread_create(promise(URI, Query, Template, Offset, Limit, Self, Reference), _, [detached(true)]).
+    
+promise(URI, Query, Template, Offset, Limit, Parent, Reference) :-
+	format(atom(QueryTemplateAtom), "~p$@$~p", [Query,Template]),
+    atomic_list_concat([QueryAtom, TemplateAtom], $@$, QueryTemplateAtom),
+    parse_url(URI, Parts),
+    parse_url(ExpandedURI, [ path('/api/pengine_ask'),
+                             search([ query=QueryAtom,
+                                      template=TemplateAtom,
+                                      offset=Offset,
+                                      limit=Limit
+                                    ])
+                           | Parts]), 
+    setup_call_cleanup(
+        http_open(ExpandedURI, Stream, []),
+        read(Stream, Message), 
+        close(Stream)),
+    catch(thread_send_message(Parent, Reference-Message),_, true).
+
+reference_uuid(Reference) :-
+        uuid(Reference, [version(4)]).
+
+%!  yield(+Reference, -Message) is det.
+%
+%   Retrieve the value of the asynchronous call made by promise/3-4.
+
+yield(Reference, Message) :-
+    thread_get_message(Reference-Message).
+
+
+
+
+    
