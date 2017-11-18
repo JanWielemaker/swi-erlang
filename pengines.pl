@@ -102,6 +102,9 @@ guarded_session(Module:Pid, Parent, Exit) :-
     
 
 ask(Goal, Self, Parent, Options) :-
+% TODO: Currently only works when sandboxed = false, probably due
+% to offset/2 not being made and declared as safe.
+
     option(template(Template), Options, Goal),
     option(limit(Limit), Options, 1),
     State = count(Limit),
@@ -140,11 +143,12 @@ findn(N, Template, Goal, Solutions) :-
 %       Template is a variable (or a term containing variables) 
 %       shared with Query. By default, the template is identical to
 %       Query.
+%     - offset(+Integer)
+%       Retrieve the slice of solutions to Query starting from Integer.
+%       Default is 0.
 %     - limit(+Integer)
-%       Retrieve solutions in lists of length Integer rather than one
-%       by one. Thus, a value of 1 means a unary list (default). Other
-%       integers indicate the maximum number of solutions to retrieve
-%       in one batch.
+%       Integer indicates the maximum number of solutions to retrieve
+%       in one batch. A value of 1 means a unary list (default).
 
 pengine_ask(Pid, Goal) :-
     pengine_ask(Pid, Goal, []).
@@ -159,10 +163,8 @@ pengine_ask(Pid, Goal, Options) :-
 %   Ask pengine Pid for more solutions to Query. Options:
 %
 %     - limit(+Integer)
-%       Retrieve solutions in lists of length Integer rather than one
-%       by one. A value of 1 means a unary list (default). Other
-%       integers indicate the maximum number of solutions to retrieve
-%       in one batch.
+%       Integer indicates the maximum number of solutions to retrieve
+%       in one batch. A value of 1 means a unary list (default).
 
 pengine_next(Pid) :-
     pengine_next(Pid, []).
