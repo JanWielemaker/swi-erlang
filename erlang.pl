@@ -58,6 +58,12 @@
             pengine_input/2,            % +Prompt, ?Answer
             pengine_respond/2,          % +Pid, +Answer
             pengine_output/1,           % +Term
+            
+            rpc/2,                      % +URI, :Query
+            rpc/3,                      % +URI, :Query, +Options
+            promise/3,                  % +URI, :Query, -Reference
+            promise/4,                  % +URI, :Query, -Reference, +Options
+            yield/2,                    % +Reference, ?Message
 
             dump_backtrace/2,           % +Pid, +Depth
             dump_queue/2,               % +Pid, -Queue
@@ -68,12 +74,15 @@
             node_server/0,              % from node_server
             node_server/1
           ]).
+:- use_module(library(option)).
+
 :- use_module(dispatch).
 :- use_module(node).
 :- use_module(node_server).
 :- use_module(srctext).
 :- use_module(pengines).
-:- use_module(library(option)).
+:- use_module(restful_api).
+:- use_module(rpc).
 
 :- multifile
     dispatch:hook_goal/3.
