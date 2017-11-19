@@ -1,6 +1,6 @@
 :- use_module(node).
 :- use_module(node_server).
-:- use_module(dispatch).
+:- use_module(actors).
 :- use_module(library(debug)).
 
 %:- debug(ws).

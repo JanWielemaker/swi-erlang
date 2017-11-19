@@ -44,7 +44,7 @@
 :- use_module(library(debug)).
 
 :- use_module(pengines).
-:- use_module(dispatch).
+:- use_module(actors).
 
 
 

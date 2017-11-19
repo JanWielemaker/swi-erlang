@@ -33,7 +33,7 @@
 */
 
 :- module(pengines,  
-          [ flush/0,                            % From dispatch
+          [ flush/0,                            % From actors
             pengine_spawn/1,                    % -Pid
             pengine_spawn/2,                    % -Pid, +Options
             pengine_ask/2,                      % +Pid, +Query
@@ -46,7 +46,7 @@
             pengine_respond/2,                  % +Pid, +Answer
             pengine_output/1                    % +Term
           ]).
-:- use_module(dispatch).
+:- use_module(actors).
 
 :- use_module(library(debug)).
 

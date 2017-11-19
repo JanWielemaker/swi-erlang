@@ -32,7 +32,7 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-:- module(dispatch,
+:- module(actors,
           [ start/0,
             flush/0,
             spawn/1,                    % :Goal

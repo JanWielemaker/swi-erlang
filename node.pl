@@ -38,7 +38,7 @@
             self_remote/1,                      % -Id
             register_node_self/1                % +URL
           ]).
-:- use_module(dispatch).
+:- use_module(actors).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/websocket)).
 :- use_module(library(debug)).
@@ -178,17 +178,17 @@ register_node_self(URL) :-
 		 *******************************/
 
 :- multifile
-    dispatch:hook_self/1.
+    actors:hook_self/1.
 
-dispatch:hook_self(Me) :-
+actors:hook_self(Me) :-
     self_remote(Me).
 
-dispatch:hook_spawn(Goal, Engine, Options) :-
+actors:hook_spawn(Goal, Engine, Options) :-
     select_option(node(Node), Options, RestOptions),
     !,
     spawn_remote(Node, Goal, Engine, RestOptions).
 
-dispatch:hook_send(process(Node, Id), Message) :-
+actors:hook_send(process(Node, Id), Message) :-
     !,
     (   self_node(Node)
     ->  (   Id = thread(Tid)

@@ -33,7 +33,7 @@
 */
 
 :- module(erlang,
-          [ flush/0,                    % From dispatch
+          [ flush/0,                    % From actors
             spawn/1,                    % :Goal
             spawn/2,                    % :Goal, -Pid
             spawn/3,                    % :Goal, -Pid, +Options
@@ -76,7 +76,7 @@
           ]).
 :- use_module(library(option)).
 
-:- use_module(dispatch).
+:- use_module(actors).
 :- use_module(node).
 :- use_module(node_server).
 :- use_module(srctext).
@@ -85,9 +85,9 @@
 :- use_module(rpc).
 
 :- multifile
-    dispatch:hook_goal/3.
+    actors:hook_goal/3.
 
-dispatch:hook_goal(Goal0, srctext:with_source(Goal0, GoalOptions), Options) :-
+actors:hook_goal(Goal0, srctext:with_source(Goal0, GoalOptions), Options) :-
     \+ option(node(_), Options),
     actor_uuid(Module),
     GoalOptions = [ module(Module)

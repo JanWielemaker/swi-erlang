@@ -1,4 +1,4 @@
-:- use_module(dispatch).
+:- use_module(actors).
 
 s(N, Msg) :-
     spawn(start(N, Msg)).

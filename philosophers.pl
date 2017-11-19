@@ -1,4 +1,4 @@
-:- use_module(dispatch).
+:- use_module(actors).
 
 % -module(philosophers).
 % -export([dining/0]).
