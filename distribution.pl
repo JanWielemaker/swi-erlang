@@ -50,7 +50,7 @@
     self_node/1,                        % Node
     actor_uuid/2.                       % Engine, ID
 
-:- http_handler(root(erlang), node_manager, [spawn([]), id(erlang)]).
+:- http_handler(root(web_prolog), node_manager, [spawn([]), id(web_prolog)]).
 
 node_manager(Request) :-
     http_upgrade_to_websocket(node_loop, [], Request).
@@ -119,7 +119,7 @@ connection(Node, Socket) :-
     websocket(Node, _Thread, Socket),
     !.
 connection(Node, Socket) :-
-    http_open_websocket(Node, Socket, [subprotocol(erlang)]),
+    http_open_websocket(Node, Socket, [subprotocol(web_prolog)]),
     thread_create(node_loop(Socket), Thread, [alias(Node)]),
     assertz(websocket(Node, Thread, Socket)).
 

@@ -32,7 +32,7 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-:- module(erlang,
+:- module(web_prolog,
           [ flush/0,                    % From actors
             spawn/1,                    % :Goal
             spawn/2,                    % :Goal, -Pid

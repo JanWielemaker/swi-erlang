@@ -32,5 +32,5 @@ loop(NextProcess) :-
     }).
 
 r(Port, Goal, Id) :-
-    format(atom(URL), 'http://localhost:~w/erlang', [Port]),
+    format(atom(URL), 'http://localhost:~w/web_prolog', [Port]),
     spawn(Goal, Id, [node(URL)]).

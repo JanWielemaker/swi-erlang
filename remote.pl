@@ -1,4 +1,4 @@
-:- use_module(erlang).
+:- use_module(web_prolog).
 :- use_module(library(debug)).
 
 :- debug(ws).
@@ -10,7 +10,7 @@
 $ swipl -g 'node(localhost:3061)' remote.pl
 $ swipl -g 'node(localhost:3060)' remote.pl
 
-?- test(Id, [node('http://localhost:3061/erlang')]).
+?- test(Id, [node('http://localhost:3061/web_prolog')]).
 ```
 
 */

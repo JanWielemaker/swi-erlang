@@ -122,7 +122,7 @@ wait_answer(success(anonymous, Solutions, true), Query, Offset0, Limit, QueryAto
 %
 
 rpc_ws(URI, Query, Options) :-
-    atom_concat(URI, '/erlang', WsURI),
+    atom_concat(URI, '/web_prolog', WsURI),
     option(limit(Limit), Options, 1),
     pengine_spawn(Pid, [
          node(WsURI),

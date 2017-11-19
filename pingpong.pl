@@ -1,4 +1,4 @@
-:- use_module(erlang).
+:- use_module(web_prolog).
 
 % :- debug(dispatch).
 % :- debug(dispatch(_)).
