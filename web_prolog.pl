@@ -33,19 +33,19 @@
 */
 
 :- module(web_prolog,
-          [ flush/0,                    % From actors
+          [ flush/0,                    
             spawn/1,                    % :Goal
             spawn/2,                    % :Goal, -Pid
             spawn/3,                    % :Goal, -Pid, +Options
             send/2,                     % +Pid, +Message
-            (!)/2,			            % +Pid, +Message
+            (!)/2,                      % +Pid, +Message
             exit/1,                     % +Reason
             exit/2,                     % +Pid, +Reason
-            receive/1,                  % +Clauses
+            receive/1,                  % +ReceiveClauses
             link/2,                     % +Parent, +Child
             self/1,                     % -Pid
             register/2,                 % +Alias, +Pid
-            unregister/1,		        % +Alias
+            unregister/1,               % +Alias
            
             pengine_spawn/1,            % -Pid
             pengine_spawn/2,            % -Pid, +Options
@@ -71,7 +71,7 @@
             op(1000, xfx, when),
             op(800, xfx, !),
 
-            node/0,              % from node
+            node/0,
             node/1
           ]).
 :- use_module(library(option)).

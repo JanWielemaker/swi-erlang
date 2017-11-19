@@ -1,5 +1,9 @@
 # Timeout handling
 # Monitor				[OK]
+# Implement more options to spawn/3
+  - [ ] src_predicates
+  - [ ] src_list
+  
 # Link
   - What about running children?
   - What about propagating?

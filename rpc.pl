@@ -191,7 +191,7 @@ promise(URI, Query, Reference, Options) :-
     thread_create(promise(URI, Query, Template, Offset, Limit, Self, Reference), _, [detached(true)]).
     
 promise(URI, Query, Template, Offset, Limit, Parent, Reference) :-
-	format(atom(QueryTemplateAtom), "~p$@$~p", [Query,Template]),
+    format(atom(QueryTemplateAtom), "~p$@$~p", [Query,Template]),
     atomic_list_concat([QueryAtom, TemplateAtom], $@$, QueryTemplateAtom),
     parse_url(URI, Parts),
     parse_url(ExpandedURI, [ path('/api/pengine_ask'),

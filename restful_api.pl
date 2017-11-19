@@ -207,15 +207,15 @@ answer_format(spawned(Pid),
               'json-s') :- !.
 /*              
 answer_format(success(ID, Answers0, More), JSON,
-		      'json-s') :- !,
-	JSON = json{type:success, pid:ID, data:Answers, more:More},
+              'json-s') :- !,
+    JSON = json{type:success, pid:ID, data:Answers, more:More},
     maplist(wp_expand_answer, Answers0, Answers1),
-	maplist(answer_to_json_strings, Answers1, Answers).
+    maplist(answer_to_json_strings, Answers1, Answers).
 */
 answer_format(success(ID, Answers0, More), JSON,
-		      'json-s') :- !,
-	JSON = json{type:success, pid:ID, data:Answers, more:More},
-	maplist(answer_to_json_strings, Answers0, Answers).              
+              'json-s') :- !,
+    JSON = json{type:success, pid:ID, data:Answers, more:More},
+    maplist(answer_to_json_strings, Answers0, Answers).              
 answer_format(failure(Pid),
               json{type:failure, pid:Pid},
               'json-s') :- !.
@@ -250,19 +250,19 @@ map_output(Term, Data) :-
     ;   term_string(Term, Data)
     ). 
     
-%%	answer_to_json_strings(+AnswerDictIn, -AnswerDict).
+%%    answer_to_json_strings(+AnswerDictIn, -AnswerDict).
 %
-%	Translate answer dict with Prolog term   values into answer dict
-%	with string values.
+%    Translate answer dict with Prolog term   values into answer dict
+%    with string values.
 
 answer_to_json_strings(DictIn, DictOut) :-
-	dict_pairs(DictIn, Tag, Pairs),
-	maplist(term_string_value, Pairs, BindingsOut),
-	dict_pairs(DictOut, Tag, BindingsOut).
+    dict_pairs(DictIn, Tag, Pairs),
+    maplist(term_string_value, Pairs, BindingsOut),
+    dict_pairs(DictOut, Tag, BindingsOut).
 
 term_string_value(N-V, N-A) :-
-	with_output_to(string(A),write_term(V,
-				  [ quoted(true)
-				  ])).
+    with_output_to(string(A),write_term(V,
+                  [ quoted(true)
+                  ])).
 
 
