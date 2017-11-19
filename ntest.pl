@@ -1,5 +1,5 @@
 :- use_module(distribution).
-:- use_module(node_server).
+:- use_module(node).
 :- use_module(actors).
 :- use_module(library(debug)).
 

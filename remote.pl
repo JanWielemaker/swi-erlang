@@ -7,8 +7,8 @@
 /** <module> Test handling source
 
 ```
-$ swipl -g 'node_server(localhost:3061)' remote.pl
-$ swipl -g 'node_server(localhost:3060)' remote.pl
+$ swipl -g 'node(localhost:3061)' remote.pl
+$ swipl -g 'node(localhost:3060)' remote.pl
 
 ?- test(Id, [node('http://localhost:3061/erlang')]).
 ```

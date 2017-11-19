@@ -71,14 +71,14 @@
             op(1000, xfx, when),
             op(800, xfx, !),
 
-            node_server/0,              % from node_server
-            node_server/1
+            node/0,              % from node
+            node/1
           ]).
 :- use_module(library(option)).
 
 :- use_module(actors).
 :- use_module(distribution).
-:- use_module(node_server).
+:- use_module(node).
 :- use_module(srctext).
 :- use_module(pengines).
 :- use_module(restful_api).

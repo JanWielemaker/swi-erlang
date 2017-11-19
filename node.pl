@@ -32,9 +32,9 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-:- module(node_server,
-          [ node_server/0,
-            node_server/1
+:- module(node,
+          [ node/0,
+            node/1
           ]).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
@@ -43,8 +43,8 @@
 
 :- use_module(distribution).
 
-%!  node_server is det.
-%!  node_server(+Address) is det.
+%!  node is det.
+%!  node(+Address) is det.
 %
 %   Start the HTTP server for   accepting websocket connections. Address
 %   is either of the form `localhost:Port` or a plain `Port`. Default is
@@ -58,10 +58,10 @@
 %     - If the setting http:public_host is provided, use that
 %     - Else use the host as known by gethostname/1.
 
-node_server :-
-    node_server(localhost:3060).
+node :-
+    node(localhost:3060).
 
-node_server(Address) :-
+node(Address) :-
     http_server(http_dispatch,
                 [ port(Address)
                 ]),
