@@ -73,7 +73,7 @@ node_action(spawn, Data, WebSocket) :-
     !,
     term_string(Goal, String),
     term_string(Options, OptionString),
-    spawn(Goal, Engine, [sandboxed(true)|Options]),
+    spawn(Goal, Engine, [sandboxed(false)|Options]),
     actor_uuid(UUID),
     asserta(actor_uuid(Engine, UUID)),
     ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:UUID})).
