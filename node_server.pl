@@ -40,7 +40,8 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_host), []).
 :- use_module(library(settings)).
-:- use_module(node).
+
+:- use_module(distribution).
 
 %!  node_server is det.
 %!  node_server(+Address) is det.

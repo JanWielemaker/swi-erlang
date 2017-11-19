@@ -77,7 +77,7 @@
 :- use_module(library(option)).
 
 :- use_module(actors).
-:- use_module(node).
+:- use_module(distribution).
 :- use_module(node_server).
 :- use_module(srctext).
 :- use_module(pengines).

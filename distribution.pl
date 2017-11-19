@@ -32,7 +32,7 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-:- module(node,
+:- module(distribution,
           [ spawn_remote/4,                     % +Node, :Goal, -Id, +Options
             send_remote/2,                      % +Id, +Message
             self_remote/1,                      % -Id
