@@ -36,8 +36,8 @@
           [ flush/0,                            % From actors
             pengine_spawn/1,                    % -Pid
             pengine_spawn/2,                    % -Pid, +Options
-            pengine_ask/2,                      % +Pid, +Query
-            pengine_ask/3,                      % +Pid, +Query, +Options
+            pengine_ask/2,                      % +Pid, :Query
+            pengine_ask/3,                      % +Pid, :Query, +Options
             pengine_next/1,                     % +Pid
             pengine_next/2,                     % +Pid, +Options
             pengine_stop/1,                     % +Pid                   
