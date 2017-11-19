@@ -32,7 +32,7 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-:- module(srctext,
+:- module(isolation,
           [ with_source/2,              % :Goal, +Options
             source_data/2               % ?SourceID, ?Data
           ]).

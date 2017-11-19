@@ -79,7 +79,7 @@
 :- use_module(actors).
 :- use_module(distribution).
 :- use_module(node).
-:- use_module(srctext).
+:- use_module(isolation).
 :- use_module(pengines).
 :- use_module(restful_api).
 :- use_module(rpc).
@@ -87,7 +87,7 @@
 :- multifile
     actors:hook_goal/3.
 
-actors:hook_goal(Goal0, srctext:with_source(Goal0, GoalOptions), Options) :-
+actors:hook_goal(Goal0, isolation:with_source(Goal0, GoalOptions), Options) :-
     \+ option(node(_), Options),
     actor_uuid(Module),
     GoalOptions = [ module(Module)
