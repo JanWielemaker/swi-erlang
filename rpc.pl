@@ -123,14 +123,16 @@ wait_answer(success(anonymous, Solutions, true), Query, Offset0, Limit, QueryAto
 
 rpc_ws(URI, Query, Options) :-
     atom_concat(URI, '/erlang', WsURI),
+    option(limit(Limit), Options, 1),
     pengine_spawn(Pid, [
          node(WsURI),
          exit(true),
-         monitor(false)
+         monitor(false),
+         limit(Limit)
        | Options
     ]),
     pengine_ask(Pid, Query, Options),
-    wait_answer(Query, Pid).
+    wait_answer(Query, Pid, Limit).
 
 
 % TODO: Investigate why _Pid \= Pid. 
@@ -138,7 +140,7 @@ rpc_ws(URI, Query, Options) :-
 % and since receive uses subsumption rather than unification.
 % So how do we get the right Pid?
 
-wait_answer(Query, Pid) :-
+wait_answer(Query, Pid, Limit) :-
     receive({
         failure(_) -> fail;            
         error(_, Exception) -> 
@@ -147,8 +149,8 @@ wait_answer(Query, Pid) :-
             % writeln(Pid),
             % writeln(_Pid),
             (   member(Query, Solutions)
-            ;   pengine_next(Pid), 
-                wait_answer(Query, Pid)
+            ;   pengine_next(Pid, [limit(Limit)]), 
+                wait_answer(Query, Pid, Limit)
             );
         success(_, Solutions, false) -> 
             member(Query, Solutions)
@@ -208,9 +210,10 @@ promise(URI, Query, Template, Offset, Limit, Parent, Reference) :-
 reference_uuid(Reference) :-
         uuid(Reference, [version(4)]).
 
+
 %!  yield(+Reference, -Message) is det.
 %
-%   Retrieve the value of the asynchronous call made by promise/3-4.
+%   Retrieve the value of an asynchronous call made by promise/3-4.
 
 yield(Reference, Message) :-
     thread_get_message(Reference-Message).
