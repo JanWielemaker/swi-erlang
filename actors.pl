@@ -595,13 +595,46 @@ flush.
          *             DEBUG            *
          *******************************/
 
-dump_backtrace(Id, Depth) :-
-    thread_property(E, id(Id)), !,
+%!  dump_backtrace(+Target, +Depth) is det.
+%
+%   Dump a backtrace for a  suspended  process   in  the  console of the
+%   process.
+%
+%   @arg Target is either a registered alias   name or the integer id of
+%   an engine.
+%   @bug The backtrace should appear in the caller's process.
+
+dump_backtrace(Target, Depth) :-
+    debug_target(Target, E), !,
     engine_post(E, '$backtrace'(Depth), _).
 
-dump_queue(Id, Queue) :-
-    thread_property(E, id(Id)), !,
+%!  dump_queue(+Target, -Queue) is det.
+%
+%   True when Queue is the content of   the  message queue for the given
+%   process.
+%
+%   @arg Target is either a registered alias   name or the integer id of
+%   an engine.
+
+dump_queue(Target, Queue) :-
+    debug_target(Target, E),
     engine_post(E, '$queue', Queue).
+
+debug_target(Name, Engine) :-
+    findall(Pid, registered(Name, Self, Pid), Pids),
+    Pids \== [],
+    !,
+    (   Pids = [Engine]
+    ->  true
+    ;   registered(Name, Self, Pid),
+        self_local(Self)
+    ->  Engine = Pid
+    ;   print_message(error, actor(ambiguous_target(Name, Pids))),
+        fail
+    ).
+debug_target(Id, Engine) :-
+    thread_property(Engine, id(Id)).
+
 
 user:portray(Engine) :-
     is_engine(Engine),
@@ -623,3 +656,5 @@ message(received(X)) -->
 message(delivery_failed(Pid, Message, E)) -->
     [ 'Delivery to ~p of ~p failed:'-[Pid, Message], nl ],
     '$messages':translate_message(E).
+message(ambiguous_target(Target, Pids)) -->
+    [ 'Ambigous debug target ~p: matches ~p'-[Target, Pids] ].
