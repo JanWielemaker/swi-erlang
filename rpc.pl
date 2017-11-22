@@ -56,7 +56,8 @@
 %!  rpc(+URI, :Query) is nondet.
 %!  rpc(+URI, :Query, +Options) is nondet.
 %
-%   Make synchronous call to node URI with Query. Options:
+%   Make non-deterministic synchronous call to node URI with Query.
+%   Options:
 %
 %     - transport(+Transport)
 %       Transport must be either `http' (default) or `websocket'.
@@ -163,8 +164,8 @@ wait_answer(Query, Pid, Limit) :-
          *******************************/
 
 
-%!  promise(+URI, +Query, -Reference) is det.
-%!  promise(+URI, +Query, -Reference, +Options) is det.
+%!  promise(+URI, :Query, -Reference) is det.
+%!  promise(+URI, :Query, -Reference, +Options) is det.
 %
 %   Make asynchronous call to node URI with Query. Options:
 %
