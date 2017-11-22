@@ -1,0 +1,79 @@
+
+/* Fixing the search box
+-------------------------------------------------- */
+
+div.ace_search_options {
+    float: right;
+}
+
+button.ace_replacebtn {
+    margin-left: -6px;
+    font-size: 80%;
+
+}
+
+
+
+/* Application CSS
+-------------------------------------------------- */
+
+
+
+#editor {
+    margin: 0;
+    position: absolute;
+    top: 50px;
+    bottom: 50px;
+    right: 50%;
+    left: 0;
+    border-bottom: none;
+
+}
+
+#cmdlineeditor {
+    width: 100%;
+    min-height: 60px;
+    margin-bottom: 0;
+}
+
+#reader {
+    width: 100%;
+    padding: 3px;
+}	
+		
+#shell {
+    position: absolute;
+    top: 50px;
+    bottom: 50px;
+    right: 0;
+    width: 50%;
+}
+
+
+.navbar-fixed-bottom {
+    border-top: 2px solid #E5E5E5;
+}
+
+.footer {
+    text-align: center;
+    margin: 14px;
+}
+
+
+legend {
+    font-size: 16px;
+    line-height: 32px;
+    margin-bottom: 12px;
+    color: darkblue;
+    border-bottom: 1px solid #E5E5E5;
+}
+
+.preference-menu {
+    width: 120px;
+}
+
+#slider {
+    margin-top: 3px;
+    width: 80px;
+}
+

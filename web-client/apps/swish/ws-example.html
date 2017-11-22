@@ -1,0 +1,27 @@
+<html lang="en">
+    <head>
+    </head>
+    <body>
+<script>
+        var ws = new WebSocket('ws://localhost:3051/chat');
+        var program = "echo :- pengine_input(?,N), pengine_output(N), echo.";
+        ws.onerror = function(message) {
+            console.log(message);
+        };
+        ws.onopen = function(message) {
+            ws.send("pengine_spawn([format(json),src_text('"+program+"')])");
+        };
+        ws.onmessage = function(message) {
+            var event = JSON.parse(message.data);
+            if (event.type == "create") {
+                ws.send("pengine_ask('" + event.pid + "', echo)");
+            } else if (event.type == "prompt") {
+                var n = prompt(event.data);
+                ws.send("pengine_respond('" + event.pid + "'," + n + ")");;
+            } else if (event.type == "output") {
+                console.log(event.data);
+            } 
+        }; 
+</script>
+    </body>
+</html>
