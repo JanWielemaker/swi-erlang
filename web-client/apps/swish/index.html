@@ -520,39 +520,42 @@ time(findall(N,
         }
         return to_html(data[0]);
     }
-    function speak(string) {
-        var uu = new SpeechSynthesisUtterance(string);
-        speechSynthesis.speak(uu);    
+    function S4() {
+        return (((1+Math.random())*0x10000)|0).toString(16).substring(1); 
     }
+    function guid() {
+        return (S4() + S4() + "-" + S4() + "-4" + S4().substr(0,3) + "-" + S4() + "-" + S4() + S4() + S4()).toLowerCase();
+    }    
     $(document).ready(function($) {
         $('#shell').terminal(function(command, term) {
             var pid;
+            var uuid;
             gterm = term;
             ws = new WebSocket('ws://localhost:3060/web_prolog', 'web_prolog'); 
             ws.onerror = function(e) {
                 term.resume();
-                console.log('error');
                 console.log(e);
             };
             ws.onclose = function(e) {
-                console.log('close');
                 console.log(e);
             };
             ws.onmessage = function(message) {
-                console.log(message);
                 term.resume();
-                event = JSON.parse(message.data);
-                console.log(event);
+                var eventstr = message.data;
+                console.log(eventstr);
+                event = JSON.parse(eventstr);
                 var type = event.type;
                 if (type == "spawned") {
                     term.echo('Welcome to Web Prolog!\n');
                     pid = event.pid;
                 } else if (type == "success") {
                     if (event.more) {
+                        console.log('2 -> 4')
                         state = 4;
                         term.echo(report(event.data), {raw:true});
                         term.set_prompt(": ")
                     } else {
+                        console.log('2 -> 1')
                         state = 1;
                         term.echo(report(event.data), {raw:true});
                         term.set_prompt(myprompt);
@@ -598,8 +601,8 @@ time(findall(N,
                 myprompt = "?- ";
                 if (gterm) gterm.clear();
                 ws.onopen = function(message) {
-                    console.log(message);
-                    ws.send(JSON.stringify({action:"spawn", thread:"dummy", prolog:"true", options:"[]"}));
+                    uuid = guid();
+                    ws.send(JSON.stringify({action:"pengine_spawn", thread:uuid, options:"[]"}));
                     term.pause()
                 };
                 term.push(function(command, term) {
@@ -613,7 +616,10 @@ time(findall(N,
                         if (command.trim().endsWith('.')) {
                             currcommand += command.trim().slice(0, -1);
                             state = 2;
-                            ws.send("pengine_ask('" + pid + "', (" + currcommand + "))");
+                            console.log('--------------------------');
+                            console.log('Query: '+currcommand);
+                            console.log('1 -> 2');
+                            ws.send(JSON.stringify({action:"pengine_ask", thread:uuid, receiver:pid, prolog:currcommand, options:"[]"}));
                             currcommand = "";
                             term.pause();
                         } else {
@@ -623,16 +629,19 @@ time(findall(N,
                     } else if (state == 4) {
                         if (command == ";") {
                             state = 2;
-                            ws.send("pengine_next('" + pid + "')");
+                            console.log('4 -> 2');
+                            ws.send(JSON.stringify({action:"pengine_next", receiver:pid, options:"[]"}));
                             term.pause();
                         } else if (command == "") {
-                            ws.send("pengine_stop('" + pid + "')");
+                            console.log('4 -> 1');
+                            ws.send(JSON.stringify({action:"pengine_stop", receiver:pid}));
                             term.pause();
                         }
                     } else if (state == 3) {
                         state = 2;
+                        console.log('3 -> 2');
                         if (command !== "") {
-                            ws.send("pengine_respond('" + pid + "', (" + command + "))")
+                            ws.send(JSON.stringify({action:"pengine_respond", receiver:pid, prolog:command}));
                         }
                         //term.pause();
                     }
@@ -641,11 +650,11 @@ time(findall(N,
                     prompt:'?- ',
                     keypress: function(e) {
                         if (state == 4 && e.which == 59) {
-                            ws.send("pengine_next('" + pid + "')");
+                            ws.send(JSON.stringify({action:"pengine_next", receiver:pid, options:"[]"}));
                             gterm.pause();
                             return false;
                         } else if ((state == 2 || state == 3) && e.which == 3) {
-                            ws.send("pengine_abort('" + pid + "')");
+                            ws.send(JSON.stringify({action:"pengine_abort", receiver:pid}));
                             gterm.pause();
                             return false;
                         } 

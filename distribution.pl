@@ -45,12 +45,14 @@
 :- use_module(library(option)).
 :- use_module(library(broadcast)).
 
+:- use_module(format).
 :- use_module(pengines). % TODO: Eventually remove this
 
 :- dynamic
     websocket/3,                        % Node, Thread, Socket
     self_node/1,                        % Node
-    actor_uuid/2.                       % Engine, ID
+    actor_uuid/2,                       % Engine, ID
+    creator_ws/3.                       % Creator, Socket
 
 :- http_handler(root(web_prolog), node_manager, [spawn([]), id(web_prolog)]).
 
@@ -71,23 +73,64 @@ node_loop(WebSocket) :-
     ).
 
 
+:- op(400, fx, debugg).
+
+debugg(Goal) :-
+    debug(ws, 'CALL ~p', [Goal]),
+    call(Goal),
+    debug(ws, 'EXIT ~p', [Goal]).
+
+
+
+
 node_action(pengine_spawn, Data, WebSocket) :-
     _{thread:Creator, options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
-    pengine_spawn(Engine, [sandboxed(false)|Options]),
+    select_option(format(Format), Options, RestOptions, 'json-s'),
+    pengine_spawn(Engine, [reply_to(Creator),sandboxed(false)|RestOptions]),
     actor_uuid(UUID),
     asserta(actor_uuid(Engine, UUID)),
-    ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:UUID})).
+    asserta(creator_ws(Creator, WebSocket, Format)),    
+    ws_send(WebSocket, json(_{type:spawned, thread:Creator, pid:UUID})).
 node_action(pengine_ask, Data, _WebSocket) :-
-    _{receiver:UUIDString, prolog:String} :< Data,
+    _{receiver:UUIDString, thread:Creator, prolog:String, options:OptionString} :< Data,
     !,
-    term_string(Goal, String),
+    read_term_from_atom(String, Goal, [variable_names(Bindings)]),    
+    term_string(Options, OptionString),
     atom_string(UUID, UUIDString),
     actor_uuid(Engine, UUID),
-    pengine_ask(Engine, Goal).
+    creator_ws(Creator, _, Format),
+    fix_template(Format, Goal, Goal, Bindings, NewTemplate),
+    pengine_ask(Engine, Goal, [template(NewTemplate)|Options]).
+node_action(pengine_next, Data, _WebSocket) :-
+    _{receiver:UUIDString, options:OptionString} :< Data,
+    !,
+    term_string(Options, OptionString),
+    atom_string(UUID, UUIDString),
+    actor_uuid(Engine, UUID),
+    pengine_next(Engine, Options).    
+node_action(pengine_stop, Data, _WebSocket) :-
+    _{receiver:UUIDString} :< Data,
+    !,
+    atom_string(UUID, UUIDString),
+    actor_uuid(Engine, UUID),
+    pengine_stop(Engine).
+node_action(pengine_respond, Data, _WebSocket) :-
+    _{receiver:UUIDString, prolog:String} :< Data,
+    !,
+    term_string(Term, String),
+    atom_string(UUID, UUIDString),
+    actor_uuid(Engine, UUID),
+    debugg pengine_respond(Engine, Term).
+node_action(pengine_abort, Data, _WebSocket) :-
+    _{receiver:UUIDString} :< Data,
+    !,
+    atom_string(UUID, UUIDString),
+    actor_uuid(Engine, UUID),
+    pengine_abort(Engine).
     
-        
+
 node_action(spawn, Data, WebSocket) :-
     _{thread:Creator, prolog:String, options:OptionString} :< Data,
     !,
@@ -118,6 +161,8 @@ node_action(send, Data, _WebSocket) :-
     send(thread(Engine), Message).
 node_action(_Action, Data, _WebSocket) :-
     debug(ws, 'Got unknown data: ~p', [Data]).
+
+
 
 :- listen(actor(down, Engine),
           retractall(actor_uuid(Engine, _))).
@@ -160,6 +205,12 @@ spawn_remote(Node, Goal, process(Node,Id), Options) :-
 %
 %   Send a message to a remote process.
 
+send_remote(Creator, Message) :-
+    creator_ws(Creator, Socket, Format),
+    !,
+    %term_string(Message, String),
+    answer_format(Message, Json, Format),
+    ws_send(Socket, json(Json)).
 send_remote(process(Node,thread(Id)), Message) :-
     !,
     connection(Node, Socket),
@@ -217,5 +268,8 @@ actors:hook_send(process(Node, Id), Message) :-
         ;   thread_property(Engine, id(Id)),
             send(Engine, Message)
         )
-    ;   send_remote(process(Node,Id), Message)
+    ;   send_remote(process(Node, Id), Message)
     ).
+actors:hook_send(Socket, Message) :-
+    send_remote(Socket, Message).
+

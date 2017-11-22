@@ -204,13 +204,15 @@ pengine_output(Term) :-
 %
 %   Send Prompt to the parent process and wait for input. Prompt may
 %   be any term, compound or atomic.
+%
+%   @bug: Why does Parent and _Parent not unify in the remote case?
 
 pengine_input(Prompt, Input) :-
     self(Self),
     parent(Parent),
     Parent ! prompt(Self, Prompt),
-    receive({
-        input(Parent, Input) ->
+    receive({ 
+        input(_Parent, Input) ->
             true
     }).
 
