@@ -45,6 +45,8 @@
 :- use_module(library(option)).
 :- use_module(library(broadcast)).
 
+:- use_module(pengines). % TODO: Eventually remove this
+
 :- dynamic
     websocket/3,                        % Node, Thread, Socket
     self_node/1,                        % Node
@@ -68,6 +70,24 @@ node_loop(WebSocket) :-
         node_loop(WebSocket)
     ).
 
+
+node_action(pengine_spawn, Data, WebSocket) :-
+    _{thread:Creator, options:OptionString} :< Data,
+    !,
+    term_string(Options, OptionString),
+    pengine_spawn(Engine, [sandboxed(false)|Options]),
+    actor_uuid(UUID),
+    asserta(actor_uuid(Engine, UUID)),
+    ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:UUID})).
+node_action(pengine_ask, Data, _WebSocket) :-
+    _{receiver:UUIDString, prolog:String} :< Data,
+    !,
+    term_string(Goal, String),
+    atom_string(UUID, UUIDString),
+    actor_uuid(Engine, UUID),
+    pengine_ask(Engine, Goal).
+    
+        
 node_action(spawn, Data, WebSocket) :-
     _{thread:Creator, prolog:String, options:OptionString} :< Data,
     !,
