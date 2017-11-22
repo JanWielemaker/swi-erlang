@@ -146,8 +146,8 @@ load_source(Module, Options, src_url(URL)) :-
 /** load_src_text(+SrcText, +Module, +Options) is det
 
 Asserts the clauses defined in SrcText in   the  private database of the
-current Pengine. This  predicate  processes   the  `src_text'  option of
-pengine_create/1.
+current actor. This  predicate  processes   the  `src_text'  option of
+spawn/3.
 */
 
 load_src_text(Src, Module, Options) :-
@@ -172,8 +172,8 @@ system:'#file'(File, _Line) :-
 %%   load_src_url(+URL, +Module, Options) is det
 %
 %    Asserts the clauses defined in URL in   the private database of the
-%    current Pengine. This predicate processes   the `src_url' option of
-%    pengine_create/1.
+%    current actor. This predicate processes   the `src_url' option of
+%    spawn/3.
 %
 %    @tbd: make a sensible guess at the encoding.
 
