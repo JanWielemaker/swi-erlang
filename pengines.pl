@@ -182,8 +182,8 @@ pengine_next(Pid, Options) :-
 
 %!  pengine_stop(+Pid) is det.
 %
-%   Ask pengine Pid to stop. If successful, delivers a message
-%   stop(Pid) to the mailbox of the process that called 
+%   Tell pengine Pid to stop. If successful, delivers a message
+%   `stop(Pid)` to the mailbox of the process that called 
 %   pengine_spawn/2-3.
 
 pengine_stop(Pid) :-
@@ -228,7 +228,7 @@ pengine_respond(Pid, Term) :-
 %!  pengine_abort(+Pid) is det.
 %
 %   Tell pengine Pid to abort any query that it currently runs. If
-%   successful, delivers a message abort(Pid) to the mailbox of the
+%   successful, delivers a message `abort(Pid)' to the mailbox of the
 %   process that called pengine_spawn/2-3.
 
 pengine_abort(Pid) :-
