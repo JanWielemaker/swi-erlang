@@ -1,6 +1,5 @@
-:- module(prolog_server,
-      [ node/1            % ?Port
-      ]).
+:- module(server,
+      [ ]).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_json)).
@@ -41,17 +40,5 @@ user:file_search_path(apps, app(apps)).
 :- http_handler(root(admin), http_redirect(moved_temporary, root(admin/server)), []).
 :- http_handler(/, http_redirect(moved_temporary, root('docs/index.html')), []).
 
-
-
-%%    server(?Port) is det.
-%
-%    Start the web-server on Port.
-
-node(Port) :-
-    http_server(http_dispatch,
-            [ port(Port),
-              workers(16)
-            ]),
-    format('You can access the HTTP server at http://localhost:~w/~n', [Port]).
 
 
