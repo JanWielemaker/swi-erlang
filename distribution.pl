@@ -53,7 +53,7 @@
 :- http_handler(root(web_prolog), node_manager, [spawn([]), id(web_prolog)]).
 
 node_manager(Request) :-
-    http_upgrade_to_websocket(node_loop, [], Request).
+    http_upgrade_to_websocket(node_loop, [subprotocols([web_prolog])], Request).
 
 node_loop(WebSocket) :-
     ws_receive(WebSocket, Message, [format(json)]),
