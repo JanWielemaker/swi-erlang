@@ -111,9 +111,9 @@ prepare_source(Module:Application, Options) :-
     ),
     delete_import_module(Module, user),
     add_import_module(Module, Application, start),
-    prepare_module(Module, Application, Options).
+    prep_module(Module, Application, Options).
 
-prepare_module(Module, Application, Options) :-
+prep_module(Module, Application, Options) :-
     maplist(copy_flag(Module, Application), [var_prefix]),
     forall(prepare_module(Module, Application, Options), true),
     partition(source_option, Options, Sources, Options1),
