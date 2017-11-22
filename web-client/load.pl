@@ -8,9 +8,9 @@
 :- use_module(server).
 :- use_module(storage).
 
-:- use_module(lib/web_prolog_lite).
-:- use_module(lib/admin/admin).
-:- use_module(lib/admin/server_statistics).
+:- use_module('../web_prolog.pl').
+%:- use_module(lib/admin/admin).
+%:- use_module(lib/admin/server_statistics).
 :- use_module(lib/admin/change_passwd).
 
 /*
