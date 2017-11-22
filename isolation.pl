@@ -44,7 +44,7 @@
 
 :- meta_predicate
     with_source(0, +),
-    pengine_prepare_source(:, +).
+    prepare_source(:, +).
 
 :- multifile
     prepare_module/3,               % +Module, +Application, +Options
@@ -80,7 +80,7 @@ with_source(Goal, Options) :-
     call_cleanup(
         in_temporary_module(
             Module,
-            pengine_prepare_source(Application, Options),
+            prepare_source(Application, Options),
             execute(Module:Plain, Options)),
         cleanup_data(Module, Options)).
 
@@ -97,14 +97,14 @@ execute(Goal, _Options) :-
     call(Goal).
 
 
-%!  pengine_prepare_source(:Application, +Options) is det.
+%!  prepare_source(:Application, +Options) is det.
 %
 %   Load the source into the pengine's module.
 %
 %   @throws =prepare_source_failed= if it failed to prepare the
 %           sources.
 
-pengine_prepare_source(Module:Application, Options) :-
+prepare_source(Module:Application, Options) :-
     (   option(program_space(SpaceLimit), Options)
     ->  set_module(Module:program_space(SpaceLimit))
     ;   true
