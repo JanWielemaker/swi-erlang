@@ -54,6 +54,16 @@
     actor_uuid/2,                       % Engine, ID
     creator_ws/3.                       % Creator, Socket
 
+
+:- op(400, fx, debugg).
+
+debugg(Goal) :-
+    debug(ws, 'CALL ~p', [Goal]),
+    call(Goal),
+    debug(ws, 'EXIT ~p', [Goal]).
+
+
+
 :- http_handler(root(web_prolog), node_manager, [spawn([]), id(web_prolog)]).
 
 node_manager(Request) :-
@@ -71,16 +81,6 @@ node_loop(WebSocket) :-
         node_action(Action, Data, WebSocket),
         node_loop(WebSocket)
     ).
-
-
-:- op(400, fx, debugg).
-
-debugg(Goal) :-
-    debug(ws, 'CALL ~p', [Goal]),
-    call(Goal),
-    debug(ws, 'EXIT ~p', [Goal]).
-
-
 
 
 node_action(pengine_spawn, Data, WebSocket) :-
@@ -122,7 +122,7 @@ node_action(pengine_respond, Data, _WebSocket) :-
     term_string(Term, String),
     atom_string(UUID, UUIDString),
     actor_uuid(Engine, UUID),
-    debugg pengine_respond(Engine, Term).
+    pengine_respond(Engine, Term).
 node_action(pengine_abort, Data, _WebSocket) :-
     _{receiver:UUIDString} :< Data,
     !,
