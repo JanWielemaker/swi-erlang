@@ -94,7 +94,7 @@ node_action(pengine_spawn, Data, WebSocket) :-
     asserta(creator_ws(Creator, WebSocket, Format)),    
     ws_send(WebSocket, json(_{type:spawned, thread:Creator, pid:UUID})).
 node_action(pengine_ask, Data, _WebSocket) :-
-    _{receiver:UUIDString, thread:Creator, prolog:String, options:OptionString} :< Data,
+    _{thread:Creator, pid:UUIDString, goal:String, options:OptionString} :< Data,
     !,
     read_term_from_atom(String, Goal, [variable_names(Bindings)]),    
     term_string(Options, OptionString),
@@ -104,27 +104,27 @@ node_action(pengine_ask, Data, _WebSocket) :-
     fix_template(Format, Goal, Goal, Bindings, NewTemplate),
     pengine_ask(Engine, Goal, [template(NewTemplate)|Options]).
 node_action(pengine_next, Data, _WebSocket) :-
-    _{receiver:UUIDString, options:OptionString} :< Data,
+    _{pid:UUIDString, options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
     atom_string(UUID, UUIDString),
     actor_uuid(Engine, UUID),
     pengine_next(Engine, Options).    
 node_action(pengine_stop, Data, _WebSocket) :-
-    _{receiver:UUIDString} :< Data,
+    _{pid:UUIDString} :< Data,
     !,
     atom_string(UUID, UUIDString),
     actor_uuid(Engine, UUID),
     pengine_stop(Engine).
 node_action(pengine_respond, Data, _WebSocket) :-
-    _{receiver:UUIDString, prolog:String} :< Data,
+    _{pid:UUIDString, prolog:String} :< Data,
     !,
     term_string(Term, String),
     atom_string(UUID, UUIDString),
     actor_uuid(Engine, UUID),
     pengine_respond(Engine, Term).
 node_action(pengine_abort, Data, _WebSocket) :-
-    _{receiver:UUIDString} :< Data,
+    _{pid:UUIDString} :< Data,
     !,
     atom_string(UUID, UUIDString),
     actor_uuid(Engine, UUID),

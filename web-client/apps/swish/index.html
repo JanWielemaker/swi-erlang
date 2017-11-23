@@ -321,7 +321,7 @@ self(Self),
    
 self(Self), 
    spawn(receive({M -> Self ! M}), Pid, [
-       node('http://localhost:3555'),
+       node('http://localhost:3061/web_prolog'),
        monitor(true)
    ]),
    Pid ! c.
@@ -546,7 +546,7 @@ time(findall(N,
                 event = JSON.parse(eventstr);
                 var type = event.type;
                 if (type == "spawned") {
-                    term.echo('Welcome to Web Prolog!\n');
+                    term.echo('Welcome to SWI Web Prolog!\n');
                     pid = event.pid;
                 } else if (type == "success") {
                     if (event.more) {
@@ -561,33 +561,35 @@ time(findall(N,
                         term.set_prompt(myprompt);
                     }
                 } else if (type == "failure") {
+                    console.log('2 -> 1')
                     state = 1;
                     term.echo(style(false, "color:red"), {raw:true});
                     term.set_prompt(myprompt);
                 } else if (type == "error") {
+                    console.log('2 -> 1')
                     state = 1;
                     term.echo(style(event.data, "color:red"), {raw:true});
                     term.set_prompt(myprompt);
                 } else if (type == "stop") {
+                    console.log('4 -> 1')
                     state = 1;
                     term.update(-1, "");
                     term.set_prompt(myprompt);
                 } else if (type == "prompt") {
+                    console.log('2 -> 3')
                     state = 3;
                     term.set_prompt(JSON.stringify(event.data, null, ' ') + ": ");
-                } else if (type == "write") {
-                    term.echo(event.data);
-                } else if (type == "output") { // Remove later
+                } else if (type == "output") {
+                    console.log('2 -> 2')
                     term.echo(event.data);
                 } else if (type == "abort") {
+                    console.log('? -> 1')
                     term.echo("Aborted");
                 } else if (type == "exit") {
                     term.echo("Exiting");
                     term.pop();
                     term.echo("Exiting");
                     if (ws) ws.close();
-                } else if (type == "speak") {
-                    speak(event.data)
                 } else {
                     term.echo(data);                    
                 }
@@ -619,7 +621,7 @@ time(findall(N,
                             console.log('--------------------------');
                             console.log('Query: '+currcommand);
                             console.log('1 -> 2');
-                            ws.send(JSON.stringify({action:"pengine_ask", thread:uuid, receiver:pid, prolog:currcommand, options:"[]"}));
+                            ws.send(JSON.stringify({action:"pengine_ask", thread:uuid, pid:pid, goal:currcommand, options:"[]"}));
                             currcommand = "";
                             term.pause();
                         } else {
@@ -630,18 +632,18 @@ time(findall(N,
                         if (command == ";") {
                             state = 2;
                             console.log('4 -> 2');
-                            ws.send(JSON.stringify({action:"pengine_next", receiver:pid, options:"[]"}));
+                            ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:"[]"}));
                             term.pause();
                         } else if (command == "") {
                             console.log('4 -> 1');
-                            ws.send(JSON.stringify({action:"pengine_stop", receiver:pid}));
+                            ws.send(JSON.stringify({action:"pengine_stop", pid:pid}));
                             term.pause();
                         }
                     } else if (state == 3) {
                         state = 2;
                         console.log('3 -> 2');
                         if (command !== "") {
-                            ws.send(JSON.stringify({action:"pengine_respond", receiver:pid, prolog:command}));
+                            ws.send(JSON.stringify({action:"pengine_respond", pid:pid, prolog:command}));
                         }
                         //term.pause();
                     }
@@ -650,11 +652,11 @@ time(findall(N,
                     prompt:'?- ',
                     keypress: function(e) {
                         if (state == 4 && e.which == 59) {
-                            ws.send(JSON.stringify({action:"pengine_next", receiver:pid, options:"[]"}));
+                            ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:"[]"}));
                             gterm.pause();
                             return false;
                         } else if ((state == 2 || state == 3) && e.which == 3) {
-                            ws.send(JSON.stringify({action:"pengine_abort", receiver:pid}));
+                            ws.send(JSON.stringify({action:"pengine_abort", pid:pid}));
                             gterm.pause();
                             return false;
                         } 
@@ -688,7 +690,7 @@ time(findall(N,
                 term.echo('Available commands are "pro", "erl", and "js".');
             }
         },{
-            greetings:'Welcome to the Web Prolog Shell!\nAvailable commands are "pro" and "js".\n '
+            greetings:'Welcome to the SWI Web Prolog Shell!\nAvailable commands are "pro" and "js".\n '
         });
     });  
 </script>
