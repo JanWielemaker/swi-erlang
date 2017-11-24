@@ -1,20 +1,18 @@
-
 % Reading and writing
 % -------------------
 
 
 hello_world :-
-    writeln('Hello World!'),
+    pengine_output('Hello World!'),
     sleep(1),
     hello_world.
 
 
 read_and_write :-
-    prompt(_, 'Echo this term'),
-    read(Something),
+    pengine_input('Echo this term', Something),
     (   Something == stop
     ->  true
-    ;   writeln(Something),
+    ;   pengine_output(Something),
         read_and_write
     ).
 

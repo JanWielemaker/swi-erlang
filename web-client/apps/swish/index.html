@@ -58,12 +58,16 @@
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Examples<b class="caret"></b></a>
                             <ul id="example-menu" class="dropdown-menu">
+                                <li><a href="/apps/swish/examples/fridge.pl">Fridge</a></li>
                                 <li><a href="/apps/swish/examples/priority_queue.pl">Prio queue</a></li>
+                                <li><a href="/apps/swish/examples/pingpong.pl">Ping-pong</a></li>
                                 <li><a href="/apps/swish/examples/servers.pl">Servers</a></li>
+                                <li><a href="/apps/swish/examples/simple_pengine.pl">Simple pengine</a></li>
                                 <li><a href="/apps/swish/examples/kb.pl">Knowledge bases</a></li>
                                 <li><a href="/apps/swish/examples/lists.pl">Lists</a></li>
                                 <li><a href="/apps/swish/examples/io.pl">Read and write</a></li>
                                 <li><a href="/apps/swish/examples/database.pl">Assert and retract</a></li>
+                                <li><a href="/apps/swish/examples/movies.pl">Movie DB</a></li>
                                 <li><a href="/apps/swish/examples/grammar.pl">DCG grammar</a></li>
                                 <li><a href="/apps/swish/examples/eliza.pl">Eliza</a></li>
                                 <li><a href="/apps/swish/examples/expert-system.pl">Expert system</a></li>
@@ -593,7 +597,6 @@ time(findall(N,
                 } else {
                     term.echo(data);                    
                 }
-                //term.echo(JSON.stringify(data, null, ' '));
             };
             if (state == 1 && command == "") {
                 return false;
@@ -619,7 +622,7 @@ time(findall(N,
                             currcommand += command.trim().slice(0, -1);
                             state = 2;
                             console.log('--------------------------');
-                            console.log('Query: '+currcommand);
+                            console.log('Goal: '+currcommand);
                             console.log('1 -> 2');
                             ws.send(JSON.stringify({action:"pengine_ask", thread:uuid, pid:pid, goal:currcommand, options:"[]"}));
                             currcommand = "";
