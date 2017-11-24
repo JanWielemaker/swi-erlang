@@ -592,7 +592,7 @@ flush :-
     ).
 
 flush1(Thread) :-
-    thread_get_message(Me, !(X), [timeout(0)]),
+    thread_get_message(Thread, !(X), [timeout(0)]),
     !,
     print_message(informational, actor(received(X))),
     flush1(Thread).
