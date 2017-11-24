@@ -7,6 +7,8 @@
 :- use_module(library(term_to_json)).
 :- use_module(library(apply)).
 
+:- use_module(dollar_expansion).
+
 :- use_module(library(debug)).
 
 
@@ -70,18 +72,12 @@ answer_format(down(Pid, ErrorTerm),
     
 answer_format(spawned(Pid),
               json{type:spawned, pid:Pid},
-              'json-s') :- !.
-/*              
-answer_format(success(ID, Answers0, More), JSON,
-              'json-s') :- !,
-    JSON = json{type:success, pid:ID, data:Answers, more:More},
-    maplist(wp_expand_answer, Answers0, Answers1),
-    maplist(answer_to_json_strings, Answers1, Answers).
-*/
+              'json-s') :- !.           
 answer_format(success(ID, Answers0, More), JSON,
               'json-s') :- !,
     JSON = json{type:success, pid:xxx, data:Answers, more:More},
-    maplist(answer_to_json_strings, Answers0, Answers).              
+    maplist(wp_expand_answer, Answers0, Answers1),
+    maplist(answer_to_json_strings, Answers1, Answers).             
 answer_format(failure(Pid),
               json{type:failure, pid:xxx},
               'json-s') :- !.

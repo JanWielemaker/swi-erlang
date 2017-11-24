@@ -47,6 +47,7 @@
             pengine_output/1                    % +Term
           ]).
 :- use_module(actors).
+:- use_module(dollar_expansion).
 
 :- use_module(library(debug)).
 
@@ -108,8 +109,9 @@ guarded_session(Module:Pid, Parent, Exit) :-
 % to offset/2 not being made and declared as safe.
 
 ask(Goal0, Self, Parent, Options) :-
-    strip_module(Goal0, M, Goal),
-    option(template(Template), Options, Goal),
+    strip_module(Goal0, M, Goal1),
+    option(template(Template0), Options, Goal1),
+    maybe_expand(Goal1, Goal, Template0, Template), % FIXME? Hack - see below!    
     option(offset(Offset), Options, 0),
     option(limit(Limit), Options, 1),
     State = count(Limit),
@@ -130,6 +132,20 @@ ask(Goal0, Self, Parent, Options) :-
         )
     ;   Parent ! failure(Self)
     ).
+
+
+/* It seems that since toplevel variables are stored as thread_local
+   we cannot expand variables earlier than here. It would be nice if 
+   this could be done earlier.
+*/
+
+maybe_expand(Goal0, Goal, Template0, Template) :-
+    is_dict(Template0), !,
+    dict_pairs(Template0, Tag, Pairs0),
+    wp_expand_query(Goal0, Goal, Pairs0, Pairs),
+    dict_pairs(Template, Tag, Pairs).
+maybe_expand(Goal, Goal, Template, Template). 
+
 
         
 findn0(State, Template, Goal, Solutions, Error) :-
@@ -237,5 +253,6 @@ pengine_abort(Pid) :-
     catch(thread_signal(Pid, throw(exit_query)), _, true).
 
   
+
 
 
