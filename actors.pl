@@ -583,13 +583,32 @@ unregister(Alias) :-
 %
 %   Print all pending messages
 
+
 flush :-
-    thread_self(Me),
+    thread_self(Thread),
+    (   Thread == main
+    ->  flush1(Thread)
+    ;   flush2
+    ).
+
+flush1(Thread) :-
     thread_get_message(Me, !(X), [timeout(0)]),
     !,
     print_message(informational, actor(received(X))),
-    flush.
-flush.
+    flush1(Thread).
+flush1(_Thread).
+
+
+flush2 :-
+    receive({
+        after(0) -> true;
+        Message -> 
+            term_to_atom(Message, Atom),
+            atomics_to_string(['Shell got ', Atom], MessageString),
+            pengine_output(MessageString),
+            flush2
+    }).
+
 
          /*******************************
          *             DEBUG            *
