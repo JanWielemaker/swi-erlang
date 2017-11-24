@@ -611,7 +611,7 @@ time(findall(N,
                     if (env.dirty) {
                         term.echo("Loading from editor.");
                         var program = getProgram().replace(/'/g,"\\'");
-                        ws.send("pengine_ask('" + pid + "', src_text('" + program + "'))");
+                        ws.send(JSON.stringify({action:"pengine_ask", thread:uuid, pid:pid, goal:"src_text('" + program + "')", options:"[]"}));
                         env.dirty = false;
                     }
                     if (state == 1) {

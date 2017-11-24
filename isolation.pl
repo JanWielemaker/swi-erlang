@@ -33,7 +33,8 @@
 */
 
 :- module(isolation,
-          [ with_source/2,              % :Goal, +Options
+          [ src_text/1,
+            with_source/2,              % :Goal, +Options
             source_data/2               % ?SourceID, ?Data
           ]).
 :- use_module(library(modules)).
@@ -104,7 +105,10 @@ execute(Goal, _Options) :-
 %   @throws =prepare_source_failed= if it failed to prepare the
 %           sources.
 
+:- thread_local curr_module/1.
+
 prepare_source(Module:Application, Options) :-
+    assert(curr_module(Module)),
     (   option(program_space(SpaceLimit), Options)
     ->  set_module(Module:program_space(SpaceLimit))
     ;   true
@@ -137,6 +141,12 @@ load_source(Module, Options, src_text(Text)) :-
 load_source(Module, Options, src_url(URL)) :-
     !,
     load_src_url(URL, Module, Options).
+
+
+
+src_text(Src) :-
+    curr_module(Module),
+    load_src_text(Src, Module, []).
 
 
                  /*******************************

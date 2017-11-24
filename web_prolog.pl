@@ -33,7 +33,8 @@
 */
 
 :- module(web_prolog,
-          [ flush/0,                    
+          [ 
+            flush/0,                    
             spawn/1,                    % :Goal
             spawn/2,                    % :Goal, -Pid
             spawn/3,                    % :Goal, -Pid, +Options
@@ -58,6 +59,8 @@
             pengine_input/2,            % +Prompt, ?Answer
             pengine_respond/2,          % +Pid, +Answer
             pengine_output/1,           % +Term
+            
+            src_text/1,                 % +String
             
             rpc/2,                      % +URI, :Query
             rpc/3,                      % +URI, :Query, +Options
