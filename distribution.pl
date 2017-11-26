@@ -82,6 +82,7 @@ node_loop(WebSocket) :-
         node_loop(WebSocket)
     ).
 
+% clauses for the pengine protocol
 
 node_action(pengine_spawn, Data, WebSocket) :-
     _{thread:Creator, options:OptionString} :< Data,
@@ -129,7 +130,8 @@ node_action(pengine_abort, Data, _WebSocket) :-
     atom_string(UUID, UUIDString),
     actor_uuid(Engine, UUID),
     pengine_abort(Engine).
-    
+
+% clauses for bare actors    
 
 node_action(spawn, Data, WebSocket) :-
     _{thread:Creator, prolog:String, options:OptionString} :< Data,
