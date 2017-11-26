@@ -43,9 +43,112 @@
 %:- debug(pingpong).
 
 test_actors :-
-    run_tests([ local_actors,
+    run_tests([ receive,
+                local_actors,
                 local_pengines
               ]).
+
+
+
+:- begin_tests(receive).
+
+test(receive1, X == bar) :-
+    self(Self),
+    Self ! foo(bar),    
+    receive({
+        foo(X) -> true
+    }).
+    
+test(receive2, X == baz) :-
+    self(Self),
+    Self ! not_matching,    
+    Self ! foo(bar),    
+    receive({
+        foo(X) -> true;
+        _ -> X = baz
+    }),
+    receive({
+        foo(_) -> true
+    }).    
+
+test(receive_after1, X == baz) :-
+    receive({
+        foo(X) -> true;
+        after(1) -> X = baz
+    }).
+    
+test(receive_after2, X == baz) :-
+    receive({
+        foo(X) -> true;        
+        after(0) -> X = baz
+    }).
+    
+test(receive_after3, X == baz) :-
+    self(S),
+    context_module(Application),
+    spawn(p(S), _Pid, [
+        application(Application),
+        src_text("
+    
+            p(S) :-
+                self(Me),
+                Me ! baz,
+                receive({
+                    X -> 
+                        S ! X;
+                    after(0) ->     
+                        S ! bar
+                }).
+        ")
+    ]),
+    receive({
+        X -> true
+    }).
+
+test(receive_after4, Result == bar) :-
+    self(S),
+    context_module(Application),
+    spawn(p(S), _Pid, [
+        application(Application),
+        src_text("
+    
+            p(S) :-
+                receive({
+                    after(0) ->     
+                        S ! bar;
+                    Msg -> 
+                        S ! Msg
+                }).
+        ")
+    ]),
+    receive({
+        Result -> true
+    }).
+
+test(receive_after5, Result == bar) :-
+    self(S),
+    context_module(Application),
+    spawn(p(S), _Pid, [
+        application(Application),
+        src_text("
+    
+            p(S) :-
+                receive({
+                    Msg -> 
+                        S ! Msg;
+                    after(0) ->     
+                        S ! bar
+                }).
+        ")
+    ]),
+    receive({
+        Result -> true
+    }).
+        
+    
+    
+:- end_tests(receive).
+
 
 :- begin_tests(local_actors).
 
