@@ -1,9 +1,3 @@
-/* server2 doesn't not work due to error:
-
-exception(error(existence_error(procedure,web_prolog:server1/1),
-context(system: <meta-call> / 1,_G149)))
-
-*/
 
 start1(Pid) :-
 	self(S),
@@ -37,12 +31,12 @@ server2(Pid) :-
           
 /** Examples
 
-start1(Pid), send(Pid, ping)
-send($Pid, ping)
-flush
+start1(Pid), send(Pid, ping).
+send($Pid, ping).
+flush.
 
-start2(Pid), send(Pid, ping)
-send($Pid, ping)
-flush
+start2(Pid), send(Pid, ping).
+send($Pid, ping).
+flush.
     
 */
