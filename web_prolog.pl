@@ -60,7 +60,7 @@
             pengine_respond/2,          % +Pid, +Answer
             pengine_output/1,           % +Term
             
-            src_text/1,                 % +String
+            src_text/1,                 % +
             
             rpc/2,                      % +URI, :Query
             rpc/3,                      % +URI, :Query, +Options
