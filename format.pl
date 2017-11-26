@@ -42,60 +42,33 @@ anon(Name=_) :-
 %!  answer_format(+PrologMessage, -JsonMessage, +Format) is det.
 %
 
-answer_format(spawned(Pid),
-              json{type:spawned, pid:Pid},
-              json) :- !.
-answer_format(success(Pid, Bindings0, More),
-              json{type:success, pid:Pid, data:Bindings, more:More},
-              json) :- !,
-    term_to_json(Bindings0, Bindings).
-answer_format(failure(Pid),
-              json{type:failure, pid:Pid},
-              json) :- !.
-answer_format(stop(Pid),
-              json{type:stop, pid:Pid},
-              json) :- !.
-answer_format(error(Pid, ErrorTerm),
-              json{type:error, pid:Pid, data:Message},
-              json) :- !,
-    message_to_string(ErrorTerm, Message).
-answer_format(prompt(Pid, Term),
-              json{type:prompt, pid:Pid, data:Term},
-              json) :- !.
-answer_format(output(Pid, Term),
-              json{type:output, pid:Pid, data:Term},
-              json) :- !.
-answer_format(down(Pid, ErrorTerm),
-              json{type:down, pid:Pid, data:Message},
-              json) :- !,
-    message_to_string(ErrorTerm, Message).
-    
+
 answer_format(spawned(Pid),
               json{type:spawned, pid:Pid},
               'json-s') :- !.           
-answer_format(success(ID, Answers0, More), JSON,
+answer_format(success(_Pid, Answers0, More), JSON,
               'json-s') :- !,
     JSON = json{type:success, pid:xxx, data:Answers, more:More},
     maplist(wp_expand_answer, Answers0, Answers1),
     maplist(answer_to_json_strings, Answers1, Answers).             
-answer_format(failure(Pid),
+answer_format(failure(_Pid),
               json{type:failure, pid:xxx},
               'json-s') :- !.
-answer_format(stop(Pid),
+answer_format(stop(_Pid),
               json{type:stop, pid:xxx},
               'json-s') :- !.
-answer_format(error(Pid, ErrorTerm),
+answer_format(error(_Pid, ErrorTerm),
               json{type:error, pid:xxx, data:Message},
               'json-s') :- !,
     message_to_string(ErrorTerm, Message).
-answer_format(prompt(Pid, Term),
+answer_format(prompt(_Pid, Term),
               json{type:prompt, pid:xxx, data:Term},
               'json-s') :- !.
-answer_format(output(Pid, Term),
+answer_format(output(_Pid, Term),
               json{type:output, pid:xxx, data:JSON},
               'json-s') :- !,
     map_output(Term, JSON).
-answer_format(down(Pid, ErrorTerm),
+answer_format(down(_Pid, ErrorTerm),
               json{type:down, pid:xxx, data:Message},
               'json-s') :- !,
     message_to_string(ErrorTerm, Message).
