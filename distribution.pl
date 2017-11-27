@@ -85,24 +85,25 @@ node_loop(WebSocket) :-
 % clauses for the pengine protocol
 
 node_action(pengine_spawn, Data, WebSocket) :-
-    _{thread:Creator, options:OptionString} :< Data,
+    _{options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
+    option(reply_to(ReplyTo), Options),
     select_option(format(Format), Options, RestOptions, 'json-s'),
-    pengine_spawn(Engine, [reply_to(Creator),sandboxed(false)|RestOptions]),
+    pengine_spawn(Engine, [sandboxed(false)|RestOptions]),
     actor_uuid(UUID),
     asserta(actor_uuid(Engine, UUID)),
-    asserta(creator_ws(Creator, WebSocket, Format)),    
-    ws_send(WebSocket, json(_{type:spawned, thread:Creator, pid:UUID})).
-node_action(pengine_ask, Data, _WebSocket) :-
-    _{thread:Creator, pid:UUIDString, goal:String, options:OptionString} :< Data,
+    asserta(creator_ws(ReplyTo, WebSocket, Format)),    
+    ws_send(WebSocket, json(_{type:spawned, pid:UUID})).
+node_action(pengine_ask, Data, WebSocket) :-
+    _{pid:UUIDString, goal:String, options:OptionString} :< Data,
     !,
     read_term_from_atom(String, Goal, [variable_names(Bindings)]),    
     term_string(Options, OptionString),
     atom_string(UUID, UUIDString),
     actor_uuid(Engine, UUID),
-    creator_ws(Creator, _, Format),
-    fix_template(Format, Goal, Goal, Bindings, NewTemplate),
+    creator_ws(_Creator, WebSocket, Format),
+    fix_template(Format, Goal, Bindings, NewTemplate),
     pengine_ask(Engine, Goal, [template(NewTemplate)|Options]).
 node_action(pengine_next, Data, _WebSocket) :-
     _{pid:UUIDString, options:OptionString} :< Data,
@@ -112,11 +113,12 @@ node_action(pengine_next, Data, _WebSocket) :-
     actor_uuid(Engine, UUID),
     pengine_next(Engine, Options).    
 node_action(pengine_stop, Data, _WebSocket) :-
-    _{pid:UUIDString} :< Data,
+    _{pid:UUIDString, options:OptionString} :< Data,
     !,
+    term_string(Options, OptionString),
     atom_string(UUID, UUIDString),
     actor_uuid(Engine, UUID),
-    pengine_stop(Engine).
+    pengine_stop(Engine, Options).
 node_action(pengine_respond, Data, _WebSocket) :-
     _{pid:UUIDString, prolog:String} :< Data,
     !,

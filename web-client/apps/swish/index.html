@@ -441,7 +441,7 @@ server's console.
                 if (gterm) gterm.clear();
                 ws.onopen = function(message) {
                     uuid = guid();
-                    ws.send(JSON.stringify({action:"pengine_spawn", thread:uuid, options:"[]"}));
+                    ws.send(JSON.stringify({action:"pengine_spawn", options:'[reply_to("'+uuid+'")]'}));
                     term.pause()
                 };
                 term.push(function(command, term) {
@@ -458,7 +458,7 @@ server's console.
                             console.log('--------------------------');
                             console.log('Goal: '+currcommand);
                             console.log('1 -> 2');
-                            ws.send(JSON.stringify({action:"pengine_ask", thread:uuid, pid:pid, goal:currcommand, options:"[]"}));
+                            ws.send(JSON.stringify({action:"pengine_ask", pid:pid, goal:currcommand, options:'[reply_to("'+uuid+'")]'}));
                             currcommand = "";
                             term.pause();
                         } else {
@@ -469,11 +469,11 @@ server's console.
                         if (command == ";") {
                             state = 2;
                             console.log('4 -> 2');
-                            ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:"[]"}));
+                            ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+uuid+'")]'}));
                             term.pause();
                         } else if (command == "") {
                             console.log('4 -> 1');
-                            ws.send(JSON.stringify({action:"pengine_stop", pid:pid}));
+                            ws.send(JSON.stringify({action:"pengine_stop", pid:pid, options:'[reply_to("'+uuid+'")]'}));
                             term.pause();
                         }
                     } else if (state == 3) {
@@ -489,7 +489,7 @@ server's console.
                     prompt:'?- ',
                     keypress: function(e) {
                         if (state == 4 && e.which == 59) {
-                            ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:"[]"}));
+                            ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+uuid+'")]'}));
                             gterm.pause();
                             return false;
                         } else if ((state == 2 || state == 3) && e.which == 3) {
