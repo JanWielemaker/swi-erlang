@@ -54,7 +54,7 @@
             pengine_ask/3,              % +Pid, :Query, +Options
             pengine_next/1,             % +Pid
             pengine_next/2,             % +Pid, +Options
-            pengine_stop/1,             % +Pid                   
+            pengine_stop/2,             % +Pid, +Options                   
             pengine_abort/1,            % +Pid    
             pengine_input/2,            % +Prompt, ?Answer
             pengine_respond/2,          % +Pid, +Answer
