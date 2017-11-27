@@ -67,12 +67,13 @@ http_pengine_ask(Request) :-
           template(TemplateAtom, [default(GoalAtom)]),
           offset(Offset, [integer, default(0)]),
           limit(Limit, [integer, default(1)]),
+          timeout(Timeout, [integer, default(30)]),
           format(Format, [default(prolog)])
         ]),
     atomic_list_concat([GoalAtom,+,TemplateAtom], GTAtom),
     read_term_from_atom(GTAtom, Goal+Template, [variable_names(Bindings)]),
     fix_template(Format, Template, Bindings, NewTemplate),
-    find_answer(Goal, NewTemplate, Offset, Limit, Answer),
+    find_answer(Goal, NewTemplate, Offset, Limit, Timeout, Answer),
     respond(Format, Answer).
     
         
@@ -90,7 +91,7 @@ http_pengine_ask(Request) :-
 %   @tbd: Move the call to offset/2 in pengines.pl to here? There is
 %         likely no need for an option `offset' for pengines_ask/3.
 
-find_answer(Query, Template, Offset, Limit, Answer) :-
+find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
     query_id(Template-Query, QueryID),
     (   query_pengine(QueryID, Index, Pid),
         Offset == Index
@@ -113,7 +114,10 @@ find_answer(Query, Template, Offset, Limit, Answer) :-
                 cleanup(Pid);
             error(Pid, Error) ->
                 Answer = error(anonymous, Error),
-                cleanup(Pid)
+                cleanup(Pid);
+            after(Timeout) ->
+                exit(Pid, timeout),
+                Answer = error(anonymous, timeout)           
         })
     ;   pengine_spawn(Pid, [
             exit(true)
@@ -138,7 +142,10 @@ find_answer(Query, Template, Offset, Limit, Answer) :-
                 cleanup(Pid);
             error(Pid, Error) ->
                 Answer = error(anonymous, Error),
-                cleanup(Pid)
+                cleanup(Pid);
+            after(Timeout) ->
+                exit(Pid, timeout),
+                Answer = error(anonymous, timeout)
         })      
     ).
 
