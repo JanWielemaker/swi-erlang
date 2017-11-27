@@ -41,6 +41,7 @@
             pengine_next/1,                     % +Pid
             pengine_next/2,                     % +Pid, +Options
             pengine_stop/1,                     % +Pid                   
+            pengine_stop/2,                     % +Pid, +Options                   
             pengine_abort/1,                    % +Pid    
             pengine_input/2,                    % +Prompt, ?Answer
             pengine_respond/2,                  % +Pid, +Answer
@@ -51,9 +52,16 @@
 
 :- use_module(library(debug)).
 
+
+:- op(400, fx, debugg).
+
+debugg(Goal) :-
+    debug(ws, 'CALL ~p', [Goal]),
+    call(Goal),
+    debug(ws, 'EXIT ~p', [Goal]).
+
 :- meta_predicate 
     session(:, +, +).
-
     
     
 %!  pengine_spawn(-Pid) is det.
@@ -114,23 +122,27 @@ ask(Goal0, Self, Parent, Options) :-
     maybe_expand(Goal1, Goal, Template0, Template), % FIXME? Hack - see below!    
     option(offset(Offset), Options, 0),
     option(limit(Limit), Options, 1),
+    option(reply_to(ReplyTo), Options, Parent),
     State = count(Limit),
+    OutPut = replyto(ReplyTo),
     (   call_cleanup(findn0(State, Template, M:offset(Offset, Goal), Solutions, Error), Det=true),
-        (   var(Error)
+        (   var(Error),
+            arg(1, OutPut, Out)
         ->  (   var(Det)
-            ->  Parent ! success(Self, Solutions, true),
+            ->  Out ! success(Self, Solutions, true),
                 receive({
-                    pengine:next(Count) -> 
+                    pengine:next(From, Count) -> 
+                        nb_setarg(1, OutPut, From),
                         nb_setarg(1, State, Count),
                         fail;
-                    pengine:stop ->
-                        Parent ! stop(Self)  
+                    pengine:stop(From) ->
+                        From ! stop(Self)  
                 })
-            ;   Parent ! success(Self, Solutions, false)
+            ;   Out ! success(Self, Solutions, false)
             )
-        ;   Parent ! error(Self, Error)
+        ;   ReplyTo ! error(Self, Error)
         )
-    ;   Parent ! failure(Self)
+    ;   ReplyTo ! failure(Self)
     ).
 
 
@@ -192,8 +204,10 @@ pengine_next(Pid) :-
     pengine_next(Pid, []).
 
 pengine_next(Pid, Options) :-
+    self(Self),
+    option(reply_to(ReplyTo), Options, Self),
     option(limit(Limit), Options, 1),
-    Pid ! pengine:next(Limit).
+    Pid ! pengine:next(ReplyTo, Limit).
 
 
 %!  pengine_stop(+Pid) is det.
@@ -203,7 +217,12 @@ pengine_next(Pid, Options) :-
 %   pengine_spawn/2-3.
 
 pengine_stop(Pid) :-
-    Pid ! pengine:stop. 
+    pengine_stop(Pid, []).
+    
+pengine_stop(Pid, Options) :-
+    self(Self),
+    option(reply_to(ReplyTo), Options, Self),
+    Pid ! pengine:stop(ReplyTo). 
     
     
 %!  pengine_output(+Term) is det.
