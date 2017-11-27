@@ -408,7 +408,7 @@ receive(Clauses) :-
     debug(dispatch(receive), '~p queue: ~p', [Self, Queue0]),
     (   select(Message, Queue0, Queue1),
         receive_clause(Clauses, Message, Body)
-    ->  b_setval(event_queue, Queue1),
+    ->  nb_setval(event_queue, Queue1),
         call_body(Clauses, Body)
     ;   timeout(Clauses, Time)
     ->  debug(dispatch(timeout), '~p: wait for ~p sec.', [Self, Time]),
