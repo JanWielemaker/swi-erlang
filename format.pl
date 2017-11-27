@@ -1,5 +1,6 @@
 :- module(format, 
-        [ fix_template/5,
+        [ respond/2,
+          fix_template/4,
           answer_format/3
         ]).
 
@@ -12,15 +13,35 @@
 :- use_module(library(debug)).
 
 
-%!  fix_template(+Format, :Goal, :Goal, +Bindings, -NewTemplate) is det.
-%
+         /*******************************
+         *     RESPONSE GENERATION      *
+         *******************************/
+         
 
-fix_template(Format, Goal, Goal, Bindings, NewTemplate) :-
+respond(prolog, Answer) :- !,
+    format('Content-type: text/plain;~n~n'),
+    format("~q.", [Answer]).
+respond(Format, Answer) :-
+    json_lang(Format), !,    
+    answer_format(Answer, JSON, Format),
+    reply_json(JSON).
+    
+    
+
+
+%!  fix_bindings(+Format, +Template, +Bindings, -NewTemplate) is det.
+%
+%   Generate the template for json(-s) Format  from the variables in
+%   the asked Goal. Variables starting  with an underscore, followed
+%   by an capital letter are ignored from the template. If a json
+%   format is specified, the template option is ignored.
+
+fix_template(Format, _Template, Bindings, NewTemplate) :-
     json_lang(Format),
     !,    
     exclude(anon, Bindings, NamedBindings),
     dict_create(NewTemplate, json, NamedBindings).
-fix_template(_, Template, _, _, Template).
+fix_template(_, Template, _, Template).
 
 
 %!  json_lang(+Format) is semidet.
@@ -36,6 +57,7 @@ anon(Name=_) :-
     sub_atom(Name, 0, _, _, '_'),
     sub_atom(Name, 1, 1, _, Next),
     char_type(Next, prolog_var_start).
+
     
     
 
@@ -48,28 +70,28 @@ answer_format(spawned(Pid),
               'json-s') :- !.           
 answer_format(success(_Pid, Answers0, More), JSON,
               'json-s') :- !,
-    JSON = json{type:success, pid:xxx, data:Answers, more:More},
+    JSON = json{type:success, pid:anonymous, data:Answers, more:More},
     maplist(wp_expand_answer, Answers0, Answers1),
     maplist(answer_to_json_strings, Answers1, Answers).             
 answer_format(failure(_Pid),
-              json{type:failure, pid:xxx},
+              json{type:failure, pid:anonymous},
               'json-s') :- !.
 answer_format(stop(_Pid),
-              json{type:stop, pid:xxx},
+              json{type:stop, pid:anonymous},
               'json-s') :- !.
 answer_format(error(_Pid, ErrorTerm),
-              json{type:error, pid:xxx, data:Message},
+              json{type:error, pid:anonymous, data:Message},
               'json-s') :- !,
     message_to_string(ErrorTerm, Message).
 answer_format(prompt(_Pid, Term),
-              json{type:prompt, pid:xxx, data:Term},
+              json{type:prompt, pid:anonymous, data:Term},
               'json-s') :- !.
 answer_format(output(_Pid, Term),
-              json{type:output, pid:xxx, data:JSON},
+              json{type:output, pid:anonymous, data:JSON},
               'json-s') :- !,
     map_output(Term, JSON).
 answer_format(down(_Pid, ErrorTerm),
-              json{type:down, pid:xxx, data:Message},
+              json{type:down, pid:anonymous, data:Message},
               'json-s') :- !,
     message_to_string(ErrorTerm, Message).
               
