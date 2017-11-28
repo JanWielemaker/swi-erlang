@@ -93,13 +93,10 @@ session(Pid, Parent, Exit) :-
     session2(Pid, Parent, Exit).
 
 session2(Pid, Parent, Exit) :-
-    catch(guarded_session(Pid, Parent, Exit), Exception, true),
-    (   Exception == exit_query
-    ->  Parent ! abort(Pid),
-        session2(Pid, Parent, Exit)
-    ;   nonvar(Exception)
-    ->  throw(Exception)
-    ;   true
+    catch(guarded_session(Pid, Parent, Exit), exit_query, (
+            Parent ! abort(Pid),
+            session2(Pid, Parent, Exit)
+        )
     ).
 
 guarded_session(Module:Pid, Parent, Exit) :-
