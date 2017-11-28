@@ -420,6 +420,7 @@ server's console.
                 } else if (type == "output") {
                     console.log('2 -> 2')
                     term.echo(event.data);
+                    term.pause();
                 } else if (type == "abort") {
                     console.log('? -> 1')
                     term.echo("Aborted");
