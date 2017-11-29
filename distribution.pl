@@ -51,7 +51,6 @@
 :- dynamic
     websocket/3,                        % Node, Thread, Socket
     self_node/1,                        % Node
-    actor_uuid/2,                       % Engine, ID
     creator_ws/3.                       % Creator, Socket
 
 
@@ -90,48 +89,42 @@ node_action(pengine_spawn, Data, WebSocket) :-
     term_string(Options, OptionString),
     option(reply_to(ReplyTo), Options),
     select_option(format(Format), Options, RestOptions, 'json-s'),
-    pengine_spawn(Engine, [sandboxed(false)|RestOptions]),
-    actor_uuid(UUID),
-    asserta(actor_uuid(Engine, UUID)),
-    asserta(creator_ws(ReplyTo, WebSocket, Format)),    
-    ws_send(WebSocket, json(_{type:spawned, pid:UUID})).
+    pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
+    asserta(creator_ws(ReplyTo, WebSocket, Format)),
+    term_string(Pid, PidString),
+    ws_send(WebSocket, json(_{type:spawned, pid:PidString})).
 node_action(pengine_ask, Data, WebSocket) :-
-    _{pid:UUIDString, goal:String, options:OptionString} :< Data,
+    _{pid:PidString, goal:GoalString, options:OptionString} :< Data,
     !,
-    read_term_from_atom(String, Goal, [variable_names(Bindings)]),    
+    read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
     term_string(Options, OptionString),
-    atom_string(UUID, UUIDString),
-    actor_uuid(Engine, UUID),
+    term_string(Pid, PidString),
     creator_ws(_Creator, WebSocket, Format),
     fix_template(Format, Goal, Bindings, NewTemplate),
-    pengine_ask(Engine, Goal, [template(NewTemplate)|Options]).
+    pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
 node_action(pengine_next, Data, _WebSocket) :-
-    _{pid:UUIDString, options:OptionString} :< Data,
+    _{pid:PidString, options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
-    atom_string(UUID, UUIDString),
-    actor_uuid(Engine, UUID),
-    pengine_next(Engine, Options).    
+    term_string(Pid, PidString),
+    pengine_next(Pid, Options).    
 node_action(pengine_stop, Data, _WebSocket) :-
-    _{pid:UUIDString, options:OptionString} :< Data,
+    _{pid:PidString, options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
-    atom_string(UUID, UUIDString),
-    actor_uuid(Engine, UUID),
-    pengine_stop(Engine, Options).
+    term_string(Pid, PidString),
+    pengine_stop(Pid, Options).
 node_action(pengine_respond, Data, _WebSocket) :-
-    _{pid:UUIDString, prolog:String} :< Data,
+    _{pid:PidString, prolog:String} :< Data,
     !,
     term_string(Term, String),
-    atom_string(UUID, UUIDString),
-    actor_uuid(Engine, UUID),
-    pengine_respond(Engine, Term).
+    term_string(Pid, PidString),
+    pengine_respond(Pid, Term).
 node_action(pengine_abort, Data, _WebSocket) :-
-    _{pid:UUIDString} :< Data,
+    _{pid:PidString} :< Data,
     !,
-    atom_string(UUID, UUIDString),
-    actor_uuid(Engine, UUID),
-    pengine_abort(Engine).
+    term_string(Pid, PidString),
+    pengine_abort(Pid).
 
 % clauses for bare actors    
 
@@ -140,9 +133,7 @@ node_action(spawn, Data, WebSocket) :-
     !,
     term_string(Goal, String),
     term_string(Options, OptionString),
-    spawn(Goal, Engine, [sandboxed(false)|Options]),
-    actor_uuid(UUID),
-    asserta(actor_uuid(Engine, UUID)),
+    spawn(Goal, UUID, [sandboxed(false)|Options]),
     ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:UUID})).
 node_action(spawned, Data, _WebSocket) :-
     _{thread:CreatorId, pid:Id} :< Data,
@@ -155,11 +146,7 @@ node_action(send, Data, _WebSocket) :-
     !,
     term_string(Message, String),
     atom_string(UUID, UUIDString),
-    (   actor_uuid(Engine, UUID)
-    ->  true
-    ;   Engine = UUID
-    ),
-    send(Engine, Message).
+    send(UUID, Message).
 node_action(send, Data, _WebSocket) :-
     _{thread:Id, prolog:String} :< Data,
     !,
@@ -170,12 +157,6 @@ node_action(_Action, Data, _WebSocket) :-
     debug(ws, 'Got unknown data: ~p', [Data]).
 
 
-
-:- listen(actor(down, Engine),
-          retractall(actor_uuid(Engine, _))).
-
-actor_uuid(Module) :-
-        uuid(Module, [version(4)]).
 
 canonical_id(Raw, ID) :-
     (   string(Raw)
@@ -264,17 +245,6 @@ actors:hook_spawn(Goal, Engine, Options) :-
     select_option(node(Node), Options, RestOptions),
     !,
     spawn_remote(Node, Goal, Engine, RestOptions).
-actors:hook_spawn(Goal, process(Node, Engine), Options) :-
-    self_node(Node),
-    uuid(UUID),
-    engine_create(true, actors:run(Goal, Options), Engine, [alias(UUID)|Options]),
-    (   option(link(true), Options)
-    ->  self(Me),
-        link(Me, Engine)
-    ;   true
-    ),
-    send(Engine, '$start').
-
 
 actors:hook_send(process(Node, Id), Message) :-
     !,

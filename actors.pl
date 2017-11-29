@@ -182,7 +182,7 @@ post_failed(E, Pid, Message) :-
 
 post_true(Pid, Message) :-
     debug(dispatch(wakeup), 'Wakeup ~p for ~p', [Pid, Message]),
-    debugg engine_post(Pid, Message, Reply),
+    engine_post(Pid, Message, Reply),
     debug(dispatch(wakeup), 'Wakeup ~p replied ~p', [Pid, Reply]),
     (   nonvar(Reply),
         Reply = timeout(TimeOut, Deadline)
