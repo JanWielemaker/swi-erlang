@@ -61,6 +61,16 @@
 :- use_module(library(error)).
 :- use_module(library(broadcast)).
 
+
+:- op(400, fx, debugg).
+
+debugg(Goal) :-
+    debug(ws, 'CALL ~p', [Goal]),
+    call(Goal),
+    debug(ws, 'EXIT ~p', [Goal]).
+    
+    
+
 :- meta_predicate
     spawn(0),
     spawn(0, -),
@@ -172,7 +182,7 @@ post_failed(E, Pid, Message) :-
 
 post_true(Pid, Message) :-
     debug(dispatch(wakeup), 'Wakeup ~p for ~p', [Pid, Message]),
-    engine_post(Pid, Message, Reply),
+    debugg engine_post(Pid, Message, Reply),
     debug(dispatch(wakeup), 'Wakeup ~p replied ~p', [Pid, Reply]),
     (   nonvar(Reply),
         Reply = timeout(TimeOut, Deadline)
@@ -344,13 +354,15 @@ spawn4(Goal, Engine, Options) :-
     hook_spawn(Goal, Engine, Options),
     !.
 spawn4(Goal, Engine, Options) :-
-    engine_create(true, run(Goal, Options), Engine, Options),
+    uuid(UUID),
+    engine_create(true, run(Goal, Options), Engine, [alias(UUID)|Options]),
     (   option(link(true), Options)
     ->  self(Me),
         link(Me, Engine)
     ;   true
     ),
     send(Engine, '$start').
+
 
 self(Pid) :-
     hook_self(Me),

@@ -229,11 +229,10 @@ send_remote(process(Node,Id), Message) :-
 %
 %   Get a global identifier for self.
 
-self_remote(process(Node, Id)) :-
+self_remote(process(Node, Engine)) :-
     engine_self(Engine),
     !,
-    self_node(Node),
-    thread_property(Engine, id(Id)).
+    self_node(Node).
 self_remote(process(Node, thread(Id))) :-
     thread_self(Thread),
     !,
@@ -262,6 +261,17 @@ actors:hook_spawn(Goal, Engine, Options) :-
     select_option(node(Node), Options, RestOptions),
     !,
     spawn_remote(Node, Goal, Engine, RestOptions).
+actors:hook_spawn(Goal, process(Node, Engine), Options) :-
+    self_node(Node),
+    uuid(UUID),
+    engine_create(true, actors:run(Goal, Options), Engine, [alias(UUID)|Options]),
+    (   option(link(true), Options)
+    ->  self(Me),
+        link(Me, Engine)
+    ;   true
+    ),
+    send(Engine, '$start').
+
 
 actors:hook_send(process(Node, Id), Message) :-
     !,
@@ -269,8 +279,8 @@ actors:hook_send(process(Node, Id), Message) :-
     ->  (   Id = thread(Tid)
         ->  thread_property(Thread, id(Tid)),
             send(thread(Thread), Message)
-        ;   thread_property(Engine, id(Id)),
-            send(Engine, Message)
+        ;   %thread_property(Engine, id(Id)),
+            send(Id, Message)
         )
     ;   send_remote(process(Node, Id), Message)
     ).
