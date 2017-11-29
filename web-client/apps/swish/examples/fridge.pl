@@ -26,6 +26,7 @@ fridge(FoodList) ->
 
 start(Pid) :-
     spawn(fridge([]), Pid, [
+        node('http://localhost:3061/web_prolog'),
     	monitor(true),
         src_text("
     

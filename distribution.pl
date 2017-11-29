@@ -155,7 +155,10 @@ node_action(send, Data, _WebSocket) :-
     !,
     term_string(Message, String),
     atom_string(UUID, UUIDString),
-    actor_uuid(Engine, UUID),
+    (   actor_uuid(Engine, UUID)
+    ->  true
+    ;   Engine = UUID
+    ),
     send(Engine, Message).
 node_action(send, Data, _WebSocket) :-
     _{thread:Id, prolog:String} :< Data,
