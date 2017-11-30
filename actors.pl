@@ -354,14 +354,18 @@ spawn4(Goal, Engine, Options) :-
     hook_spawn(Goal, Engine, Options),
     !.
 spawn4(Goal, Engine, Options) :-
-    uuid(UUID),
-    engine_create(true, run(Goal, Options), Engine, [alias(UUID)|Options]),
+    make_pid(Pid),
+    engine_create(true, run(Goal, Options), Engine, [alias(Pid)|Options]),
     (   option(link(true), Options)
     ->  self(Me),
         link(Me, Engine)
     ;   true
     ),
     send(Engine, '$start').
+
+
+make_pid(Pid) :-
+    uuid((Pid), [version(4)]).
 
 
 self(Pid) :-
