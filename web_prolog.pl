@@ -100,4 +100,4 @@ actors:hook_goal(Goal0, isolation:with_source(Goal0, GoalOptions), Options) :-
                   ].
 
 actor_uuid(Module) :-
-        uuid(Module, [version(4)]).
+    uuid(Module, [version(4)]).
