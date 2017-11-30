@@ -419,7 +419,7 @@ server's console.
                     term.set_prompt(JSON.stringify(event.data, null, ' ') + ": ");
                 } else if (type == "output") {
                     console.log('2 -> 2')
-                    term.echo(event.data);
+                    term.echo(event.data, {raw:true});
                     term.pause();
                 } else if (type == "abort") {
                     console.log('? -> 1')
@@ -447,9 +447,9 @@ server's console.
                 };
                 term.push(function(command, term) {
                     if (env.dirty) {
-                        term.echo("Loading from editor.");
+                        term.echo("Consulting from editor.");
                         var program = getProgram().replace(/'/g,"\\'");
-                        ws.send(JSON.stringify({action:"pengine_ask", thread:uuid, pid:pid, goal:"src_text('" + program + "')", options:"[]"}));
+                        ws.send(JSON.stringify({action:"pengine_ask", thread:uuid, pid:pid, goal:"consult_text('" + program + "')", options:"[]"}));
                         env.dirty = false;
                     }
                     if (state == 1) {
@@ -528,6 +528,7 @@ server's console.
                 term.echo('Available commands are "pro", "erl", and "js".');
             }
         },{
+            convertLinks: false,
             greetings:'Welcome to the SWI Web Prolog Shell!\nAvailable commands are "pro" and "js".\n '
         });
     });  

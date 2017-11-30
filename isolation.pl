@@ -33,7 +33,7 @@
 */
 
 :- module(isolation,
-          [ src_text/1,
+          [ consult_text/1,             % +SourceCodeText
             with_source/2,              % :Goal, +Options
             source_data/2               % ?SourceID, ?Data
           ]).
@@ -44,13 +44,6 @@
 :- use_module(library(sandbox)).
 :- use_module(library(debug)).
 
-:- op(400, fx, debugg).
-
-debugg(Goal) :-
-    debug(ws, 'CALL ~p', [Goal]),
-    call(Goal),
-    debug(ws, 'EXIT ~p', [Goal]).
-    
     
 :- meta_predicate
     with_source(0, +),
@@ -200,7 +193,7 @@ load_source(Module, Options, src_url(URL)) :-
 
 
 
-src_text(Src) :-
+consult_text(Src) :-
     curr_module(Module),
     load_src_text(Src, Module, []).
 

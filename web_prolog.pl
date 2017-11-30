@@ -60,7 +60,7 @@
             pengine_respond/2,          % +Pid, +Answer
             pengine_output/1,           % +Term
             
-            src_text/1,                 % +
+            consult_text/1,             % +SourceCodeString
             
             rpc/2,                      % +URI, :Query
             rpc/3,                      % +URI, :Query, +Options
@@ -73,7 +73,8 @@
 
             op(1000, xfx, when),
             op(800, xfx, !),
-
+            op(200, xfx, @),
+            
             node/0,
             node/1
           ]).
