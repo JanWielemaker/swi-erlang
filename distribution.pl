@@ -36,7 +36,8 @@
           [ spawn_remote/4,                     % +Node, :Goal, -Id, +Options
             send_remote/2,                      % +Id, +Message
             self_remote/1,                      % -Id
-            register_node_self/1                % +URL
+            register_node_self/1,                % +URL
+            op(200, xfx, @)
           ]).
 :- use_module(actors).
 :- use_module(library(http/http_dispatch)).
@@ -52,14 +53,6 @@
     websocket/3,                        % Node, Thread, Socket
     self_node/1,                        % Node
     creator_ws/3.                       % Creator, Socket
-
-
-:- op(400, fx, debugg).
-
-debugg(Goal) :-
-    debug(ws, 'CALL ~p', [Goal]),
-    call(Goal),
-    debug(ws, 'EXIT ~p', [Goal]).
 
 
 
@@ -180,7 +173,7 @@ connection(Node, Socket) :-
 %
 %   Spawn a process on a remote node.
 
-spawn_remote(Node, Goal, process(Node,Id), Options) :-
+spawn_remote(Node, Goal, Id@Node, Options) :-
     connection(Node, Socket),
     term_string(Goal, String),
     term_string(Options, OptionString),
@@ -199,12 +192,12 @@ send_remote(Creator, Message) :-
     %term_string(Message, String),
     answer_format(Message, Json, Format),
     ws_send(Socket, json(Json)).
-send_remote(process(Node,thread(Id)), Message) :-
+send_remote(thread(Id)@Node, Message) :-
     !,
     connection(Node, Socket),
     term_string(Message, String),
     ws_send(Socket, json(_{action:send, thread:Id, prolog:String})).
-send_remote(process(Node,Id), Message) :-
+send_remote(Id@Node, Message) :-
     connection(Node, Socket),
     term_string(Message, String),
     ws_send(Socket, json(_{action:send, receiver:Id, prolog:String})).
@@ -213,11 +206,11 @@ send_remote(process(Node,Id), Message) :-
 %
 %   Get a global identifier for self.
 
-self_remote(process(Node, Engine)) :-
+self_remote(Engine@Node) :-
     engine_self(Engine),
     !,
     self_node(Node).
-self_remote(process(Node, thread(Id))) :-
+self_remote(thread(Id)@Node) :-
     thread_self(Thread),
     !,
     self_node(Node),
@@ -246,7 +239,7 @@ actors:hook_spawn(Goal, Engine, Options) :-
     !,
     spawn_remote(Node, Goal, Engine, RestOptions).
 
-actors:hook_send(process(Node, Id), Message) :-
+actors:hook_send(Id@Node, Message) :-
     !,
     (   self_node(Node)
     ->  (   Id = thread(Tid)
@@ -255,7 +248,7 @@ actors:hook_send(process(Node, Id), Message) :-
         ;   %thread_property(Engine, id(Id)),
             send(Id, Message)
         )
-    ;   send_remote(process(Node, Id), Message)
+    ;   send_remote(Id@Node, Message)
     ).
 actors:hook_send(Socket, Message) :-
     send_remote(Socket, Message).
