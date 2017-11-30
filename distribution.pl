@@ -52,7 +52,7 @@
 :- dynamic
     websocket/3,                        % Node, Thread, Socket
     self_node/1,                        % Node
-    creator_ws/3.                       % Creator, Socket
+    current_actor/4.                    % Pid, Creator, Socket, Format
 
 
 
@@ -65,6 +65,7 @@ node_loop(WebSocket) :-
     ws_receive(WebSocket, Message, [format(json)]),
     (   Message.opcode == close
     ->  retractall(websocket(_,_,WebSocket)),
+        retractall(current_actor(_,_,WebSocket,_)),
         thread_self(Me),
         thread_detach(Me)
     ;   Data = Message.data,
@@ -74,7 +75,8 @@ node_loop(WebSocket) :-
         node_loop(WebSocket)
     ).
 
-% clauses for the pengine protocol
+% clauses for the pengine protocol. 
+% TODO: Move this to pengines.pl.
 
 node_action(pengine_spawn, Data, WebSocket) :-
     _{options:OptionString} :< Data,
@@ -83,7 +85,7 @@ node_action(pengine_spawn, Data, WebSocket) :-
     option(reply_to(ReplyTo), Options),
     select_option(format(Format), Options, RestOptions, 'json-s'),
     pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
-    asserta(creator_ws(ReplyTo, WebSocket, Format)),
+    assertz(current_actor(Pid, ReplyTo, WebSocket, Format)),
     term_string(Pid, PidString),
     ws_send(WebSocket, json(_{type:spawned, pid:PidString})).
 node_action(pengine_ask, Data, WebSocket) :-
@@ -92,7 +94,7 @@ node_action(pengine_ask, Data, WebSocket) :-
     read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
     term_string(Options, OptionString),
     term_string(Pid, PidString),
-    creator_ws(_Creator, WebSocket, Format),
+    current_actor(Pid, _Creator, WebSocket, Format),
     fix_template(Format, Goal, Bindings, NewTemplate),
     pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
 node_action(pengine_next, Data, _WebSocket) :-
@@ -126,20 +128,20 @@ node_action(spawn, Data, WebSocket) :-
     !,
     term_string(Goal, String),
     term_string(Options, OptionString),
-    spawn(Goal, UUID, [sandboxed(false)|Options]),
-    ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:UUID})).
+    spawn(Goal, Pid, [sandboxed(false)|Options]),
+    ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:Pid})).
 node_action(spawned, Data, _WebSocket) :-
-    _{thread:CreatorId, pid:Id} :< Data,
+    _{thread:CreatorId, pid:Pid} :< Data,
     !,
     thread_property(Creator, id(CreatorId)),
-    canonical_id(Id, CannId),
-    thread_send_message(Creator, spawned(CannId)).
+    canonical_pid(Pid, CanPid),
+    thread_send_message(Creator, spawned(CanPid)).
 node_action(send, Data, _WebSocket) :-
-    _{receiver:UUIDString, prolog:String} :< Data,
+    _{receiver:PidString, prolog:String} :< Data,
     !,
     term_string(Message, String),
-    atom_string(UUID, UUIDString),
-    send(UUID, Message).
+    atom_string(Pid, PidString),
+    send(Pid, Message).
 node_action(send, Data, _WebSocket) :-
     _{thread:Id, prolog:String} :< Data,
     !,
@@ -150,11 +152,16 @@ node_action(_Action, Data, _WebSocket) :-
     debug(ws, 'Got unknown data: ~p', [Data]).
 
 
+:- listen(actor(down, Pid),
+          (   debug(ws, 'Removing actor: ~p', [Pid]),
+              retractall(current_actor(Pid, _, _, _))
+          )).
+          
 
-canonical_id(Raw, ID) :-
+canonical_pid(Raw, Pid) :-
     (   string(Raw)
-    ->  atom_string(ID, Raw)
-    ;   ID = Raw
+    ->  atom_string(Pid, Raw)
+    ;   Pid = Raw
     ).
 
 %!  connection(+Node, -Socket)
@@ -187,9 +194,8 @@ spawn_remote(Node, Goal, Id@Node, Options) :-
 %   Send a message to a remote process.
 
 send_remote(Creator, Message) :-
-    creator_ws(Creator, Socket, Format),
+    current_actor(_Pid, Creator, Socket, Format),
     !,
-    %term_string(Message, String),
     answer_format(Message, Json, Format),
     ws_send(Socket, json(Json)).
 send_remote(thread(Id)@Node, Message) :-
@@ -206,8 +212,8 @@ send_remote(Id@Node, Message) :-
 %
 %   Get a global identifier for self.
 
-self_remote(Engine@Node) :-
-    engine_self(Engine),
+self_remote(Id@Node) :-
+    engine_self(Id),
     !,
     self_node(Node).
 self_remote(thread(Id)@Node) :-
