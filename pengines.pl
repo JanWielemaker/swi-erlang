@@ -72,6 +72,9 @@ debugg(Goal) :-
 %     - exit(+Bool)
 %       Determines if the pengine session must exit after having run 
 %       a query to completion. Defaults to false.
+%     - reply_to(+Target)
+%       Send messages to Target. Default is the thread or engine that
+%       called pengine_spawn/1-2.
 
 pengine_spawn(Pid) :-
     pengine_spawn(Pid, []).
@@ -180,6 +183,9 @@ findn(N, Template, Goal, Solutions) :-
 %     - limit(+Integer)
 %       Integer indicates the maximum number of solutions to retrieve
 %       in one batch. A value of 1 means a unary list (default).
+%     - reply_to(+Target)
+%       Send messages to Target. Default is the thread or engine that
+%       called pengine_spawn/1-2.
 
 pengine_ask(Pid, Goal) :-
     pengine_ask(Pid, Goal, []).
@@ -196,14 +202,17 @@ pengine_ask(Pid, Goal, Options) :-
 %     - limit(+Integer)
 %       Integer indicates the maximum number of solutions to retrieve
 %       in one batch. A value of 1 means a unary list (default).
+%     - reply_to(+Target)
+%       Send messages to Target. Default is the thread or engine that
+%       called pengine_spawn/1-2.
 
 pengine_next(Pid) :-
     pengine_next(Pid, []).
 
 pengine_next(Pid, Options) :-
     self(Self),
-    option(reply_to(ReplyTo), Options, Self),
     option(limit(Limit), Options, 1),
+    option(reply_to(ReplyTo), Options, Self),
     Pid ! pengine:next(ReplyTo, Limit).
 
 
@@ -211,7 +220,11 @@ pengine_next(Pid, Options) :-
 %
 %   Tell pengine Pid to stop. If successful, delivers a message
 %   `stop(Pid)` to the mailbox of the process that called 
-%   pengine_spawn/2-3.
+%   pengine_spawn/2-3. Options:
+%
+%     - reply_to(+Target)
+%       Send `stop' message to Target. Default is the thread or
+%       engine that called pengine_spawn/1-2.
 
 pengine_stop(Pid) :-
     pengine_stop(Pid, []).
