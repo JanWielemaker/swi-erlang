@@ -70,8 +70,12 @@ debugg(Goal) :-
     
 
 :- dynamic
-    current_pengine/4.                  % Pid, Creator, Socket, Format
-    
+    pengine_target/2,                 % Id, Target
+    target_socket_format/3.           % Target, Socket, Format
+:- volatile
+    pengine_target/2,                 % Id, Target
+    target_socket_format/3.           % Target, Socket, Format
+
 
 pengines_node_action(pengine_spawn, Data, WebSocket) :-
     _{options:OptionString} :< Data,
@@ -80,7 +84,7 @@ pengines_node_action(pengine_spawn, Data, WebSocket) :-
     option(reply_to(ReplyTo), Options),
     select_option(format(Format), Options, RestOptions, 'json-s'),
     pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
-    assertz(current_pengine(Pid, ReplyTo, WebSocket, Format)),
+    assertz(target_socket_format(ReplyTo, WebSocket, Format)),
     term_string(Pid, PidString),
     send(ReplyTo, spawned(PidString)).
 pengines_node_action(pengine_ask, Data, WebSocket) :-
@@ -89,7 +93,8 @@ pengines_node_action(pengine_ask, Data, WebSocket) :-
     read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
     term_string(Options, OptionString),
     term_string(Pid, PidString),
-    current_pengine(Pid, _Creator, WebSocket, Format),
+    pengine_target(Pid, Target),
+    target_socket_format(Target, WebSocket, Format),
     fix_template(Format, Goal, Bindings, NewTemplate),
     pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
 pengines_node_action(pengine_next, Data, _WebSocket) :-
@@ -119,12 +124,19 @@ pengines_node_action(pengine_abort, Data, _WebSocket) :-
 
 
 pengines_send_remote(Target, Message) :-
-    current_pengine(_Pid, Target, Socket, Format),
+    target_socket_format(Target, Socket, Format),
     !,
     answer_format(Message, Json, Format),
     ws_send(Socket, json(Json)).  % TODO: This should not be here
 
 
+:- listen(actor(down, Pid),
+          (     debug(ws, 'Pengine is down: ~p', [Pid]),
+                forall(retract(pengine_target(Pid, Target), 
+                       retractall(target_socket_format(Target, _Socket, _Format))))
+          
+          )).
+          
 
 
 %!  pengine_spawn(-Pid) is det.
@@ -138,7 +150,8 @@ pengines_send_remote(Target, Message) :-
 %     - reply_to(+Target)
 %       Send messages to Target. Default is the thread or engine that
 %       called pengine_spawn/1-2.
-
+    
+    
 pengine_spawn(Pid) :-
     pengine_spawn(Pid, []).
 
@@ -149,7 +162,8 @@ pengine_spawn(Pid, Options) :-
     spawn(session(Pid, Target, Exit), Pid, [
           application(pengines)
         | Options
-    ]).
+    ]),
+    asserta(pengine_target(Pid, Target)).
 
 
 :- thread_local parent/1.
@@ -353,7 +367,7 @@ pengine_abort(Pid) :-
     hook_node_action/3.
     
 distribution:hook_node_action(Actions, Data, WebSocket) :-
-    debugg pengines_node_action(Actions, Data, WebSocket).
+    pengines_node_action(Actions, Data, WebSocket).
     
 distribution:hook_send_remote(Target, Message) :-
     pengines_send_remote(Target, Message).
