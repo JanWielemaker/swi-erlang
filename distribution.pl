@@ -36,7 +36,7 @@
           [ spawn_remote/4,                     % +Node, :Goal, -Id, +Options
             send_remote/2,                      % +Id, +Message
             self_remote/1,                      % -Id
-            register_node_self/1,                % +URL
+            register_node_self/1,               % +URL
             op(200, xfx, @)
           ]).
 :- use_module(actors).
@@ -51,8 +51,7 @@
 
 :- dynamic
     websocket/3,                        % Node, Thread, Socket
-    self_node/1,                        % Node
-    current_pengine/4.                    % Pid, Creator, Socket, Format
+    self_node/1.                        % Node
 
 
 :- op(400, fx, debugg).
@@ -72,7 +71,6 @@ node_loop(WebSocket) :-
     ws_receive(WebSocket, Message, [format(json)]),
     (   Message.opcode == close
     ->  retractall(websocket(_,_,WebSocket)),
-        retractall(current_pengine(_,_,WebSocket,_)),
         thread_self(Me),
         thread_detach(Me)
     ;   Data = Message.data,
@@ -82,54 +80,15 @@ node_loop(WebSocket) :-
         node_loop(WebSocket)
     ).
 
-% clauses for the pengine protocol. 
-% TODO: Move this to pengines.pl.
 
-node_action(pengine_spawn, Data, WebSocket) :-
-    _{options:OptionString} :< Data,
-    !,
-    term_string(Options, OptionString),
-    option(reply_to(ReplyTo), Options),
-    select_option(format(Format), Options, RestOptions, 'json-s'),
-    pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
-    debugg assertz(current_pengine(Pid, ReplyTo, WebSocket, Format)),
-    term_string(Pid, PidString),
-    send_remote(ReplyTo, spawned(PidString)).
-node_action(pengine_ask, Data, WebSocket) :-
-    _{pid:PidString, goal:GoalString, options:OptionString} :< Data,
-    !,
-    read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
-    term_string(Options, OptionString),
-    term_string(Pid, PidString),
-    current_pengine(Pid, _Creator, WebSocket, Format),
-    fix_template(Format, Goal, Bindings, NewTemplate),
-    pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
-node_action(pengine_next, Data, _WebSocket) :-
-    _{pid:PidString, options:OptionString} :< Data,
-    !,
-    term_string(Options, OptionString),
-    term_string(Pid, PidString),
-    pengine_next(Pid, Options).    
-node_action(pengine_stop, Data, _WebSocket) :-
-    _{pid:PidString, options:OptionString} :< Data,
-    !,
-    term_string(Options, OptionString),
-    term_string(Pid, PidString),
-    pengine_stop(Pid, Options).
-node_action(pengine_respond, Data, _WebSocket) :-
-    _{pid:PidString, prolog:String} :< Data,
-    !,
-    term_string(Term, String),
-    term_string(Pid, PidString),
-    pengine_respond(Pid, Term).
-node_action(pengine_abort, Data, _WebSocket) :-
-    _{pid:PidString} :< Data,
-    !,
-    term_string(Pid, PidString),
-    pengine_abort(Pid).
+:- multifile
+    hook_node_action/3.
 
 % clauses for bare actors    
 
+node_action(Action, Data, WebSocket) :-
+    hook_node_action(Action, Data, WebSocket),
+    !.
 node_action(spawn, Data, WebSocket) :-
     _{thread:Creator, prolog:String, options:OptionString} :< Data,
     !,
@@ -203,11 +162,13 @@ spawn_remote(Node, Goal, Id@Node, Options) :-
 %
 %   @tbd: 
 
-send_remote(Target, Message) :-
-    current_pengine(_Pid, Target, Socket, Format),
-    !,
-    answer_format(Message, Json, Format),
-    ws_send(Socket, json(Json)).
+
+:- multifile
+    hook_send_remote/2.
+
+send_remote(Pid, Message) :-
+    hook_send_remote(Pid, Message),
+    !.
 send_remote(thread(Id)@Node, Message) :-
     !,
     connection(Node, Socket),

@@ -49,6 +49,9 @@
           ]).
 :- use_module(actors).
 :- use_module(dollar_expansion).
+:- use_module(format).
+
+:- use_module(library(http/websocket)). % TODO: This should go
 
 :- use_module(library(debug)).
 
@@ -63,7 +66,64 @@ debugg(Goal) :-
 :- meta_predicate 
     session(:, +, +).
     
+
+:- dynamic
+    current_pengine/4.                  % Pid, Creator, Socket, Format
     
+
+pengines_node_action(pengine_spawn, Data, WebSocket) :-
+    _{options:OptionString} :< Data,
+    !,
+    term_string(Options, OptionString),
+    option(reply_to(ReplyTo), Options),
+    select_option(format(Format), Options, RestOptions, 'json-s'),
+    pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
+    assertz(current_pengine(Pid, ReplyTo, WebSocket, Format)),
+    term_string(Pid, PidString),
+    send(ReplyTo, spawned(PidString)).
+pengines_node_action(pengine_ask, Data, WebSocket) :-
+    _{pid:PidString, goal:GoalString, options:OptionString} :< Data,
+    !,
+    read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
+    term_string(Options, OptionString),
+    term_string(Pid, PidString),
+    current_pengine(Pid, _Creator, WebSocket, Format),
+    fix_template(Format, Goal, Bindings, NewTemplate),
+    pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
+pengines_node_action(pengine_next, Data, _WebSocket) :-
+    _{pid:PidString, options:OptionString} :< Data,
+    !,
+    term_string(Options, OptionString),
+    term_string(Pid, PidString),
+    pengine_next(Pid, Options).    
+pengines_node_action(pengine_stop, Data, _WebSocket) :-
+    _{pid:PidString, options:OptionString} :< Data,
+    !,
+    term_string(Options, OptionString),
+    term_string(Pid, PidString),
+    pengine_stop(Pid, Options).
+pengines_node_action(pengine_respond, Data, _WebSocket) :-
+    _{pid:PidString, prolog:String} :< Data,
+    !,
+    term_string(Term, String),
+    term_string(Pid, PidString),
+    pengine_respond(Pid, Term).
+pengines_node_action(pengine_abort, Data, _WebSocket) :-
+    _{pid:PidString} :< Data,
+    !,
+    term_string(Pid, PidString),
+    pengine_abort(Pid).
+
+
+
+pengines_send_remote(Target, Message) :-
+    current_pengine(_Pid, Target, Socket, Format),
+    !,
+    answer_format(Message, Json, Format),
+    ws_send(Socket, json(Json)).  % TODO: This should not be here
+
+
+
 %!  pengine_spawn(-Pid) is det.
 %!  pengine_spawn(-Pid, +Options) is det.
 %
@@ -282,6 +342,16 @@ pengine_abort(Pid) :-
     catch(thread_signal(Pid, throw(exit_query)), _, true).
 
   
+		 /*******************************
+		 *    EXTEND LOCAL PROCESSES	*
+		 *******************************/
 
-
+:- multifile
+    hook_node_action/3.
+    
+distribution:hook_node_action(Actions, Data, WebSocket) :-
+    debugg pengines_node_action(Actions, Data, WebSocket).
+    
+distribution:hook_send_remote(Target, Message) :-
+    pengines_send_remote(Target, Message).
 
