@@ -1,6 +1,6 @@
 /*  Part of SWI-Prolog
 
-    Author:        Jan Wielemaker
+    Author:        Torbjörn Lager and Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (c)  2017, VU University Amsterdam
@@ -52,9 +52,16 @@
 :- dynamic
     websocket/3,                        % Node, Thread, Socket
     self_node/1,                        % Node
-    current_actor/4.                    % Pid, Creator, Socket, Format
+    current_pengine/4.                    % Pid, Creator, Socket, Format
 
 
+:- op(400, fx, debugg).
+
+debugg(Goal) :-
+    debug(ws, 'CALL ~p', [Goal]),
+    call(Goal),
+    debug(ws, 'EXIT ~p', [Goal]).
+    
 
 :- http_handler(root(web_prolog), node_manager, [spawn([]), id(web_prolog)]).
 
@@ -65,7 +72,7 @@ node_loop(WebSocket) :-
     ws_receive(WebSocket, Message, [format(json)]),
     (   Message.opcode == close
     ->  retractall(websocket(_,_,WebSocket)),
-        retractall(current_actor(_,_,WebSocket,_)),
+        retractall(current_pengine(_,_,WebSocket,_)),
         thread_self(Me),
         thread_detach(Me)
     ;   Data = Message.data,
@@ -85,16 +92,16 @@ node_action(pengine_spawn, Data, WebSocket) :-
     option(reply_to(ReplyTo), Options),
     select_option(format(Format), Options, RestOptions, 'json-s'),
     pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
-    assertz(current_actor(Pid, ReplyTo, WebSocket, Format)),
+    debugg assertz(current_pengine(Pid, ReplyTo, WebSocket, Format)),
     term_string(Pid, PidString),
-    ws_send(WebSocket, json(_{type:spawned, pid:PidString})).
+    send_remote(ReplyTo, spawned(PidString)).
 node_action(pengine_ask, Data, WebSocket) :-
     _{pid:PidString, goal:GoalString, options:OptionString} :< Data,
     !,
     read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
     term_string(Options, OptionString),
     term_string(Pid, PidString),
-    current_actor(Pid, _Creator, WebSocket, Format),
+    current_pengine(Pid, _Creator, WebSocket, Format),
     fix_template(Format, Goal, Bindings, NewTemplate),
     pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
 node_action(pengine_next, Data, _WebSocket) :-
@@ -152,9 +159,10 @@ node_action(_Action, Data, _WebSocket) :-
     debug(ws, 'Got unknown data: ~p', [Data]).
 
 
+
 :- listen(actor(down, Pid),
           (   debug(ws, 'Removing actor: ~p', [Pid]),
-              retractall(current_actor(Pid, _, _, _))
+              retractall(current_pengine(Pid, _, _, _))
           )).
           
 
@@ -192,9 +200,11 @@ spawn_remote(Node, Goal, Id@Node, Options) :-
 %!  send_remote(Id, Message) :-
 %
 %   Send a message to a remote process.
+%
+%   @tbd: 
 
-send_remote(Creator, Message) :-
-    current_actor(_Pid, Creator, Socket, Format),
+send_remote(Target, Message) :-
+    current_pengine(_Pid, Target, Socket, Format),
     !,
     answer_format(Message, Json, Format),
     ws_send(Socket, json(Json)).
