@@ -79,8 +79,8 @@ http_pengine_ask(Request) :-
         
     
 :- dynamic
-    solution_pengine/3,      % Hash, QueryID, PengineID
-    solution_index/2.        % PengineID, Index
+    solution_pengine/3,      % Hash, QueryID, Pid
+    solution_index/2.        % Pid, Index
 
 
 %!  find_answer(:Query, +Template, +Offset, +Limit, -Answer) is det.
