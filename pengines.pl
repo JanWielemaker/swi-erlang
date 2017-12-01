@@ -47,11 +47,13 @@
             pengine_respond/2,                  % +Pid, +Answer
             pengine_output/1                    % +Term
           ]).
+
+:- use_module(library(broadcast)).
+:- use_module(library(http/websocket)). % TODO: This should go
+
 :- use_module(actors).
 :- use_module(dollar_expansion).
 :- use_module(format).
-
-:- use_module(library(http/websocket)). % TODO: This should go
 
 :- use_module(library(debug)).
 
@@ -121,6 +123,7 @@ pengines_send_remote(Target, Message) :-
     !,
     answer_format(Message, Json, Format),
     ws_send(Socket, json(Json)).  % TODO: This should not be here
+
 
 
 

@@ -120,9 +120,7 @@ node_action(_Action, Data, _WebSocket) :-
 
 
 :- listen(actor(down, Pid),
-          (   debug(ws, 'Removing actor: ~p', [Pid]),
-              retractall(current_pengine(Pid, _, _, _))
-          )).
+          debug(ws, 'Actor is down: ~p', [Pid])).
           
 
 canonical_pid(Raw, Pid) :-

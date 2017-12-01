@@ -399,7 +399,7 @@ down(Reason, Options) :-
     ),
     self_local(SelfLocal),
     retractall(registered(_, _, SelfLocal)),
-    broadcast(actor(down, SelfLocal)),
+    debugg broadcast(actor(down, SelfLocal)),
     destroy_children(Self).
 
 down_reason(_, Reason) :-
