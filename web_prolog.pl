@@ -68,6 +68,8 @@
             promise/3,                  % +URI, :Query, -Reference
             promise/4,                  % +URI, :Query, -Reference, +Options
             yield/2,                    % +Reference, ?Message
+            
+            out/1,
 
             dump_backtrace/2,           % +Pid, +Depth
             dump_queue/2,               % +Pid, -Queue
