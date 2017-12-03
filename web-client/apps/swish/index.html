@@ -384,8 +384,8 @@ server's console.
                 event = JSON.parse(eventstr);
                 var type = event.type;
                 if (type == "spawned") {
-                    term.echo('Welcome to SWI Web Prolog!\n');
                     pid = event.pid;
+                    term.echo('Welcome to SWI Web Prolog!\nuuid:'+uuid+'\npid:'+pid);
                 } else if (type == "success") {
                     if (event.more) {
                         console.log('2 -> 4')
@@ -420,7 +420,7 @@ server's console.
                 } else if (type == "output") {
                     console.log('2 -> 2')
                     term.echo(event.data, {raw:true});
-                    term.pause();
+                    //term.pause();
                 } else if (type == "abort") {
                     console.log('? -> 1')
                     term.echo("Aborted");
