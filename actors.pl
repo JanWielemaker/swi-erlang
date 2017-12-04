@@ -355,13 +355,15 @@ spawn4(Goal, Engine, Options) :-
     !.
 spawn4(Goal, Engine, Options) :-
     make_pid(Pid),
-    engine_create(true, run(Goal, Options), Engine, [alias(Pid)|Options]),
+    self_local(Self),
+    engine_create(true, run(Goal, Self, Options), Engine, [alias(Pid)|Options]),
     (   option(link(true), Options)
     ->  self(Me),
         link(Me, Engine)
     ;   true
     ),
     send(Engine, '$start').
+
 
 
 make_pid(Pid) :-
@@ -382,7 +384,9 @@ self_local(Pid) :-
 self_local(thread(Tid)) :-
     thread_self(Tid).
 
-run(Goal, Options) :-
+run(Goal, Parent, Options) :-
+    self_local(Pid),
+    broadcast(actor(spawned, Parent, Pid)),
     setup_call_catcher_cleanup(
         true,
         once(Goal),
