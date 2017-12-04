@@ -45,7 +45,9 @@
             pengine_abort/1,                    % +Pid    
             pengine_input/2,                    % +Prompt, ?Answer
             pengine_respond/2,                  % +Pid, +Answer
-            pengine_output/1                    % +Term
+            pengine_output/1,                    % +Term
+            
+            out/1
           ]).
 
 :- use_module(library(broadcast)).
@@ -70,9 +72,7 @@ debugg(Goal) :-
     
 
 :- dynamic
-    pengine_target/2,                 % Id, Target
-    target_socket_format/3.           % Target, Socket, Format
-:- volatile
+    reply_to/2,
     pengine_target/2,                 % Id, Target
     target_socket_format/3.           % Target, Socket, Format
 
@@ -85,6 +85,8 @@ pengines_node_action(pengine_spawn, Data, WebSocket) :-
     select_option(format(Format), Options, RestOptions, 'json-s'),
     pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
     assertz(target_socket_format(ReplyTo, WebSocket, Format)),
+    thread_self(Self),
+    assertz(reply_to(thread(Self), ReplyTo)),
     term_string(Pid, PidString),
     send(ReplyTo, spawned(PidString)).
 pengines_node_action(pengine_ask, Data, WebSocket) :-
@@ -130,13 +132,42 @@ pengines_send_remote(Target, Message) :-
     ws_send(Socket, json(Json)).  % TODO: This should not be here
 
 
+:- dynamic
+    child_parent/2.
+
+:- listen(actor(spawned, Local, Pid),
+    (   debug(listen, 'Actor ~p spawned actor ~p.', [Local,Pid]),
+        assertz(child_parent(Pid, Local))
+    )).
+
 :- listen(actor(down, Pid),
-          (     debug(ws, 'Pengine is down: ~p', [Pid]),
-                forall(retract(pengine_target(Pid, Target), 
-                       retractall(target_socket_format(Target, _Socket, _Format))))
-          
-          )).
-          
+    (   debug(listen, 'Actor ~p is down.', [Pid]),
+        sleep(0.1), % TODO: This points to a bug!
+        retractall(child_parent(Pid, _))
+    )).
+
+
+%!  out(+Term) is det.
+%
+%   Send Term to the shell.
+
+out(Term) :-
+    thread_self(Self), 
+    root(Self, Root),
+    reply_to(Root, Target),
+    !,
+    Target ! output(Self, Term).
+out(_Term).  % This happens when there is no root connected to a shell.
+
+
+root(Child, thread(Thread)) :-
+    child_parent(Child, thread(Thread)),
+    !.
+root(Child, GrandParent) :-
+    child_parent(Child, Parent),
+    root(Parent, GrandParent).
+    
+    
 
 
 %!  pengine_spawn(-Pid) is det.
