@@ -33,13 +33,13 @@ start() ->
 
 ping(0, Pong_Pid) :-
     Pong_Pid ! finished,
-    writeln('Ping finished').
+    out('Ping finished').
 ping(N, Pong_Pid) :-
     self(Self),
     Pong_Pid ! ping(Self),
     receive({
         pong ->
-            writeln('Ping received pong')
+            out('Ping received pong')
     }),
     N1 is N - 1,
     ping(N1, Pong_Pid).
@@ -47,14 +47,14 @@ ping(N, Pong_Pid) :-
 pong :-
     receive({
         ping(Ping_Pid) ->
-            writeln('Pong received ping'),
+            out('Pong received ping'),
             Ping_Pid ! pong,
             pong;
         finished ->
-            writeln('Pong finished')
+            out('Pong finished')
     }).
    
 start :-
-    spawn(pong, Pong_Pid),
-    spawn(ping(3, Pong_Pid), _).
+    spawn(pong, Pong_Pid, [src_predicates([pong/0])]),
+    spawn(ping(3, Pong_Pid), _, [src_predicates([ping/2])]).
     
