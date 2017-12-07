@@ -132,20 +132,40 @@ pengines_send_remote(Target, Message) :-
     ws_send(Socket, json(Json)).  % TODO: This should not be here
 
 
-:- dynamic
-    child_parent/2.
 
-:- listen(actor(spawned, Local, Pid),
-    (   debug(listen, 'Actor ~p spawned actor ~p.', [Local,Pid]),
-        assertz(child_parent(Pid, Local))
+% Pehaps this could provide inspiration?:
+%
+% http://erlang.org/doc/apps/stdlib/io_protocol.html
+
+
+:- dynamic
+    child_parent/2,
+    pid_target/2.
+
+:- listen(actor(spawned, Parent, Pid),
+    (   debug(listen, 'Actor ~p spawned actor ~p.', [Parent,Pid]),
+        (   root(Parent, Root),
+            reply_to(Root, Target)
+        ->  assertz(child_parent(Pid, Parent)),
+            assertz(pid_target(Pid, Target))
+        ;   true
+        )
     )).
 
 :- listen(actor(down, Pid),
     (   debug(listen, 'Actor ~p is down.', [Pid]),
-        sleep(0.1), % TODO: This points to a bug!
-        retractall(child_parent(Pid, _))
+        sleep(0.1), % TODO: Why is this needed?
+        retractall(child_parent(Pid, _)),
+        retractall(pid_target(Pid, _))
     )).
 
+
+root(thread(Thread), thread(Thread)) :- 
+    !.
+root(Child, GrandParent) :-
+    child_parent(Child, Parent),
+    root(Parent, GrandParent).
+    
 
 %!  out(+Term) is det.
 %
@@ -153,19 +173,14 @@ pengines_send_remote(Target, Message) :-
 
 out(Term) :-
     thread_self(Self), 
-    root(Self, Root),
-    reply_to(Root, Target),
+    pid_target(Self, Target),
     !,
     Target ! output(Self, Term).
-out(_Term).  % This happens when there is no root connected to a shell.
+out(Term) :-  % This happens when there is no root connected to a shell.
+    writeln(Term).
 
 
-root(Child, thread(Thread)) :-
-    child_parent(Child, thread(Thread)),
-    !.
-root(Child, GrandParent) :-
-    child_parent(Child, Parent),
-    root(Parent, GrandParent).
+
     
     
 
