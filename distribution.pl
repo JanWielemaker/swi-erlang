@@ -1,58 +1,40 @@
-/*  Part of SWI-Prolog
 
-    Author:        Torbjörn Lager and Jan Wielemaker
-    E-mail:        J.Wielemaker@vu.nl
-    WWW:           http://www.swi-prolog.org
-    Copyright (c)  2017, VU University Amsterdam
-    All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions
-    are met:
-
-    1. Redistributions of source code must retain the above copyright
-       notice, this list of conditions and the following disclaimer.
-
-    2. Redistributions in binary form must reproduce the above copyright
-       notice, this list of conditions and the following disclaimer in
-       the documentation and/or other materials provided with the
-       distribution.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-    FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-    COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-    INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-    BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-    LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-    ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    POSSIBILITY OF SUCH DAMAGE.
-*/
 
 :- module(distribution,
           [ spawn_remote/4,                     % +Node, :Goal, -Id, +Options
             send_remote/2,                      % +Id, +Message
             self_remote/1,                      % -Id
             register_node_self/1,               % +URL
+            echo/1,
             op(200, xfx, @)
           ]).
-:- use_module(actors).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/websocket)).
-:- use_module(library(debug)).
 :- use_module(library(option)).
 :- use_module(library(broadcast)).
+:- use_module(library(debug)).
 
+
+
+:- use_module(actors).
+
+
+:- use_module(pengines).
 :- use_module(format).
-:- use_module(pengines). % TODO: Eventually remove this
+
 
 :- dynamic
     websocket/3,                        % Node, Thread, Socket
     self_node/1.                        % Node
 
+:- dynamic
+    pid_stdout_socket_format/4.           % Pid, Stdout, Socket, Format
+    
+
+:- thread_local
+    stdout/1.                             % Target
+    
+    
 
 :- op(400, fx, debugg).
 
@@ -80,15 +62,54 @@ node_loop(WebSocket) :-
         node_loop(WebSocket)
     ).
 
+% clauses for pengines running from a shell    
 
-:- multifile
-    hook_node_action/3.
+node_action(pengine_spawn, Data, WebSocket) :-
+    _{options:OptionString} :< Data,
+    !,
+    term_string(Options, OptionString),
+    option(reply_to(Stdout), Options),
+    assertz(actors:stdout(Stdout)),
+    select_option(format(Format), Options, RestOptions, 'json-s'),
+    pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
+    assertz(pid_stdout_socket_format(Pid, Stdout, WebSocket, Format)),
+    term_string(Pid, PidString),
+    send(Stdout, spawned(PidString)).
+node_action(pengine_ask, Data, WebSocket) :-
+    _{pid:PidString, goal:GoalString, options:OptionString} :< Data,
+    !,
+    read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
+    term_string(Options, OptionString),
+    term_string(Pid, PidString),
+    pid_stdout_socket_format(Pid, _Target, WebSocket, Format),
+    fix_template(Format, Goal, Bindings, NewTemplate),
+    pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
+node_action(pengine_next, Data, _WebSocket) :-
+    _{pid:PidString, options:OptionString} :< Data,
+    !,
+    term_string(Options, OptionString),
+    term_string(Pid, PidString),
+    pengine_next(Pid, Options).    
+node_action(pengine_stop, Data, _WebSocket) :-
+    _{pid:PidString, options:OptionString} :< Data,
+    !,
+    term_string(Options, OptionString),
+    term_string(Pid, PidString),
+    pengine_stop(Pid, Options).
+node_action(pengine_respond, Data, _WebSocket) :-
+    _{pid:PidString, prolog:String} :< Data,
+    !,
+    term_string(Term, String),
+    term_string(Pid, PidString),
+    pengine_respond(Pid, Term).
+node_action(pengine_abort, Data, _WebSocket) :-
+    _{pid:PidString} :< Data,
+    !,
+    term_string(Pid, PidString),
+    pengine_abort(Pid).
 
 % clauses for bare actors    
 
-node_action(Action, Data, WebSocket) :-
-    hook_node_action(Action, Data, WebSocket),
-    !.
 node_action(spawn, Data, WebSocket) :-
     _{thread:Creator, prolog:String, options:OptionString} :< Data,
     !,
@@ -154,19 +175,18 @@ spawn_remote(Node, Goal, Id@Node, Options) :-
     ws_send(Socket, json(_{action:spawn, thread:MyId, prolog:String, options:OptionString})),
     thread_get_message(Me, spawned(Id)).
 
+
 %!  send_remote(Id, Message) :-
 %
 %   Send a message to a remote process.
 %
 %   @tbd: 
 
-
-:- multifile
-    hook_send_remote/2.
-
-send_remote(Pid, Message) :-
-    hook_send_remote(Pid, Message),
-    !.
+send_remote(Target, Message) :-
+    pid_stdout_socket_format(_, Target, Socket, Format),
+    !,
+    answer_format(Message, Json, Format),
+    ws_send(Socket, json(Json)).
 send_remote(thread(Id)@Node, Message) :-
     !,
     connection(Node, Socket),
@@ -199,6 +219,23 @@ register_node_self(URL) :-
     asserta(self_node(URL)).
 
 
+    
+
+%!  echo(+Term) is det.
+%
+%   Send Term to the shell.
+
+echo(_Term) :-
+    actors:stdout(false),
+    !.
+echo(Term) :-
+    actors:stdout(Target), 
+    !,
+    thread_self(Self),
+    send(Target, echo(Self, Term)).
+echo(_Term).  % This happens when there is no root connected to a shell.
+
+
 		 /*******************************
 		 *    EXTEND LOCAL PROCESSES	*
 		 *******************************/
@@ -210,7 +247,8 @@ actors:hook_self(Me) :-
     self_remote(Me).
 
 actors:hook_spawn(Goal, Engine, Options) :-
-    select_option(node(Node), Options, RestOptions),
+    select_option(node(Node), Options, RestOptions, localnode),
+    Node \== localnode,
     !,
     spawn_remote(Node, Goal, Engine, RestOptions).
 
@@ -220,8 +258,7 @@ actors:hook_send(Id@Node, Message) :-
     ->  (   Id = thread(Tid)
         ->  thread_property(Thread, id(Tid)),
             send(thread(Thread), Message)
-        ;   %thread_property(Engine, id(Id)),
-            send(Id, Message)
+        ;   send(Id, Message)
         )
     ;   send_remote(Id@Node, Message)
     ).

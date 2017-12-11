@@ -95,7 +95,7 @@
     actors:hook_goal/3.
 
 actors:hook_goal(Goal0, isolation:with_source(Goal0, GoalOptions), Options) :-
-    \+ option(node(_), Options),
+    option(node(localnode), Options, localnode),
     actor_uuid(Module),
     GoalOptions = [ module(Module)
                   | Options

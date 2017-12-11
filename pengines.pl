@@ -45,113 +45,18 @@
             pengine_abort/1,                    % +Pid    
             pengine_input/2,                    % +Prompt, ?Answer
             pengine_respond/2,                  % +Pid, +Answer
-            pengine_output/1,                    % +Term
-            
-            echo/1
+            pengine_output/1                    % +Term
           ]).
-
-:- use_module(library(broadcast)).
-:- use_module(library(http/websocket)). % TODO: This should go
-
-:- use_module(actors).
-:- use_module(dollar_expansion).
-:- use_module(format).
 
 :- use_module(library(debug)).
 
+:- use_module(actors).
+:- use_module(dollar_expansion).
 
-:- op(400, fx, debugg).
-
-debugg(Goal) :-
-    debug(a, 'CALL ~p', [Goal]),
-    call(Goal),
-    debug(a, 'EXIT ~p', [Goal]).
 
 :- meta_predicate 
     session(:, +, +).
     
-
-:- dynamic
-    pid_stdout_socket_format/4.           % Pid, Stdout, Socket, Format
-    
-
-:- thread_local
-    stdout/1.                             % Target
-
-
-
-pengines_node_action(pengine_spawn, Data, WebSocket) :-
-    _{options:OptionString} :< Data,
-    !,
-    term_string(Options, OptionString),
-    option(reply_to(Stdout), Options),
-    assertz(actors:stdout(Stdout)),
-    select_option(format(Format), Options, RestOptions, 'json-s'),
-    pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
-    assertz(pid_stdout_socket_format(Pid, Stdout, WebSocket, Format)),
-    term_string(Pid, PidString),
-    send(Stdout, spawned(PidString)).
-pengines_node_action(pengine_ask, Data, WebSocket) :-
-    _{pid:PidString, goal:GoalString, options:OptionString} :< Data,
-    !,
-    read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
-    term_string(Options, OptionString),
-    term_string(Pid, PidString),
-    pid_stdout_socket_format(Pid, _Target, WebSocket, Format),
-    fix_template(Format, Goal, Bindings, NewTemplate),
-    pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
-pengines_node_action(pengine_next, Data, _WebSocket) :-
-    _{pid:PidString, options:OptionString} :< Data,
-    !,
-    term_string(Options, OptionString),
-    term_string(Pid, PidString),
-    pengine_next(Pid, Options).    
-pengines_node_action(pengine_stop, Data, _WebSocket) :-
-    _{pid:PidString, options:OptionString} :< Data,
-    !,
-    term_string(Options, OptionString),
-    term_string(Pid, PidString),
-    pengine_stop(Pid, Options).
-pengines_node_action(pengine_respond, Data, _WebSocket) :-
-    _{pid:PidString, prolog:String} :< Data,
-    !,
-    term_string(Term, String),
-    term_string(Pid, PidString),
-    pengine_respond(Pid, Term).
-pengines_node_action(pengine_abort, Data, _WebSocket) :-
-    _{pid:PidString} :< Data,
-    !,
-    term_string(Pid, PidString),
-    pengine_abort(Pid).
-
-
-
-pengines_send_remote(Target, Message) :-
-    pid_stdout_socket_format(_, Target, Socket, Format),
-    !,
-    answer_format(Message, Json, Format),
-    ws_send(Socket, json(Json)).  % TODO: This should not be here
-
-
-
-    
-
-%!  echo(+Term) is det.
-%
-%   Send Term to the shell.
-
-echo(_Term) :-
-    actors:stdout(false),
-    !.
-echo(Term) :-
-    actors:stdout(Target), 
-    !,
-    thread_self(Self),
-    Target ! echo(Self, Term).
-echo(_Term).  % This happens when there is no root connected to a shell.
-
-
-
 
 %!  pengine_spawn(-Pid) is det.
 %!  pengine_spawn(-Pid, +Options) is det.
@@ -371,17 +276,6 @@ pengine_respond(Pid, Term) :-
 pengine_abort(Pid) :-
     catch(thread_signal(Pid, throw(exit_query)), _, true).
 
-  
-		 /*******************************
-		 *    EXTEND LOCAL PROCESSES	*
-		 *******************************/
 
-:- multifile
-    hook_node_action/3.
-    
-distribution:hook_node_action(Actions, Data, WebSocket) :-
-    pengines_node_action(Actions, Data, WebSocket).
-    
-distribution:hook_send_remote(Target, Message) :-
-    pengines_send_remote(Target, Message).
+  
 
