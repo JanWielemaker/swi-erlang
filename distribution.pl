@@ -158,7 +158,8 @@ connection(Node, Socket) :-
     websocket(Node, _Thread, Socket),
     !.
 connection(Node, Socket) :-
-    http_open_websocket(Node, Socket, [subprotocol(web_prolog)]),
+    atom_concat(Node, '/ws', WsURI),
+    http_open_websocket(WsURI, Socket, [subprotocol(web_prolog)]),
     thread_create(node_loop(Socket), Thread, [alias(Node)]),
     assertz(websocket(Node, Thread, Socket)).
 

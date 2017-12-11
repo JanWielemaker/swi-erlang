@@ -54,7 +54,7 @@
 %   is needed for self/1.  This is determined as follows:
 %
 %     - If the address is `localhost:Port`, use
-%       http://localhost:Port/Path
+%       http://localhost:Port
 %     - If the setting http:public_host is provided, use that
 %     - Else use the host as known by gethostname/1.
 
@@ -70,8 +70,7 @@ node(Address) :-
 
 server_url(localhost:Port, URL) :-
     !,
-    http_location_by_id(ws, Path),
-    format(atom(URL), 'http://localhost:~w~w', [Port, Path]).
+    format(atom(URL), 'http://localhost:~w', [Port]).
 server_url(_Port, URL) :-
     setting(http:public_host, Host),
     Host \== '',
@@ -85,10 +84,9 @@ server_url(Port, URL) :-
     make_url(Scheme, Host, Port, URL).
 
 make_url(Scheme, Host, Port, URL) :-
-    http_location_by_id(ws, Path),
     (   default_port(Scheme, Port)
-    ->  format(atom(URL), '~w://~w~w', [Scheme, Host, Path])
-    ;   format(atom(URL), '~w://~w:~w~w', [Scheme, Host, Port, Path])
+    ->  format(atom(URL), '~w://~w', [Scheme, Host])
+    ;   format(atom(URL), '~w://~w:~w', [Scheme, Host, Port])
     ).
 
 default_port(http, 80).
