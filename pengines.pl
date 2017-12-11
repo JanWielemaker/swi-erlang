@@ -63,9 +63,9 @@
 :- op(400, fx, debugg).
 
 debugg(Goal) :-
-    debug(ws, 'CALL ~p', [Goal]),
+    debug(a, 'CALL ~p', [Goal]),
     call(Goal),
-    debug(ws, 'EXIT ~p', [Goal]).
+    debug(a, 'EXIT ~p', [Goal]).
 
 :- meta_predicate 
     session(:, +, +).
@@ -75,6 +75,11 @@ debugg(Goal) :-
     reply_to/2,
     pengine_target/2,                 % Id, Target
     target_socket_format/3.           % Target, Socket, Format
+    
+:- dynamic
+    child_parent/2,     % Pid, Parent
+    pid_target/2.       % Pid, Target
+
 
 
 pengines_node_action(pengine_spawn, Data, WebSocket) :-
@@ -133,14 +138,9 @@ pengines_send_remote(Target, Message) :-
 
 
 
-% Pehaps this could provide inspiration?:
-%
-% http://erlang.org/doc/apps/stdlib/io_protocol.html
 
 
-:- dynamic
-    child_parent/2,
-    pid_target/2.
+
 
 :- listen(actor(spawned, Parent, Pid),
     (   debug(listen, 'Actor ~p spawned actor ~p.', [Parent,Pid]),
