@@ -139,24 +139,17 @@ rpc_ws(URI, Query, Options) :-
     wait_answer(Query, Pid, Limit).
 
 
-% TODO: Investigate why _Pid \= Pid. 
-% Hypothesis: Because the messages contains an incomplete (non-ground) Pid
-% and since receive uses subsumption rather than unification.
-% So how do we get the right Pid?
-
 wait_answer(Query, Pid, Limit) :-
     receive({
-        failure(_) -> fail;            
-        error(_, Exception) -> 
+        failure(Pid) -> fail;            
+        error(Pid, Exception) -> 
             throw(Exception);                  
-        success(_Pid, Solutions, true) -> 
-            % writeln(Pid),
-            % writeln(_Pid),
+        success(Pid, Solutions, true) -> 
             (   member(Query, Solutions)
             ;   pengine_next(Pid, [limit(Limit)]), 
                 wait_answer(Query, Pid, Limit)
             );
-        success(_, Solutions, false) -> 
+        success(Pid, Solutions, false) -> 
             member(Query, Solutions)
     }).
 

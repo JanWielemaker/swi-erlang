@@ -45,7 +45,8 @@
             pengine_abort/1,                    % +Pid    
             pengine_input/2,                    % +Prompt, ?Answer
             pengine_respond/2,                  % +Pid, +Answer
-            pengine_output/1                    % +Term
+            pengine_output/1,                   % +Term
+            op(200, xfx, @)
           ]).
 
 :- use_module(library(debug)).
@@ -53,7 +54,14 @@
 :- use_module(actors).
 :- use_module(dollar_expansion).
 
+:- op(400, fx, debugg).
 
+debugg(Goal) :-
+    debug(a, 'CALL ~p', [Goal]),
+    call(Goal),
+    debug(a, 'EXIT ~p', [Goal]).
+    
+    
 :- meta_predicate 
     session(:, +, +).
     
@@ -98,6 +106,7 @@ session2(Pid, Parent, Exit) :-
     ).
 
 guarded_session(Module:Pid, Parent, Exit) :-
+    add_self(Pid), % TODO: Figure out why this is needed
     receive({
         pengine:ask(Goal, Options) ->
             ask(Module:Goal, Pid, Parent, Options)
@@ -106,6 +115,12 @@ guarded_session(Module:Pid, Parent, Exit) :-
     ->  true
     ;   guarded_session(Module:Pid, Parent, Exit)
     ).
+
+
+add_self(ID@Pid) :-
+    !,
+    self(ID@Pid).
+add_self(_).
 
 
 % TODO: Currently only works when sandboxed = false, probably due
@@ -122,7 +137,7 @@ ask(Goal0, Self, Parent, Options) :-
     OutPut = replyto(ReplyTo),
     (   call_cleanup(findn0(State, Template, M:offset(Offset, Goal), Solutions, Error), Det=true),
         (   var(Error),
-            arg(1, OutPut, Out)
+            arg(1, OutPut, Out)    
         ->  (   var(Det)
             ->  Out ! success(Self, Solutions, true),
                 receive({
