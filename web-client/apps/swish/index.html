@@ -369,7 +369,7 @@ server's console.
             var pid;
             var uuid;
             gterm = term;
-            ws = new WebSocket('ws://localhost:3060/web_prolog', 'web_prolog'); 
+            ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
             ws.onerror = function(e) {
                 term.resume();
                 console.log(e);

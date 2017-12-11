@@ -7,7 +7,7 @@
 %:- debug(ws).
 
 r(Port, Goal, Id) :-
-    format(atom(URL), 'http://localhost:~w/web_prolog', [Port]),
+    format(atom(URL), 'http://localhost:~w/ws', [Port]),
     spawn_remote(URL, Goal, Id, []).
 
 pp(N) :-

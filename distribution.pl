@@ -44,7 +44,7 @@ debugg(Goal) :-
     debug(ws, 'EXIT ~p', [Goal]).
     
 
-:- http_handler(root(web_prolog), node_manager, [spawn([]), id(web_prolog)]).
+:- http_handler(root(ws), node_manager, [spawn([]), id(ws)]).
 
 node_manager(Request) :-
     http_upgrade_to_websocket(node_loop, [subprotocols([web_prolog])], Request).

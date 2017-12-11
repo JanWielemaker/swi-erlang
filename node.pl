@@ -70,7 +70,7 @@ node(Address) :-
 
 server_url(localhost:Port, URL) :-
     !,
-    http_location_by_id(web_prolog, Path),
+    http_location_by_id(ws, Path),
     format(atom(URL), 'http://localhost:~w~w', [Port, Path]).
 server_url(_Port, URL) :-
     setting(http:public_host, Host),
@@ -85,7 +85,7 @@ server_url(Port, URL) :-
     make_url(Scheme, Host, Port, URL).
 
 make_url(Scheme, Host, Port, URL) :-
-    http_location_by_id(web_prolog, Path),
+    http_location_by_id(ws, Path),
     (   default_port(Scheme, Port)
     ->  format(atom(URL), '~w://~w~w', [Scheme, Host, Path])
     ;   format(atom(URL), '~w://~w:~w~w', [Scheme, Host, Port, Path])
