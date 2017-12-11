@@ -124,6 +124,10 @@ answer_format(output(_Pid, Term),
               json{type:output, pid:anonymous, data:JSON},
               'json-s') :- !,
     map_output(Term, JSON).
+answer_format(echo(_Pid, Term),
+              json{type:echo, pid:anonymous, data:JSON},
+              'json-s') :- !,
+    map_output(Term, JSON).
 answer_format(down(_Pid, ErrorTerm),
               json{type:down, pid:anonymous, data:Message},
               'json-s') :- !,

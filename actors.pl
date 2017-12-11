@@ -65,9 +65,9 @@
 :- op(400, fx, debugg).
 
 debugg(Goal) :-
-    debug(ws, 'CALL ~p', [Goal]),
+    debug(a, 'CALL ~p', [Goal]),
     call(Goal),
-    debug(ws, 'EXIT ~p', [Goal]).
+    debug(a, 'EXIT ~p', [Goal]).
     
     
 
@@ -96,6 +96,9 @@ debugg(Goal) :-
     linked_child/2,                     % Parent, Child
     exit_reason/2.                      % Pid, Reason
 
+
+:- thread_local 
+    stdout/1.
 
          /*******************************
          *           CONTROL            *
@@ -355,8 +358,8 @@ spawn4(Goal, Engine, Options) :-
     !.
 spawn4(Goal, Engine, Options) :-
     make_pid(Pid),
-    self_local(Self),
-    engine_create(true, run(Goal, Self, Options), Engine, [alias(Pid)|Options]),
+    get_stdout(Stdout),
+    engine_create(true, run(Goal, Stdout, Options), Engine, [alias(Pid)|Options]),
     (   option(link(true), Options)
     ->  self(Me),
         link(Me, Engine)
@@ -364,6 +367,11 @@ spawn4(Goal, Engine, Options) :-
     ),
     send(Engine, '$start').
 
+
+get_stdout(Stdout) :-
+    stdout(Stdout),
+    !.
+get_stdout(false).
 
 
 make_pid(Pid) :-
@@ -384,14 +392,19 @@ self_local(Pid) :-
 self_local(thread(Tid)) :-
     thread_self(Tid).
 
-run(Goal, Parent, Options) :-
-    self_local(Pid),
-    broadcast(actor(spawned, Parent, Pid)),
+run(Goal, Stdout, Options) :-
+    inherit_stdout(Stdout),
     setup_call_catcher_cleanup(
         true,
         once(Goal),
         Catcher,
         down(Catcher, Options)).
+
+inherit_stdout(false) :-
+    !.        
+inherit_stdout(Stdout) :-
+    assertz(stdout(Stdout)).
+
 
 down(Reason, Options) :-
     down_reason(Reason, Reason1),

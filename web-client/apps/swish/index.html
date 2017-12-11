@@ -421,6 +421,9 @@ server's console.
                     console.log('2 -> 2')
                     term.echo(event.data, {raw:true});
                     //term.pause();
+                } else if (type == "echo") {
+                    term.echo(style(event.data, "color:blue"), {raw:true});
+                    //term.pause();
                 } else if (type == "abort") {
                     console.log('? -> 1')
                     term.echo("Aborted");

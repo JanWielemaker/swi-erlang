@@ -47,7 +47,7 @@
             pengine_respond/2,                  % +Pid, +Answer
             pengine_output/1,                    % +Term
             
-            out/1
+            echo/1
           ]).
 
 :- use_module(library(broadcast)).
@@ -72,13 +72,11 @@ debugg(Goal) :-
     
 
 :- dynamic
-    reply_to/2,
-    pengine_target/2,                 % Id, Target
-    target_socket_format/3.           % Target, Socket, Format
+    pid_stdout_socket_format/4.           % Pid, Stdout, Socket, Format
     
-:- dynamic
-    child_parent/2,     % Pid, Parent
-    pid_target/2.       % Pid, Target
+
+:- thread_local
+    stdout/1.                             % Target
 
 
 
@@ -86,22 +84,20 @@ pengines_node_action(pengine_spawn, Data, WebSocket) :-
     _{options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
-    option(reply_to(ReplyTo), Options),
+    option(reply_to(Stdout), Options),
+    assertz(actors:stdout(Stdout)),
     select_option(format(Format), Options, RestOptions, 'json-s'),
     pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
-    assertz(target_socket_format(ReplyTo, WebSocket, Format)),
-    thread_self(Self),
-    assertz(reply_to(thread(Self), ReplyTo)),
+    assertz(pid_stdout_socket_format(Pid, Stdout, WebSocket, Format)),
     term_string(Pid, PidString),
-    send(ReplyTo, spawned(PidString)).
+    send(Stdout, spawned(PidString)).
 pengines_node_action(pengine_ask, Data, WebSocket) :-
     _{pid:PidString, goal:GoalString, options:OptionString} :< Data,
     !,
     read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
     term_string(Options, OptionString),
     term_string(Pid, PidString),
-    pengine_target(Pid, Target),
-    target_socket_format(Target, WebSocket, Format),
+    pid_stdout_socket_format(Pid, _Target, WebSocket, Format),
     fix_template(Format, Goal, Bindings, NewTemplate),
     pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
 pengines_node_action(pengine_next, Data, _WebSocket) :-
@@ -131,58 +127,30 @@ pengines_node_action(pengine_abort, Data, _WebSocket) :-
 
 
 pengines_send_remote(Target, Message) :-
-    target_socket_format(Target, Socket, Format),
+    pid_stdout_socket_format(_, Target, Socket, Format),
     !,
     answer_format(Message, Json, Format),
     ws_send(Socket, json(Json)).  % TODO: This should not be here
 
 
 
-
-
-
-
-:- listen(actor(spawned, Parent, Pid),
-    (   debug(listen, 'Actor ~p spawned actor ~p.', [Parent,Pid]),
-        (   root(Parent, Root),
-            reply_to(Root, Target)
-        ->  assertz(child_parent(Pid, Parent)),
-            assertz(pid_target(Pid, Target))
-        ;   true
-        )
-    )).
-
-:- listen(actor(down, Pid),
-    (   debug(listen, 'Actor ~p is down.', [Pid]),
-        sleep(0.1), % TODO: Why is this needed?
-        retractall(child_parent(Pid, _)),
-        retractall(pid_target(Pid, _))
-    )).
-
-
-root(thread(Thread), thread(Thread)) :- 
-    !.
-root(Child, GrandParent) :-
-    child_parent(Child, Parent),
-    root(Parent, GrandParent).
     
 
-%!  out(+Term) is det.
+%!  echo(+Term) is det.
 %
 %   Send Term to the shell.
 
-out(Term) :-
-    thread_self(Self), 
-    pid_target(Self, Target),
+echo(_Term) :-
+    actors:stdout(false),
+    !.
+echo(Term) :-
+    actors:stdout(Target), 
     !,
-    Target ! output(Self, Term).
-out(Term) :-  % This happens when there is no root connected to a shell.
-    writeln(Term).
+    thread_self(Self),
+    Target ! echo(Self, Term).
+echo(_Term).  % This happens when there is no root connected to a shell.
 
 
-
-    
-    
 
 
 %!  pengine_spawn(-Pid) is det.
@@ -208,8 +176,7 @@ pengine_spawn(Pid, Options) :-
     spawn(session(Pid, Target, Exit), Pid, [
           application(pengines)
         | Options
-    ]),
-    asserta(pengine_target(Pid, Target)).
+    ]).
 
 
 :- thread_local parent/1.
