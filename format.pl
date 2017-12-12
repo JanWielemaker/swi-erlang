@@ -62,7 +62,6 @@ respond(Format, Answer) :-
     
     
 
-
 %!  fix_bindings(+Format, +Template, +Bindings, -NewTemplate) is det.
 %
 %   Generate the template for json(-s) Format  from the variables in
@@ -97,7 +96,6 @@ anon(Name=_) :-
 
 %!  answer_format(+PrologMessage, -JsonMessage, +Format) is det.
 %
-
 
 answer_format(spawned(Pid),
               json{type:spawned, pid:Pid},

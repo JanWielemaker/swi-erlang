@@ -47,12 +47,11 @@
 :- use_module(format).
 
 
-:- op(400, fx, debugg).
-
-debugg(Goal) :-
-    debug(ws, 'CALL ~p', [Goal]),
-    call(Goal),
-    debug(ws, 'EXIT ~p', [Goal]).
+    
+:- dynamic
+    solution_pengine/3,      % Hash, QueryID, Pid
+    solution_index/2.        % Pid, Index
+    
 
          /*******************************
          *          HTTP API            *
@@ -76,14 +75,8 @@ http_pengine_ask(Request) :-
     find_answer(Goal, NewTemplate, Offset, Limit, Timeout, Answer),
     respond(Format, Answer).
     
-        
-    
-:- dynamic
-    solution_pengine/3,      % Hash, QueryID, Pid
-    solution_index/2.        % Pid, Index
 
-
-%!  find_answer(:Query, +Template, +Offset, +Limit, -Answer) is det.
+%!  find_answer(:Query, +Template, +Offset, +Limit, +Timeout, -Answer) is det.
 %
 %   @tbd: Implement strategies for getting rid of pengines that have
 %         been around too long. 
@@ -159,7 +152,6 @@ query_pengine(QueryID, Index, Pengine) :-
     term_hash(QueryID, Hash),
     solution_pengine(Hash, QueryID, Pengine),
     solution_index(Pengine, Index).
-    
     
     
 cleanup(Pid) :-

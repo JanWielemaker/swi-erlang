@@ -62,15 +62,6 @@
 :- use_module(library(broadcast)).
 
 
-:- op(400, fx, debugg).
-
-debugg(Goal) :-
-    debug(a, 'CALL ~p', [Goal]),
-    call(Goal),
-    debug(a, 'EXIT ~p', [Goal]).
-    
-    
-
 :- meta_predicate
     spawn(0),
     spawn(0, -),
@@ -96,9 +87,8 @@ debugg(Goal) :-
     linked_child/2,                     % Parent, Child
     exit_reason/2.                      % Pid, Reason
 
-
 :- thread_local 
-    stdout/1.
+    stdout/1.                           % Term
 
          /*******************************
          *           CONTROL            *

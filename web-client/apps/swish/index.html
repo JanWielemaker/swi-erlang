@@ -385,7 +385,7 @@ server's console.
                 var type = event.type;
                 if (type == "spawned") {
                     pid = event.pid;
-                    term.echo('Welcome to SWI Web Prolog!\nuuid:'+uuid+'\npid:'+pid);
+                    term.echo('Welcome to SWI Web Prolog!\n');
                 } else if (type == "success") {
                     if (event.more) {
                         console.log('2 -> 4')
@@ -422,7 +422,7 @@ server's console.
                     term.echo(event.data, {raw:true});
                     //term.pause();
                 } else if (type == "echo") {
-                    term.echo(style(event.data, "color:blue"), {raw:true});
+                    term.echo(event.data);
                     //term.pause();
                 } else if (type == "abort") {
                     console.log('? -> 1')

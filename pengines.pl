@@ -54,13 +54,6 @@
 :- use_module(actors).
 :- use_module(dollar_expansion).
 
-:- op(400, fx, debugg).
-
-debugg(Goal) :-
-    debug(a, 'CALL ~p', [Goal]),
-    call(Goal),
-    debug(a, 'EXIT ~p', [Goal]).
-    
     
 :- meta_predicate 
     session(:, +, +).
