@@ -26,7 +26,7 @@ fridge(FoodList) ->
 
 start(Pid) :-
     spawn(fridge([]), Pid, [
-        node('http://localhost:3061/ws'),
+        node('http://localhost:3061'),
     	monitor(true),
         src_text("
     
