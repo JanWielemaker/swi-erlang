@@ -240,21 +240,19 @@ register_node_self(URL) :-
     asserta(self_node(URL)).
 
 
-    
-
 %!  echo(+Term) is det.
 %
-%   Send Term to the shell.
+%   Send Term to the shell. If the actor executing echo/1 has no 
+%   ancestor connected to a shell, nothing happens.
 
 echo(_Term) :-
-    actors:stdout(false),
+    actors:stdout(null),
     !.
 echo(Term) :-
-    actors:stdout(Target), 
+    actors:stdout(Shell), 
     !,
-    thread_self(Self),
-    send(Target, echo(Self, Term)).
-echo(_Term).  % This happens when there is no root connected to a shell.
+    send(Shell, echo(Term)).
+echo(_Term).  
 
 
 		 /*******************************

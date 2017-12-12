@@ -309,6 +309,7 @@ test(input, Results == true) :-
 :- end_tests(local_pengines).
 
 
+
                  /*******************************
                  *           UTILITIES          *
                  *******************************/
@@ -327,6 +328,9 @@ collect_answers(Pid, Results) :-
         error(Pid, Results) ->
             true;
         output(Pid, Head) ->
+            Results = [Head|Tail],
+            collect_answers(Pid, Tail);
+        echo(Pid, Head)->
             Results = [Head|Tail],
             collect_answers(Pid, Tail)
     }).

@@ -88,7 +88,7 @@
     exit_reason/2.                      % Pid, Reason
 
 :- thread_local 
-    stdout/1.                           % Term
+    stdout/1.                           % Pid
 
          /*******************************
          *           CONTROL            *
@@ -361,7 +361,7 @@ spawn4(Goal, Engine, Options) :-
 get_stdout(Stdout) :-
     stdout(Stdout),
     !.
-get_stdout(false).
+get_stdout(null).
 
 
 make_pid(Pid) :-
@@ -390,7 +390,7 @@ run(Goal, Stdout, Options) :-
         Catcher,
         down(Catcher, Options)).
 
-inherit_stdout(false) :-
+inherit_stdout(null) :-
     !.        
 inherit_stdout(Stdout) :-
     assertz(stdout(Stdout)).
