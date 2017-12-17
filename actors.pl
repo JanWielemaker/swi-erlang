@@ -300,49 +300,6 @@ schedule(timeout(Pid, TimeOut, Deadline)) :-
          *            PROCESSES        *
          *******************************/
 
-%%	translate_local_sources(+OptionsIn, -Options, +Module) is det.
-%
-%	Translate  the  `src_predicates`  and  `src_list`  options  into
-%	`src_text`. We need to do that   anyway for remote actors. For
-%	local actors, we could avoid  this   step,  but  there is very
-%	little point in transferring source to a local actor anyway as
-%	local actors can access any  Prolog   predicate  that you make
-%	visible to the application.
-%
-%	Multiple sources are concatenated  to  end   up  with  a  single
-%	src_text option.
-
-translate_local_sources(OptionsIn, Options, Module) :-
-    translate_local_sources(OptionsIn, Sources, Options2, Module),
-    (	Sources == []
-    ->	Options = Options2
-    ;	Sources = [Source]
-    ->	Options = [src_text(Source)|Options2]
-    ;	atomics_to_string(Sources, Source)
-    ->	Options = [src_text(Source)|Options2]
-    ).
-
-translate_local_sources([], [], [], _).
-translate_local_sources([H0|T], [S0|S], Options, M) :-
-    nonvar(H0),
-    translate_local_source(H0, S0, M), !,
-    translate_local_sources(T, S, Options, M).
-translate_local_sources([H|T0], S, [H|T], M) :-
-    translate_local_sources(T0, S, T, M).
-
-translate_local_source(src_predicates(PIs), Source, M) :-
-    must_be(list, PIs),
-    with_output_to(string(Source),
-		   maplist(listing(M), PIs)).
-translate_local_source(src_list(Terms), Source, _) :-
-    must_be(list, Terms),
-    with_output_to(string(Source),
-		   forall(member(Term, Terms),
-			  format('~k .~n', [Term]))).
-translate_local_source(src_text(Source), Source, _).
-
-listing(M, PI) :-
-	listing(M:PI).
     
     
 %!  spawn(:Goal) is det.
@@ -366,8 +323,6 @@ spawn(Goal, Engine) :-
     spawn(Goal, Engine, []).
 
 spawn(Goal, Engine, Options) :-
-    strip_module(Goal, Module, _),
-    translate_local_sources(Options0, Options, Module),
     hook_goal(Goal, Goal1, Options),  
     !,
     spawn2(Goal1, Engine, Options).

@@ -94,8 +94,10 @@
 :- multifile
     actors:hook_goal/3.
 
-actors:hook_goal(Goal0, isolation:with_source(Goal0, GoalOptions), Options) :-
-    option(node(localnode), Options, localnode),
+actors:hook_goal(Goal0, isolation:with_source(Goal0, GoalOptions), Options0) :-
+    strip_module(Goal0, SelfModule, _),
+    translate_local_sources(Options0, Options, SelfModule),
+    option(node(localnode), Options0, localnode),
     actor_uuid(Module),
     GoalOptions = [ module(Module)
                   | Options
