@@ -48,6 +48,7 @@
 
 :- use_module(actors).
 :- use_module(pengines).
+:- use_module(isolation).
 :- use_module(format).
 
 
@@ -187,9 +188,11 @@ connection(Node, Socket) :-
 %
 %   Spawn a process on a remote node.
 
-spawn_remote(Node, Goal, Id@Node, Options) :-
+spawn_remote(Node, Goal, Id@Node, Options0) :-
     connection(Node, Socket),
     term_string(Goal, String),
+    strip_module(Goal, SelfModule, _),
+    translate_local_sources(Options0, Options, SelfModule),
     term_string(Options, OptionString),
     thread_self(Me),
     thread_property(Me, id(MyId)),
