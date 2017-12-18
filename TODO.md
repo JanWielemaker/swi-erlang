@@ -1,8 +1,12 @@
 # Timeout handling
 # Monitor				[OK]
-# Implement more options to spawn/3
-  - [ ] src_predicates
-  - [ ] src_list
+# Implement more options to spawn/3 
+  - [X] src_predicates [OK]
+  - [X] src_list [OK]
+  
+# Handle syntax errors in src_* predicates
+
+# Cleaning up after actor termination
   
 # Link
   - What about running children?
