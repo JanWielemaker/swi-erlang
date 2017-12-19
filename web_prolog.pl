@@ -95,9 +95,9 @@
     actors:hook_goal/3.
 
 actors:hook_goal(Goal0, isolation:with_source(Goal0, GoalOptions), Options0) :-
+    option(node(localnode), Options0, localnode),
     strip_module(Goal0, SelfModule, _),
     translate_local_sources(Options0, Options, SelfModule),
-    option(node(localnode), Options0, localnode),
     actor_uuid(Module),
     GoalOptions = [ module(Module)
                   | Options
