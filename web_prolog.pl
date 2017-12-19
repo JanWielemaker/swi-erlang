@@ -105,3 +105,13 @@ actors:hook_goal(Goal0, isolation:with_source(Goal0, GoalOptions), Options0) :-
 
 actor_uuid(Module) :-
     uuid(Module, [version(4)]).
+
+
+:- dynamic 
+    user:message_hook/3.   
+:- multifile 
+    user:message_hook/3.   
+
+user:message_hook(Term, Kind, _Lines) :-
+    Kind \== silent,
+    echo(Term).
