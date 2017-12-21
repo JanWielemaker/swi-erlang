@@ -73,7 +73,8 @@ node_manager(Request) :-
 node_loop(WebSocket) :-
     ws_receive(WebSocket, Message, [format(json)]),
     (   Message.opcode == close
-    ->  retractall(websocket(_,_,WebSocket)),
+    ->  retractall(websocket(_, _, WebSocket)),
+        retractall(pid_stdout_socket_format(_, _, WebSocket, _)),
         thread_self(Me),
         thread_detach(Me)
     ;   Data = Message.data,
