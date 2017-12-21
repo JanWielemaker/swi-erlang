@@ -123,12 +123,11 @@ ask(Goal0, Self, Parent, Options) :-
     strip_module(Goal0, M, Goal1),
     option(template(Template0), Options, Goal1),
     maybe_expand(Goal1, Goal, Template0, Template), % FIXME? Hack - see below!    
-    option(offset(Offset), Options, 0),
     option(limit(Limit), Options, 1),
     option(reply_to(ReplyTo), Options, Parent),
     State = count(Limit),
     OutPut = replyto(ReplyTo),
-    (   call_cleanup(findn0(State, Template, M:offset(Offset, Goal), Solutions, Error), Det=true),
+    (   call_cleanup(findn0(State, Template, M:Goal, Solutions, Error), Det=true),
         (   var(Error),
             arg(1, OutPut, Out)    
         ->  (   var(Det)
@@ -180,9 +179,6 @@ findn(N, Template, Goal, Solutions) :-
 %       Template is a variable (or a term containing variables) 
 %       shared with Query. By default, the template is identical to
 %       Query.
-%     - offset(+Integer)
-%       Retrieve the slice of solutions to Query starting from Integer.
-%       Default is 0.
 %     - limit(+Integer)
 %       Integer indicates the maximum number of solutions to retrieve
 %       in one batch. A value of 1 means a unary list (default).

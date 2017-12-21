@@ -119,9 +119,8 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
     ;   pengine_spawn(Pid, [
             exit(true)
         ]),
-        pengine_ask(Pid, Query, [ 
+        pengine_ask(Pid, offset(Offset,Query), [ 
             template(Template),
-            offset(Offset),
             limit(Limit)
         ]),
         receive({
