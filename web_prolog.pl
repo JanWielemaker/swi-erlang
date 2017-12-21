@@ -1,6 +1,6 @@
 /*  Part of SWI-Prolog
 
-    Author:        Jan Wielemaker
+    Author:        Torbjörn Lager and Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (c)  2017, VU University Amsterdam
@@ -91,6 +91,8 @@
 :- use_module(restful_api).
 :- use_module(rpc).
 
+:- use_module(debug).
+
 :- multifile
     actors:hook_goal/3.
 
@@ -107,6 +109,7 @@ actor_uuid(Module) :-
     uuid(Module, [version(4)]).
 
 
+/*
 :- dynamic 
     user:message_hook/3.   
 :- multifile 
@@ -115,3 +118,4 @@ actor_uuid(Module) :-
 user:message_hook(Term, Kind, _Lines) :-
     Kind \== silent,
     echo(Term).
+*/
