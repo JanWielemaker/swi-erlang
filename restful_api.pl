@@ -77,6 +77,10 @@ http_pengine_ask(Request) :-
     
 
 %!  find_answer(:Query, +Template, +Offset, +Limit, +Timeout, -Answer) is det.
+
+%   - Caching provided by pengines ensures a fast return of
+%     consequtive answers.
+%
 %
 %   @tbd: Implement strategies for getting rid of pengines that have
 %         been around too long. 
@@ -96,8 +100,8 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
         receive({
             success(Pid, Solutions, true) ->
                 Answer = success(anonymous, Solutions, true),
-                retractall(solution_index(Pid, _)),
                 NewIndex is Offset + Limit,
+                retractall(solution_index(Pid, _)),
                 assertz(solution_index(Pid, NewIndex));
             success(Pid, Solutions, false) ->
                 Answer = success(anonymous, Solutions, false),
@@ -124,8 +128,8 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
             success(Pid, Solutions, true) ->
                 Answer = success(anonymous, Solutions, true),
                 NewIndex is Offset + Limit,
-                assertz(solution_index(Pid, NewIndex)),
                 term_hash(QueryID, Hash),
+                assertz(solution_index(Pid, NewIndex)),
                 assertz(solution_pengine(Hash, QueryID, Pid));
             success(Pid, Solutions, false) ->
                 Answer = success(anonymous, Solutions, false),
@@ -143,7 +147,6 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
     ).
 
 
-
 query_id(Term, QueryID) :-
     copy_term(Term, QueryID),
     numbervars(QueryID, 0, _).
@@ -153,11 +156,11 @@ query_pengine(QueryID, Index, Pengine) :-
     solution_pengine(Hash, QueryID, Pengine),
     solution_index(Pengine, Index).
     
-    
+   
 cleanup(Pid) :-
     retractall(solution_pengine(_, _, Pid)),
     retractall(solution_index(Pid, _)).
-    
+  
 
     
 
