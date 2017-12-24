@@ -163,7 +163,13 @@ wait_answer(Query, Pid, Limit) :-
 %!  promise(+URI, :Query, -Reference) is det.
 %!  promise(+URI, :Query, -Reference, +Options) is det.
 %
-%   Make asynchronous call to node URI with Query. Options:
+%   Make asynchronous RPC call to node URI with Query. This is a type
+%   of RPC that does not suspend the caller until the result is 
+%   computed. Instead, a reference is returned, which can later be
+%   used by yield/2-3 to collect the answer. The reference can be
+%   viewed as a promise to deliver the answer.
+%
+%   Options:
 %
 %     - template(+Template)
 %       Template is a variable (or a term containing variables) 
@@ -175,6 +181,8 @@ wait_answer(Query, Pid, Limit) :-
 %     - limit(+Integer)
 %       Integer indicates the maximum number of solutions to retrieve
 %       in one batch. A value of 1 means a unary list (default).
+%
+%   @tbd: Implement a timeout option?
 
 promise(URI, Query, Reference) :-
     promise(URI, Query, Reference, []).
@@ -205,12 +213,21 @@ promise(URI, Query, Template, Offset, Limit, Parent, Reference) :-
     catch(thread_send_message(Parent, Reference-Message),_, true).
 
 reference_uuid(Reference) :-
-        uuid(Reference, [version(4)]).
+    uuid(Reference, [version(4)]).
 
 
 %!  yield(+Reference, -Message) is det.
 %
-%   Retrieve the value of an asynchronous call made by promise/3-4.
+%   Returns the promised answer from a previous call to promise/3-4. 
+%   If the answer is available, it is returned immediately. Otherwise,
+%   the calling process is suspended until the answer arrives from the
+%   node that was called.
+
+%   Note that this predicate must be called by the same process from
+%   which the previous call to promise/3-4 was made, otherwise it will
+%   never return.
+%
+%   @tbd: Implement yield/3, with timeout as an option.
 
 yield(Reference, Message) :-
     thread_get_message(Reference-Message).
