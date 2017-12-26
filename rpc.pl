@@ -224,15 +224,17 @@ reference_uuid(Reference) :-
 %   If the answer is available, it is returned immediately. Otherwise,
 %   the calling process is suspended until the answer arrives from the
 %   node that was called.
-
+%
 %   Note that this predicate must be called by the same process from
 %   which the previous call to promise/3-4 was made, otherwise it will
 %   not return.
 
 yield(Reference, value-Message) :-
+    must_be(atom, Reference),
     thread_get_message(Reference-Message).
 
 yield(Reference, Message, Options) :-
+    must_be(atom, Reference),
     thread_self(Q),
     (   thread_get_message(Q, Reference-Msg, Options)
     ->  Message = value-Msg
