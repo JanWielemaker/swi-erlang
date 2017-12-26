@@ -68,6 +68,7 @@
             promise/3,                  % +URI, :Query, -Reference
             promise/4,                  % +URI, :Query, -Reference, +Options
             yield/2,                    % +Reference, ?Message
+            yield/3,                    % +Reference, ?Message, +Options
             
             echo/1,
 

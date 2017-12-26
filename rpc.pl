@@ -37,7 +37,8 @@
             rpc/3,                      % +URI, :Query, +Options
             promise/3,                  % +URI, :Query, -Reference
             promise/4,                  % +URI, :Query, -Reference, +Options
-            yield/2                     % +Reference, ?Message
+            yield/2,                    % +Reference, ?Message
+            yield/3                     % +Reference, ?Message, +Options
           ]).
 
 :- use_module(library(http/http_open)).
@@ -196,7 +197,7 @@ promise(URI, Query, Reference, Options) :-
     thread_create(promise(URI, Query, Template, Offset, Limit, Self, Reference), _, [detached(true)]).
     
 promise(URI, Query, Template, Offset, Limit, Parent, Reference) :-
-    format(atom(QueryTemplateAtom), "~p$@$~p", [Query,Template]),
+    format(atom(QueryTemplateAtom), "(~p)$@$(~p)", [Query,Template]),
     atomic_list_concat([QueryAtom, TemplateAtom], $@$, QueryTemplateAtom),
     parse_url(URI, Parts),
     parse_url(ExpandedURI, [ path('/api/pengine_ask'),
@@ -216,7 +217,8 @@ reference_uuid(Reference) :-
     uuid(Reference, [version(4)]).
 
 
-%!  yield(+Reference, -Message) is det.
+%!  yield(+Reference, ?Message) is det.
+%!  yield(+Reference, ?Message, +Options) is det.
 %
 %   Returns the promised answer from a previous call to promise/3-4. 
 %   If the answer is available, it is returned immediately. Otherwise,
@@ -225,12 +227,17 @@ reference_uuid(Reference) :-
 
 %   Note that this predicate must be called by the same process from
 %   which the previous call to promise/3-4 was made, otherwise it will
-%   never return.
-%
-%   @tbd: Implement yield/3, with timeout as an option.
+%   not return.
 
-yield(Reference, Message) :-
+yield(Reference, value-Message) :-
     thread_get_message(Reference-Message).
+
+yield(Reference, Message, Options) :-
+    thread_self(Q),
+    (   thread_get_message(Q, Reference-Msg, Options)
+    ->  Message = value-Msg
+    ;   Message = timeout
+    ).
 
 
 
