@@ -40,6 +40,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(term_to_json)).
 :- use_module(library(apply)).
+:- use_module(library(time)).
 
 :- use_module(library(debug)).
 
@@ -66,7 +67,7 @@ http_pengine_ask(Request) :-
           template(TemplateAtom, [default(GoalAtom)]),
           offset(Offset, [integer, default(0)]),
           limit(Limit, [integer, default(1)]),
-          timeout(Timeout, [integer, default(30)]),
+          timeout(Timeout, [integer, default(1)]),
           format(Format, [default(prolog)])
         ]),
     atomic_list_concat([GoalAtom,+,TemplateAtom], GTAtom),
@@ -85,8 +86,7 @@ http_pengine_ask(Request) :-
 %   @tbd: Implement strategies for getting rid of pengines that have
 %         been around too long. 
 %
-%   @tbd: Move the call to offset/2 in pengines.pl to here? There is
-%         likely no need for an option `offset' for pengines_ask/3.
+%   @tbd: Perhaps the down message would be useful here?
 
 find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
     query_id(Template-Query, QueryID),
@@ -114,7 +114,8 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
                 cleanup(Pid);
             after(Timeout) ->
                 exit(Pid, timeout),
-                Answer = error(anonymous, timeout)           
+                Answer = error(anonymous, timeout),
+                cleanup(Pid)           
         })
     ;   pengine_spawn(Pid, [
             exit(true)
@@ -141,7 +142,8 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
                 cleanup(Pid);
             after(Timeout) ->
                 exit(Pid, timeout),
-                Answer = error(anonymous, timeout)
+                Answer = error(anonymous, timeout),
+                cleanup(Pid)
         })      
     ).
 
