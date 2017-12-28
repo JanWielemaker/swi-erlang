@@ -32,7 +32,9 @@
     POSSIBILITY OF SUCH DAMAGE.
 */
 
-:- module(restful_api, []).
+:- module(restful_api, [
+        check/0
+    ]).
 
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
@@ -67,7 +69,7 @@ http_pengine_ask(Request) :-
           template(TemplateAtom, [default(GoalAtom)]),
           offset(Offset, [integer, default(0)]),
           limit(Limit, [integer, default(1)]),
-          timeout(Timeout, [integer, default(1)]),
+          timeout(Timeout, [integer, default(10)]),
           format(Format, [default(prolog)])
         ]),
     atomic_list_concat([GoalAtom,+,TemplateAtom], GTAtom),
@@ -80,11 +82,7 @@ http_pengine_ask(Request) :-
 %!  find_answer(:Query, +Template, +Offset, +Limit, +Timeout, -Answer) is det.
 
 %   - Caching provided by pengines ensures a fast return of
-%     consequtive answers.
-%
-%
-%   @tbd: Implement strategies for getting rid of pengines that have
-%         been around too long. 
+%     consequtive answers. 
 %
 %   @tbd: Perhaps the down message would be useful here?
 
@@ -114,8 +112,7 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
                 cleanup(Pid);
             after(Timeout) ->
                 exit(Pid, timeout),
-                Answer = error(anonymous, timeout),
-                cleanup(Pid)           
+                Answer = error(anonymous, timeout)
         })
     ;   pengine_spawn(Pid, [
             exit(true)
@@ -124,13 +121,14 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
             template(Template),
             limit(Limit)
         ]),
+        term_hash(QueryID, Hash),
+        assertz(solution_pengine(Hash, QueryID, Pid)),
+        flag(alive, N, N+1),
         receive({
             success(Pid, Solutions, true) ->
                 Answer = success(anonymous, Solutions, true),
                 NewIndex is Offset + Limit,
-                term_hash(QueryID, Hash),
-                assertz(solution_index(Pid, NewIndex)),
-                assertz(solution_pengine(Hash, QueryID, Pid));
+                assertz(solution_index(Pid, NewIndex));
             success(Pid, Solutions, false) ->
                 Answer = success(anonymous, Solutions, false),
                 cleanup(Pid);
@@ -142,10 +140,21 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
                 cleanup(Pid);
             after(Timeout) ->
                 exit(Pid, timeout),
-                Answer = error(anonymous, timeout),
-                cleanup(Pid)
+                Answer = error(anonymous, timeout)
         })      
+    ),
+    % M is hardcoded - this must change!
+    get_flag(alive, M),
+    (   M > 100
+    ->  findnsols(50, Pid, solution_index(Pid, _), Pids),
+        maplist(remove, Pids)    
+    ;   true
     ).
+
+      
+remove(Pid) :-
+    cleanup(Pid),
+    exit(Pid, timeout).
 
 
 query_id(Term, QueryID) :-
@@ -159,9 +168,29 @@ query_pengine(QueryID, Index, Pengine) :-
     
    
 cleanup(Pid) :-
+    flag(alive, N, N-1),
     retractall(solution_pengine(_, _, Pid)),
     retractall(solution_index(Pid, _)).
-  
+
+
+ 
+check :-
+    debug(rest),
+    get_flag(alive, M),
+    debug(rest, "Alive: ~p", [M]),
+    findall(., solution_index(_,_), L1),
+    length(L1, N1),
+    debug(rest, "Indices: ~p", [N1]),
+    findall(., solution_pengine(_,_,_), L2),
+    length(L2, N2),
+    debug(rest, "Pengines: ~p", [N2]),
+    findall(., (thread_property(P, status(suspended)), 
+                atom_length(P, N3), N3 > 30), L4),
+    length(L4, N4),
+    debug(rest, "Engines: ~p (Should be N more than the others if N websockets are running.)", [N4]),
+    nodebug.
+    
+    
 
     
 

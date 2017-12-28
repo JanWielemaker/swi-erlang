@@ -74,6 +74,7 @@
 
             dump_backtrace/2,           % +Pid, +Depth
             dump_queue/2,               % +Pid, -Queue
+            check/0,
 
             op(1000, xfx, when),
             op(800, xfx, !),
