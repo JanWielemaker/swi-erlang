@@ -95,25 +95,7 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
             reply_to(Self),
             limit(Limit)
         ]),
-        receive({
-            success(Pid, Solutions, true) ->
-                Answer = success(anonymous, Solutions, true),
-                NewIndex is Offset + Limit,
-                retractall(solution_index(Pid, _)),
-                assertz(solution_index(Pid, NewIndex));
-            success(Pid, Solutions, false) ->
-                Answer = success(anonymous, Solutions, false),
-                cleanup(Pid);
-            failure(Pid) ->
-                Answer = failure(anonymous),
-                cleanup(Pid);
-            error(Pid, Error) ->
-                Answer = error(anonymous, Error),
-                cleanup(Pid);
-            after(Timeout) ->
-                exit(Pid, timeout),
-                Answer = error(anonymous, timeout)
-        })
+        wait_answer(Pid, Offset, Limit, Timeout, Answer)
     ;   pengine_spawn(Pid, [
             exit(true)
         ]),
@@ -124,38 +106,16 @@ find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
         term_hash(QueryID, Hash),
         assertz(solution_pengine(Hash, QueryID, Pid)),
         flag(alive, N, N+1),
-        receive({
-            success(Pid, Solutions, true) ->
-                Answer = success(anonymous, Solutions, true),
-                NewIndex is Offset + Limit,
-                assertz(solution_index(Pid, NewIndex));
-            success(Pid, Solutions, false) ->
-                Answer = success(anonymous, Solutions, false),
-                cleanup(Pid);
-            failure(Pid) ->
-                Answer = failure(anonymous),
-                cleanup(Pid);
-            error(Pid, Error) ->
-                Answer = error(anonymous, Error),
-                cleanup(Pid);
-            after(Timeout) ->
-                exit(Pid, timeout),
-                Answer = error(anonymous, timeout)
-        })      
+        wait_answer(Pid, Offset, Limit, Timeout, Answer)      
     ),
     % M is hardcoded - this must change!
     get_flag(alive, M),
-    (   M > 100
-    ->  findnsols(50, Pid, solution_index(Pid, _), Pids),
+    (   M > 1000
+    ->  findnsols(500, Pid, solution_index(Pid, _), Pids),
         maplist(remove, Pids)    
     ;   true
     ).
-
-      
-remove(Pid) :-
-    cleanup(Pid),
-    exit(Pid, timeout).
-
+    
 
 query_id(Term, QueryID) :-
     copy_term(Term, QueryID),
@@ -165,6 +125,33 @@ query_pengine(QueryID, Index, Pengine) :-
     term_hash(QueryID, Hash),
     solution_pengine(Hash, QueryID, Pengine),
     solution_index(Pengine, Index).
+
+
+wait_answer(Pid, Offset, Limit, Timeout, Answer) :-
+    receive({
+        success(Pid, Solutions, true) ->
+            Answer = success(anonymous, Solutions, true),
+            NewIndex is Offset + Limit,
+            retractall(solution_index(Pid, _)),
+            assertz(solution_index(Pid, NewIndex));
+        success(Pid, Solutions, false) ->
+            Answer = success(anonymous, Solutions, false),
+            cleanup(Pid);
+        failure(Pid) ->
+            Answer = failure(anonymous),
+            cleanup(Pid);
+        error(Pid, Error) ->
+            Answer = error(anonymous, Error),
+            cleanup(Pid);
+        after(Timeout) ->
+            exit(Pid, timeout),
+            Answer = error(anonymous, timeout)
+    }). 
+    
+    
+remove(Pid) :-
+    cleanup(Pid),
+    exit(Pid, timeout).
     
    
 cleanup(Pid) :-
