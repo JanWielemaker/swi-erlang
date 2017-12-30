@@ -492,24 +492,21 @@ server's console.
                 }, {
                     name:'web-prolog-pro',
                     prompt:'?- ',
+                    keymap: {
+                        'CTRL+C': function(e, a) {
+                            if (state == 2 || state == 3) {
+                                ws.send(JSON.stringify({action:"pengine_abort", pid:pid}));
+                                gterm.pause();
+                                return false;
+                            }
+                        }
+                    },
                     keypress: function(e) {
-                        if (state == 4 && e.which == 59) {
+                        if (state == 4 && (e.which == 59 || e.which == 32)) {
                             ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+uuid+'")]'}));
                             gterm.pause();
                             return false;
-                        } else if ((state == 2 || state == 3) && e.which == 3) {
-                            ws.send(JSON.stringify({action:"pengine_abort", pid:pid}));
-                            gterm.pause();
-                            return false;
                         } 
-                        
-/*                        else if (state == 1 && e.which == 4) {
-                            console.log("exiting"),
-                            ws.send("pengine_exit('" + pid + "')");
-                            gterm.pause();
-                            return false;
-                        }
-*/
                     }
                 });
             } else if (command == "js") {
