@@ -309,9 +309,66 @@ server's console.
 	</div>
         <!-- Begin page content -->
         <div class="container">
+
             <pre id="editor">
   
             </pre>
+
+            
+<!--            <div id="tutorial">
+                <h1>Tutorial</h1>
+                
+                <p>
+                  <button onclick='gterm.exec("append(X, Y, [a,b,c]).")' class="btn btn-xs btn-primary" type="button">Ask</button>
+                  <button onclick='gterm.exec(";")' class="btn btn-xs" type="button">Next</button>
+                  <button onclick='gterm.exec("")' class="btn btn-xs" type="button">Stop</button>
+                </p>
+                
+                <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. </p>
+                <pre>fridge(FoodList) ->
+    receive
+        {From, {store, Food}} ->
+            From ! {self(), ok},
+            fridge([Food|FoodList]);
+        {From, {take, Food}} ->
+            case lists:member(Food, FoodList) of
+                true ->
+                    From ! {self(), {ok, Food}},
+                    fridge(lists:delete(Food, FoodList));
+                false ->
+                    From ! {self(), not_found},
+                    fridge(FoodList)
+            end;
+        terminate ->
+            ok
+    end.</pre>
+    <p>...</p>
+    <pre>start(Pid) :-
+    spawn(fridge([]), Pid, [
+        node('http://localhost:3061'),
+    	monitor(true),
+        src_text("
+    
+            fridge(FoodList0) :-
+                receive({
+                    store(From, Food) ->
+                        From ! ok,
+                        fridge([Food|FoodList0]);
+                    take(From, Food) ->
+                        (   select(Food, FoodList0, FoodList)
+                        ->  From ! ok(Food),
+                            fridge(FoodList)
+                        ;   From ! not_found,
+                            fridge(FoodList0)
+                        );
+                    terminate ->
+                        true
+                }).    
+        ")
+    ]).        
+    </pre>
+            </div>
+-->
             <div id="shell"></div>
         </div>
         <header class="navbar navbar-default navbar-fixed-bottom bs-docs-nav">
@@ -337,27 +394,25 @@ server's console.
     var state = 1;
     var data;
     var currcommand = "";
-    function to_html(data) {
-        html = [];
+    function to_text(data) {
+        var text = [];
         for (var key in data) {
             var value = data[key];
             if (Array.isArray(value)) {
                 value = "[" + value + "]";
             }
-            html.push(key + " = " + value);
-            html.push(", </br>")
+            text.push(key + " = " + value);
+            text.push(", \n")
         }
-        html.pop(); // get rid of the last comma
-        return html.join("");
-    }
-    function style(string, style) {
-        return "<span style='" + style + "'>" + JSON.stringify(string) + "</span>"
+        text.pop(); // get rid of the last comma
+        text.push(" ");
+        return text.join("");
     }
     function report(data) {
         if ($.isEmptyObject(data[0])) {
-            return style(true, "font-weight:bold");
+            return "true";
         }
-        return to_html(data[0]);
+        return to_text(data[0]);
     }
     function S4() {
         return (((1+Math.random())*0x10000)|0).toString(16).substring(1); 
@@ -389,42 +444,34 @@ server's console.
                     term.echo('Welcome to SWI Web Prolog!\n');
                 } else if (type == "success") {
                     if (event.more) {
-                        console.log('2 -> 4')
                         state = 4;
-                        term.echo(report(event.data), {raw:true});
-                        term.set_prompt(": ")
+                        term.set_prompt(report(event.data))
                     } else {
-                        console.log('2 -> 1')
                         state = 1;
-                        term.echo(report(event.data), {raw:true});
+                        term.echo(report(event.data).trim() + ".");
                         term.set_prompt(myprompt);
                     }
                 } else if (type == "failure") {
-                    console.log('2 -> 1')
                     state = 1;
-                    term.echo(style(false, "color:red"), {raw:true});
+                    term.echo("false.");
                     term.set_prompt(myprompt);
                 } else if (type == "error") {
-                    console.log('2 -> 1')
                     state = 1;
-                    term.echo(style(event.data, "color:red"), {raw:true});
+                    term.error(event.data);
                     term.set_prompt(myprompt);
                 } else if (type == "stop") {
-                    console.log('4 -> 1')
                     state = 1;
-                    term.update(-1, "");
+                    term.update(-1, term.get_prompt().trim() + ".");
                     term.set_prompt(myprompt);
                 } else if (type == "prompt") {
-                    console.log('2 -> 3')
                     state = 3;
                     term.set_prompt(JSON.stringify(event.data, null, ' ') + ": ");
                 } else if (type == "output") {
-                    console.log('2 -> 2')
-                    term.echo(event.data, {raw:true});
-                    //term.pause();
+                    term.echo(event.data);
+                    term.set_prompt("");
                 } else if (type == "echo") {
                     term.echo(event.data);
-                    //term.pause();
+                    term.set_prompt("");
                 } else if (type == "abort") {
                     console.log('? -> 1')
                     term.echo("Aborted");
@@ -442,7 +489,7 @@ server's console.
             } if (command == 'help') {
                 term.echo('Available commands are "pro", "erl", and "js".');
             } else if (command == 'pro'){
-                myprompt = "?- ";
+                myprompt = " \n?- ";
                 if (gterm) gterm.clear();
                 ws.onopen = function(message) {
                     uuid = guid();
@@ -455,6 +502,7 @@ server's console.
                         var program = getProgram().replace(/'/g,"\\'");
                         ws.send(JSON.stringify({action:"pengine_ask", thread:uuid, pid:pid, goal:"consult_text('" + program + "')", options:"[]"}));
                         env.dirty = false;
+                        term.set_prompt("");
                     }
                     if (state == 1) {
                         if (command.trim().endsWith('.')) {
@@ -494,7 +542,8 @@ server's console.
                     prompt:'?- ',
                     keymap: {
                         'CTRL+C': function(e, a) {
-                            if (state == 2 || state == 3) {
+                            console.log(state);
+                            if (state == 1 || state == 2 || state == 3) {
                                 ws.send(JSON.stringify({action:"pengine_abort", pid:pid}));
                                 gterm.pause();
                                 return false;
@@ -503,10 +552,11 @@ server's console.
                     },
                     keypress: function(e) {
                         if (state == 4 && (e.which == 59 || e.which == 32)) {
+                            gterm.echo(gterm.get_prompt() + ";");
                             ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+uuid+'")]'}));
                             gterm.pause();
                             return false;
-                        } 
+                        }
                     }
                 });
             } else if (command == "js") {

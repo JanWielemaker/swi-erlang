@@ -19,7 +19,7 @@ button.ace_replacebtn {
 
 
 
-#editor {
+#editor, #tutorial {
     margin: 0;
     position: absolute;
     top: 50px;
@@ -28,6 +28,11 @@ button.ace_replacebtn {
     left: 0;
     border-bottom: none;
 
+}
+
+#tutorial {
+    padding: 16px;
+    overflow-y: scroll;
 }
 
 #cmdlineeditor {
