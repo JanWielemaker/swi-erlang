@@ -61,7 +61,7 @@
          *******************************/
 
 
-:- http_handler(root(api/pengine_ask), http_pengine_ask, [spawn([])]).
+:- http_handler(root(ask), http_pengine_ask, [spawn([])]).
 
 http_pengine_ask(Request) :-
     http_parameters(Request,

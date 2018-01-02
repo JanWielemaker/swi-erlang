@@ -98,7 +98,7 @@ rpc_http(URI, Query, Offset, Limit) :-
     rpc_http(Query, Offset, Limit, QueryAtom, Parts).
     
 rpc_http(Query, Offset, Limit, QueryAtom, Parts) :-    
-    parse_url(ExpandedURI, [ path('/api/pengine_ask'),
+    parse_url(ExpandedURI, [ path('/ask'),
                              search([ query=QueryAtom,
                                       offset=Offset,
                                       limit=Limit
@@ -200,7 +200,7 @@ promise(URI, Query, Template, Offset, Limit, Parent, Reference) :-
     format(atom(QueryTemplateAtom), "(~p)$@$(~p)", [Query,Template]),
     atomic_list_concat([QueryAtom, TemplateAtom], $@$, QueryTemplateAtom),
     parse_url(URI, Parts),
-    parse_url(ExpandedURI, [ path('/api/pengine_ask'),
+    parse_url(ExpandedURI, [ path('/ask'),
                              search([ query=QueryAtom,
                                       template=TemplateAtom,
                                       offset=Offset,
