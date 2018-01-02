@@ -309,22 +309,82 @@ server's console.
 	</div>
         <!-- Begin page content -->
         <div class="container">
-
-            <pre id="editor">
+<!--
+           <pre id="editor">
   
             </pre>
+-->
 
-            
-<!--            <div id="tutorial">
+<script>
+    function consult(id) {
+        var val = $(id).text();
+        var program = val.replace(/'/g,"\\'");
+        gterm.echo("?- consult_text('"+id+"').");
+        gterm.exec("consult_text('"+program+"').", true);
+        setTimeout(gterm.enable, 0);
+    }
+    function ask(query) {
+        gterm.exec(query);
+        setTimeout(gterm.enable, 0);
+    }
+    
+    function next() {
+        gterm.exec(";");
+        setTimeout(gterm.enable, 0);
+    }
+    
+    function stop() {
+        gterm.exec("");
+        setTimeout(gterm.enable, 0);
+    }
+</script>
+                
+            <div id="tutorial">
                 <h1>Tutorial</h1>
                 
                 <p>
-                  <button onclick='gterm.exec("append(X, Y, [a,b,c]).")' class="btn btn-xs btn-primary" type="button">Ask</button>
-                  <button onclick='gterm.exec(";")' class="btn btn-xs" type="button">Next</button>
-                  <button onclick='gterm.exec("")' class="btn btn-xs" type="button">Stop</button>
+                    If everything works as it should, the frame to the right is showing what is more or less
+                    a traditional Prolog terminal. It is talking to a <em>pengine</em> running on a Prolog
+                    Web <em>node</em> running on a computer somewhere. The node is identified by the URI ??.
+                </p>
+                <p>
+                    Each pengine has access to a fullblown Prolog language, except that it doesn't allow
+                    talking to the OS, and is also extended with primitives for doing Erlang-style
+                    concurrent and distributed programming. 
+                </p>
+                                                
+<pre id="a">
+p(X) :- q(X), r(X).
+
+q(a).
+q(b).
+q(c).
+
+r(b).
+r(c).
+</pre>
+
+                <p>
+                  <button onclick='consult("#a")' class="btn btn-xs btn-primary" type="button">Consult</button>
+                </p> 
+<pre>
+?- p(X).
+</pre>
+                <p>
+                  <button onclick='ask("p(X).")' class="btn btn-xs btn-primary" type="button">Ask</button>
+                  <button onclick='next()' class="btn btn-xs" type="button">Next</button>
+                  <button onclick='stop()' class="btn btn-xs" type="button">Stop</button>
+                </p>                
+<pre>
+?- append(Xs, Ys, [a,b,c]).
+</pre>
+                <p>
+                  <button onclick='ask("append(Xs, Ys, [a,b,c]).")' class="btn btn-xs btn-primary" type="button">Ask</button>
+                  <button onclick='next()' class="btn btn-xs" type="button">Next</button>
+                  <button onclick='stop()' class="btn btn-xs" type="button">Stop</button>
                 </p>
                 
-                <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. </p>
+                <p>Lorem ipsum dolor sit amet. </p>
                 <pre>fridge(FoodList) ->
     receive
         {From, {store, Food}} ->
@@ -343,10 +403,9 @@ server's console.
             ok
     end.</pre>
     <p>...</p>
-    <pre>start(Pid) :-
+    <pre id="b">
+start(Pid) :-
     spawn(fridge([]), Pid, [
-        node('http://localhost:3061'),
-    	monitor(true),
         src_text("
     
             fridge(FoodList0) :-
@@ -365,10 +424,25 @@ server's console.
                         true
                 }).    
         ")
-    ]).        
-    </pre>
+    ]).   
+</pre>
+    
+                <p>
+                  <button onclick='consult("#b")' class="btn btn-xs btn-primary" type="button">Consult</button>
+                </p> 
+                
+                <p>
+                  <button onclick='ask("start(Pid).")' class="btn btn-xs btn-primary" type="button">start(Pid).</button>
+                  <button onclick='ask("self(Self).")' class="btn btn-xs" type="button">self(Self).</button>
+                  <button onclick='ask("$Pid ! store($Self, meat).")' class="btn btn-xs" type="button">$Pid ! store($Self, meat).</button>
+                  <button onclick='ask("$Pid ! store($Self, cheese).")' class="btn btn-xs" type="button">$Pid ! store($Self, cheese).</button>
+                  <button onclick='ask("$Pid ! take($Self, meat).")' class="btn btn-xs" type="button">$Pid ! take($Self, meat).</button>
+                  <button onclick='ask("$Pid ! take($Self, cheese).")' class="btn btn-xs" type="button">$Pid ! take($Self, cheese).</button>
+                  <button onclick='ask("flush.")' class="btn btn-xs" type="button">flush.</button>
+                </p>
+                
             </div>
--->
+
             <div id="shell"></div>
         </div>
         <header class="navbar navbar-default navbar-fixed-bottom bs-docs-nav">
@@ -435,20 +509,20 @@ server's console.
             };
             ws.onmessage = function(message) {
                 term.resume();
-                var eventstr = message.data;
-                console.log(eventstr);
-                event = JSON.parse(eventstr);
-                var type = event.type;
+                var msgstr = message.data;
+                term.echo(msgstr);
+                msg = JSON.parse(msgstr);
+                var type = msg.type;
                 if (type == "spawned") {
-                    pid = event.pid;
+                    pid = msg.pid;
                     term.echo('Welcome to SWI Web Prolog!\n');
                 } else if (type == "success") {
-                    if (event.more) {
+                    if (msg.more) {
                         state = 4;
-                        term.set_prompt(report(event.data))
+                        term.set_prompt(report(msg.data))
                     } else {
                         state = 1;
-                        term.echo(report(event.data).trim() + ".");
+                        term.echo(report(msg.data).trim() + ".");
                         term.set_prompt(myprompt);
                     }
                 } else if (type == "failure") {
@@ -457,7 +531,7 @@ server's console.
                     term.set_prompt(myprompt);
                 } else if (type == "error") {
                     state = 1;
-                    term.error(event.data);
+                    term.error(msg.data);
                     term.set_prompt(myprompt);
                 } else if (type == "stop") {
                     state = 1;
@@ -465,12 +539,12 @@ server's console.
                     term.set_prompt(myprompt);
                 } else if (type == "prompt") {
                     state = 3;
-                    term.set_prompt(JSON.stringify(event.data, null, ' ') + ": ");
+                    term.set_prompt(JSON.stringify(msg.data, null, ' ') + ": ");
                 } else if (type == "output") {
-                    term.echo(event.data);
+                    term.echo(msg.data);
                     term.set_prompt("");
                 } else if (type == "echo") {
-                    term.echo(event.data);
+                    term.echo(msg.data);
                     term.set_prompt("");
                 } else if (type == "abort") {
                     console.log('? -> 1')
@@ -505,12 +579,11 @@ server's console.
                         term.set_prompt("");
                     }
                     if (state == 1) {
-                        if (command.trim().endsWith('.')) {
+                        if (command.trim() == "") {
+                            term.set_prompt(myprompt);
+                        } else if (command.trim().endsWith('.')) {
                             currcommand += command.trim().slice(0, -1);
                             state = 2;
-                            console.log('--------------------------');
-                            console.log('Goal: '+currcommand);
-                            console.log('1 -> 2');
                             ws.send(JSON.stringify({action:"pengine_ask", pid:pid, goal:currcommand, options:'[reply_to("'+uuid+'")]'}));
                             currcommand = "";
                             term.pause();
@@ -521,28 +594,23 @@ server's console.
                     } else if (state == 4) {
                         if (command == ";") {
                             state = 2;
-                            console.log('4 -> 2');
                             ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+uuid+'")]'}));
                             term.pause();
                         } else if (command == "") {
-                            console.log('4 -> 1');
                             ws.send(JSON.stringify({action:"pengine_stop", pid:pid, options:'[reply_to("'+uuid+'")]'}));
                             term.pause();
                         }
                     } else if (state == 3) {
                         state = 2;
-                        console.log('3 -> 2');
                         if (command !== "") {
                             ws.send(JSON.stringify({action:"pengine_respond", pid:pid, prolog:command}));
                         }
-                        //term.pause();
                     }
                 }, {
                     name:'web-prolog-pro',
                     prompt:'?- ',
                     keymap: {
                         'CTRL+C': function(e, a) {
-                            console.log(state);
                             if (state == 1 || state == 2 || state == 3) {
                                 ws.send(JSON.stringify({action:"pengine_abort", pid:pid}));
                                 gterm.pause();
@@ -576,13 +644,17 @@ server's console.
                     }
                 });
             } else {
-                term.echo('Available commands are "pro", "erl", and "js".');
+                term.echo('Available commands are "pro" and "js".');
             }
         },{
             convertLinks: false,
-            greetings:'Welcome to the SWI Web Prolog Shell!\nAvailable commands are "pro" and "js".\n '
+            greetings:'Welcome to the SWI Web Prolog Shell!\nAvailable commands are "pro" and "js".\n ',
+            historyFilter: function(command) {
+                if (command == "" ) return false;
+                return true;
+            }
         });
-    });  
+    });    
 </script>
     </body>
 </html>

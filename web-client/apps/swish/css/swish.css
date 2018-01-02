@@ -17,7 +17,9 @@ button.ace_replacebtn {
 /* Application CSS
 -------------------------------------------------- */
 
-
+pre {
+    font-size: 12px;
+}
 
 #editor, #tutorial {
     margin: 0;
