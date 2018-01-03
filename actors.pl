@@ -438,10 +438,12 @@ receive(Clauses) :-
     ;   timeout(Clauses, Time)
     ->  debug(dispatch(timeout), '~p: wait for ~p sec.', [Self, Time]),
         process_get_message(New, Time),
-        b_setval(event_queue, [New|Queue0]),
+        append(Queue0, [New], Queue2),
+        b_setval(event_queue, Queue2),
         receive(Clauses)
     ;   process_get_message(New),
-        b_setval(event_queue, [New|Queue0]),
+        append(Queue0, [New], Queue2),
+        b_setval(event_queue, Queue2),
         receive(Clauses)
     ).
 
