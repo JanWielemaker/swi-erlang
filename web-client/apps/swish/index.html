@@ -58,6 +58,8 @@
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Examples<b class="caret"></b></a>
                             <ul id="example-menu" class="dropdown-menu">
+                                <li><a id="tut">Tutorial</a></li>
+                                <li class="divider"></li>
                                 <li><a href="/apps/swish/examples/kb.pl">Knowledge bases</a></li>
                                 <li><a href="/apps/swish/examples/lists.pl">Lists</a></li>
                                 <li><a href="/apps/swish/examples/io.pl">Read and write</a></li>
@@ -309,17 +311,17 @@ server's console.
 	</div>
         <!-- Begin page content -->
         <div class="container">
-<!--
-           <pre id="editor">
+
+            <pre id="editor">
   
             </pre>
--->
+
 
 <script>
     function consult(id) {
         var val = $(id).text();
         var program = val.replace(/'/g,"\\'");
-        gterm.echo("?- consult_text('"+id+"').");
+        gterm.echo("\n?- consult_text('"+id+"').");
         gterm.exec("consult_text('"+program+"').", true);
         setTimeout(gterm.enable, 0);
     }
@@ -352,7 +354,16 @@ server's console.
                     talking to the OS, and is also extended with primitives for doing Erlang-style
                     concurrent and distributed programming. 
                 </p>
-                                                
+
+<pre>
+?- append(Xs, Ys, [a,b,c]).
+</pre>
+                <p>
+                  <button onclick='ask("append(Xs, Ys, [a,b,c]).")' class="btn btn-xs btn-primary" type="button">Ask</button>
+                  <button onclick='next()' class="btn btn-xs" type="button">Next</button>
+                  <button onclick='stop()' class="btn btn-xs" type="button">Stop</button>
+                </p>
+                                                                
 <pre id="a">
 p(X) :- q(X), r(X).
 
@@ -375,14 +386,7 @@ r(c).
                   <button onclick='next()' class="btn btn-xs" type="button">Next</button>
                   <button onclick='stop()' class="btn btn-xs" type="button">Stop</button>
                 </p>                
-<pre>
-?- append(Xs, Ys, [a,b,c]).
-</pre>
-                <p>
-                  <button onclick='ask("append(Xs, Ys, [a,b,c]).")' class="btn btn-xs btn-primary" type="button">Ask</button>
-                  <button onclick='next()' class="btn btn-xs" type="button">Next</button>
-                  <button onclick='stop()' class="btn btn-xs" type="button">Stop</button>
-                </p>
+
                 
                 <p>Lorem ipsum dolor sit amet. </p>
                 <pre>fridge(FoodList) ->
@@ -441,6 +445,37 @@ start(Pid) :-
                   <button onclick='ask("flush.")' class="btn btn-xs" type="button">flush.</button>
                 </p>
                 
+<pre>
+-module(tut15).
+
+-export([start/0, ping/2, pong/0]).
+
+ping(0, Pong_PID) ->
+    Pong_PID ! finished,
+    io:format("ping finished~n", []);
+
+ping(N, Pong_PID) ->
+    Pong_PID ! {ping, self()},
+    receive
+        pong ->
+            io:format("Ping received pong~n", [])
+    end,
+    ping(N - 1, Pong_PID).
+
+pong() ->
+    receive
+        finished ->
+            io:format("Pong finished~n", []);
+        {ping, Ping_PID} ->
+            io:format("Pong received ping~n", []),
+            Ping_PID ! pong,
+            pong()
+    end.
+
+start() ->
+    Pong_PID = spawn(tut15, pong, []),
+    spawn(tut15, ping, [3, Pong_PID]).    
+</pre>                
             </div>
 
             <div id="shell"></div>
@@ -462,11 +497,9 @@ start(Pid) :-
         <script src="/apps/swish/js/jquery.mousewheel-min.js"></script>
         <script src="/apps/swish/js/jquery.terminal.min.js"></script>
 <script>
-    var ws;
     var pid;
     var gterm;
     var state = 1;
-    var data;
     var currcommand = "";
     function to_text(data) {
         var text = [];
@@ -495,28 +528,31 @@ start(Pid) :-
         return (S4() + S4() + "-" + S4() + "-4" + S4().substr(0,3) + "-" + S4() + "-" + S4() + S4() + S4()).toLowerCase();
     }    
     $(document).ready(function($) {
+        var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
+        guid = guid();
+        ws.onopen = function(message) {
+            ws.send(JSON.stringify({action:"pengine_spawn", options:'[reply_to("'+guid+'")]'}));
+        };
+        ws.onerror = function(e) {
+            console.log(e);
+        };
+        ws.onclose = function(e) {
+            console.log(e);
+        };
+        ws.onmessage = function(message) {
+            var msg = JSON.parse(message.data);
+            if (msg.type == "spawned") {
+                pid = msg.pid;
+            }
+        }; 
         $('#shell').terminal(function(command, term) {
-            var pid;
-            var uuid;
-            gterm = term;
-            ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
-            ws.onerror = function(e) {
-                term.resume();
-                console.log(e);
-            };
-            ws.onclose = function(e) {
-                console.log(e);
-            };
             ws.onmessage = function(message) {
                 term.resume();
                 var msgstr = message.data;
-                term.echo(msgstr);
+                //term.echo(msgstr);
                 msg = JSON.parse(msgstr);
                 var type = msg.type;
-                if (type == "spawned") {
-                    pid = msg.pid;
-                    term.echo('Welcome to SWI Web Prolog!\n');
-                } else if (type == "success") {
+                if (type == "success") {
                     if (msg.more) {
                         state = 4;
                         term.set_prompt(report(msg.data))
@@ -547,7 +583,6 @@ start(Pid) :-
                     term.echo(msg.data);
                     term.set_prompt("");
                 } else if (type == "abort") {
-                    console.log('? -> 1')
                     term.echo("Aborted");
                 } else if (type == "exit") {
                     term.echo("Exiting");
@@ -558,102 +593,73 @@ start(Pid) :-
                     term.echo(data);                    
                 }
             };
-            if (state == 1 && command == "") {
-                return false;
-            } if (command == 'help') {
-                term.echo('Available commands are "pro", "erl", and "js".');
-            } else if (command == 'pro'){
-                myprompt = " \n?- ";
-                if (gterm) gterm.clear();
-                ws.onopen = function(message) {
-                    uuid = guid();
-                    ws.send(JSON.stringify({action:"pengine_spawn", options:'[reply_to("'+uuid+'")]'}));
-                    term.pause()
-                };
-                term.push(function(command, term) {
-                    if (env.dirty) {
-                        term.echo("Consulting from editor.");
-                        var program = getProgram().replace(/'/g,"\\'");
-                        ws.send(JSON.stringify({action:"pengine_ask", thread:uuid, pid:pid, goal:"consult_text('" + program + "')", options:"[]"}));
-                        env.dirty = false;
-                        term.set_prompt("");
-                    }
-                    if (state == 1) {
-                        if (command.trim() == "") {
-                            term.set_prompt(myprompt);
-                        } else if (command.trim().endsWith('.')) {
-                            currcommand += command.trim().slice(0, -1);
-                            state = 2;
-                            ws.send(JSON.stringify({action:"pengine_ask", pid:pid, goal:currcommand, options:'[reply_to("'+uuid+'")]'}));
-                            currcommand = "";
-                            term.pause();
-                        } else {
-                            term.set_prompt("   ");
-                            currcommand += command; 
-                        }
-                    } else if (state == 4) {
-                        if (command == ";") {
-                            state = 2;
-                            ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+uuid+'")]'}));
-                            term.pause();
-                        } else if (command == "") {
-                            ws.send(JSON.stringify({action:"pengine_stop", pid:pid, options:'[reply_to("'+uuid+'")]'}));
-                            term.pause();
-                        }
-                    } else if (state == 3) {
-                        state = 2;
-                        if (command !== "") {
-                            ws.send(JSON.stringify({action:"pengine_respond", pid:pid, prolog:command}));
-                        }
-                    }
-                }, {
-                    name:'web-prolog-pro',
-                    prompt:'?- ',
-                    keymap: {
-                        'CTRL+C': function(e, a) {
-                            if (state == 1 || state == 2 || state == 3) {
-                                ws.send(JSON.stringify({action:"pengine_abort", pid:pid}));
-                                gterm.pause();
-                                return false;
-                            }
-                        }
-                    },
-                    keypress: function(e) {
-                        if (state == 4 && (e.which == 59 || e.which == 32)) {
-                            gterm.echo(gterm.get_prompt() + ";");
-                            ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+uuid+'")]'}));
-                            gterm.pause();
-                            return false;
-                        }
-                    }
-                });
-            } else if (command == "js") {
-                term.push(function(command, term) {
-                    var result = window.eval(command);
-                    if (result != undefined) {
-                        term.echo(String(result));
-                    }
-                }, {
-                    name: 'javascript',
-                    prompt: 'js> ',
-                    keypress: function(e) {
-                        if (state == 1 && e.keyCode == 4) {
-                            gterm.pop();
-                            return false;
-                        }                        
-                    }
-                });
-            } else {
-                term.echo('Available commands are "pro" and "js".');
+            myprompt = " \n?- ";
+            if (env.dirty) {
+                term.echo("Consulting from editor.");
+                var program = getProgram().replace(/'/g,"\\'");
+                ws.send(JSON.stringify({action:"pengine_ask", thread:guid, pid:pid, goal:"consult_text('" + program + "')", options:"[]"}));
+                env.dirty = false;
+                term.set_prompt("");
             }
-        },{
-            convertLinks: false,
-            greetings:'Welcome to the SWI Web Prolog Shell!\nAvailable commands are "pro" and "js".\n ',
-            historyFilter: function(command) {
-                if (command == "" ) return false;
-                return true;
+            if (state == 1) {
+                if (command.trim() == "") {
+                    term.set_prompt(myprompt);
+                } else if (command.trim().endsWith('.')) {
+                    currcommand += command.trim().slice(0, -1);
+                    state = 2;
+                    ws.send(JSON.stringify({action:"pengine_ask", pid:pid, goal:currcommand, options:'[reply_to("'+guid+'")]'}));
+                    currcommand = "";
+                    term.pause();
+                } else {
+                    term.set_prompt("   ");
+                    currcommand += command; 
+                }
+            } else if (state == 4) {
+                if (command == ";") {
+                    state = 2;
+                    ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+guid+'")]'}));
+                    term.pause();
+                } else if (command == "") {
+                    ws.send(JSON.stringify({action:"pengine_stop", pid:pid, options:'[reply_to("'+guid+'")]'}));
+                    term.pause();
+                }
+            } else if (state == 3) {
+                state = 2;
+                if (command !== "") {
+                    ws.send(JSON.stringify({action:"pengine_respond", pid:pid, prolog:command}));
+                }
             }
-        });
+         }, {
+             greetings:'Welcome to SWI Web Prolog!\n',
+             prompt:'?- ',
+             onInit: function(term) {
+                 gterm = term;
+             },
+             keymap: {
+                 'CTRL+C': function(e, a) {
+                     if (state == 1 || state == 2 || state == 3) {
+                         ws.send(JSON.stringify({action:"pengine_abort", pid:pid}));
+                         gterm.pause();
+                         return false;
+                     }
+                 }
+             },
+             keypress: function(e) {
+                 if (state == 4 && (e.which == 59 || e.which == 32)) {
+                     gterm.echo(gterm.get_prompt() + ";");
+                     ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+guid+'")]'}));
+                     gterm.pause();
+                     return false;
+                 }
+             },
+             convertLinks: false,
+             historyFilter: function(command) {
+                 if (command == "" ) return false;
+                 if (command == ";" ) return false;
+                 return true;
+             }
+             
+         }); 
     });    
 </script>
     </body>

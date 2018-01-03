@@ -220,8 +220,15 @@ $("#edit-menu").on("click", "a#find", function(evt) {
 
 $("#example-menu").on("click", "a", function(evt) {
 	evt.preventDefault();
-	window.location.hash = "";
-	loadSrc(evt.target.href);
+    if (evt.target.id == "tut") {
+        $("#editor").css("display","none");
+        $("#tutorial").css("display","block");
+    } else {
+        $("#editor").css("display","block");
+        $("#tutorial").css("display","none");
+	    window.location.hash = "";
+	    loadSrc(evt.target.href);
+    }
 });
 
 // Event handlers: Preferences

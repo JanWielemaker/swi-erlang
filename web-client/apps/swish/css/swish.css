@@ -35,6 +35,7 @@ pre {
 #tutorial {
     padding: 16px;
     overflow-y: scroll;
+    display: none;
 }
 
 #cmdlineeditor {
