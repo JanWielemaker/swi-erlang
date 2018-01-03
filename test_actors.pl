@@ -45,7 +45,8 @@
 test_actors :-
     run_tests([ receive,
                 local_actors,
-                local_pengines
+                local_pengines,
+                ordering
               ]).
 
 
@@ -308,6 +309,34 @@ test(input, Results == true) :-
 
 :- end_tests(local_pengines).
 
+
+:- begin_tests(ordering).
+
+
+test(ordering1, Result == [hello, goodbye]) :-
+    self(S),
+    S ! hello,
+    S ! goodbye,
+    receive({A -> true}),
+    receive({B -> true}),
+    Result = [A,B].
+    
+    
+test(ordering2, Result == [hello, goodbye]) :-
+    context_module(Application),
+    self(Self),
+    spawn(( self(S),
+            S ! hello,
+            S ! goodbye,
+            receive({A -> true}),
+            receive({B -> true}),
+            Result0 = [A,B],
+            Self ! Result0
+           ), _, [application(Application)]),
+    receive({Result -> true}).
+                
+
+:- end_tests(ordering).
 
 
                  /*******************************
