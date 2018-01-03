@@ -46,6 +46,8 @@
             pengine_input/2,                    % +Prompt, ?Answer
             pengine_respond/2,                  % +Pid, +Answer
             pengine_output/1,                   % +Term
+            pengine_listing/0,
+            pengine_listing/1,
             op(200, xfx, @)
           ]).
 
@@ -281,5 +283,19 @@ pengine_abort(Pid) :-
     catch(thread_signal(Pid, throw(exit_query)), _, true).
 
 
-  
+
+%!  pengine_listing is det.
+%!  pengine_listing(+Spec) is det.
+%
+%   List the content of the current pengine or a specified predicate
+%   in the pengine.
+
+pengine_listing :-
+    pengine_listing(_).
+
+pengine_listing(Spec) :-
+    isolation:curr_module(Module),
+    with_output_to(string(String), listing(Module:Spec)),
+    pengine_output(String).
+    
 
