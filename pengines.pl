@@ -241,7 +241,7 @@ pengine_stop(Pid, Options) :-
 %   Send Term to the parent process.
 
 pengine_output(Term) :-
-    self(Self), 
+    engine_self(Self), 
     parent(Parent),
     Parent ! output(Self, Term).
 
@@ -254,7 +254,7 @@ pengine_output(Term) :-
 %   @bug: Why does Parent and _Parent not unify in the remote case?
 
 pengine_input(Prompt, Input) :-
-    self(Self),
+    engine_self(Self),
     parent(Parent),
     Parent ! prompt(Self, Prompt),
     receive({ 
