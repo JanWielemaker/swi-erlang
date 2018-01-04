@@ -76,7 +76,7 @@ http_pengine_ask(Request) :-
     read_term_from_atom(GTAtom, Goal+Template, [variable_names(Bindings)]),
     fix_template(Format, Template, Bindings, NewTemplate),
     find_answer(Goal, NewTemplate, Offset, Limit, Timeout, Answer),
-    respond(Format, Answer).
+    output_result(Format, Answer).
     
 
 %!  find_answer(:Query, +Template, +Offset, +Limit, +Timeout, -Answer) is det.
