@@ -410,14 +410,12 @@ pengine_module(user).
 %       If the message is related to a source location, indicate the
 %       file and line and, if available, the character location.
    
-format:event_to_json(success(Pid, Answers0, More), JSON,
-                       'json-s') :-
+format:event_to_json(success(Pid, Answers0, More), JSON, 'json-s') :-
     !,
     JSON = json{type:success, pid:Pid, data:Answers, more:More},
     maplist(dollar_expansion:wp_expand_answer, Answers0, Answers1),
     maplist(answer_to_json_strings(Pid), Answers1, Answers).
-format:event_to_json(success(Pid, Answers0, Projection, Time, More), JSON,
-                       'json-s') :-
+format:event_to_json(success(Pid, Answers0, Projection, Time, More), JSON, 'json-s') :-
     !,
     JSON0 = json{type:success, pid:Pid, time:Time, data:Answers, more:More},
     maplist(answer_to_json_strings(Pid), Answers0, Answers),
@@ -425,7 +423,10 @@ format:event_to_json(success(Pid, Answers0, Projection, Time, More), JSON,
 format:event_to_json(output(Pid, Term), JSON, 'json-s') :-
     !,
     map_output(Pid, Term, JSON).
-
+format:event_to_json(echo(Term), JSON, 'json-s') :-
+    !,
+    map_echo(Term, JSON).
+    
 add_projection([], JSON, JSON) :- !.
 add_projection(VarNames, JSON0, JSON0.put(projection, VarNames)).
 
@@ -609,6 +610,20 @@ map_output(Pid, Term, json{type:output, pid:Pid, data:Data}) :-
     ->  Data = Term
     ;   term_string(Term, Data)
     ).
+
+%!  map_echo(+Term, -JSON) is det.
+%
+%   Map an echo term. This is the same for json-s and json-html.
+
+map_echo(Term, json{type:echo, data:Data}) :-
+    (   atomic(Term)
+    ->  Data = Term
+    ;   is_dict(Term, json),
+        ground(json)                % TBD: Check proper JSON object?
+    ->  Data = Term
+    ;   term_string(Term, Data)
+    ).
+
 
 
                  /*******************************
