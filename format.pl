@@ -37,7 +37,7 @@
 :- module(format,
           [ message_to_json_data/3,
             fix_template/4,
-            respond/2
+            output_result/2
           ]).
 
 /** <module> Pengines: Web Logic Programming Made Easy
@@ -52,6 +52,7 @@ from Prolog or JavaScript.
 :- use_module(library(http/http_cors)).
 :- use_module(library(term_to_json)).
 
+:- use_module(dollar_expansion).
 
 
 :- multifile
@@ -59,29 +60,9 @@ from Prolog or JavaScript.
     event_to_json/3.                % +Event, -JSON, +Format
 
 
-%%%%%%
-
-:- use_module(dollar_expansion).
-
-:- use_module(library(debug)).
 
 
-         /*******************************
-         *     RESPONSE GENERATION      *
-         *******************************/
-         
-
-respond(prolog, Answer) :- !,
-    format('Content-type: text/plain;~n~n'),
-    format("~q.", [Answer]).
-respond(Format, Answer) :-
-    json_lang(Format), !,    
-    message_to_json_data(Answer, JSON, Format),
-    reply_json(JSON).
-    
-    
-
-%!  fix_bindings(+Format, +Template, +Bindings, -NewTemplate) is det.
+%!  fix_template(+Format, +Template, +Bindings, -NewTemplate) is det.
 %
 %   Generate the template for json(-s) Format  from the variables in
 %   the asked Goal. Variables starting  with an underscore, followed
@@ -188,18 +169,9 @@ json_lang(Format) :-
 %   Formulate an HTTP response from a pengine event term. Format is
 %   one of =prolog=, =json= or =json-s=.
 
-:- dynamic
-    pengine_replying/2.             % +Pengine, +Thread
 
 output_result(Format, Event) :-
-    arg(1, Event, Pengine),
-    thread_self(Thread),
-    setup_call_cleanup(
-        asserta(pengine_replying(Pengine, Thread), Ref),
-        catch(output_result(Format, Event, _{}),
-              pengine_abort_output,
-              true),
-        erase(Ref)).
+    output_result(Format, Event, _{}).
 
 output_result(prolog, Event, _) :-
     !,
