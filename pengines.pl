@@ -46,8 +46,8 @@
             pengine_input/2,                    % +Prompt, ?Answer
             pengine_respond/2,                  % +Pid, +Answer
             pengine_output/1,                   % +Term
-            pengine_listing/0,
-            pengine_listing/1,
+%            pengine_listing/0,
+%            pengine_listing/1,
             op(200, xfx, @)
           ]).
 

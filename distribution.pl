@@ -50,6 +50,7 @@
 :- use_module(pengines).
 :- use_module(isolation).
 :- use_module(format).
+:- use_module(pengines_io).
 
 
 :- dynamic
@@ -210,7 +211,7 @@ spawn_remote(Node, Goal, Id@Node, Options0) :-
 send_remote(Target, Message) :-
     pid_stdout_socket_format(_, Target, Socket, Format),
     !,
-    answer_format(Message, Json, Format),
+    message_to_json_data(Message, Json, Format),
     ws_send(Socket, json(Json)).
 send_remote(thread(Id)@Node, Message) :-
     !,
