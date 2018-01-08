@@ -124,9 +124,9 @@ add_self(_).
 ask(Goal0, Self, Parent, Options) :-
     strip_module(Goal0, M, Goal1),
     option(template(Template0), Options, Goal1),
-    maybe_expand(Goal1, Goal, Template0, Template), % FIXME? Hack - see below!    
     option(limit(Limit), Options, 1),
     option(reply_to(ReplyTo), Options, Parent),
+    maybe_expand(Goal1, Goal, Template0, Template, ReplyTo, Self), % FIXME? Hack - see below!    
     State = count(Limit),
     OutPut = replyto(ReplyTo),
     (   call_cleanup(findn0(State, Template, M:Goal, Solutions, Error), Det=true),
@@ -155,12 +155,15 @@ ask(Goal0, Self, Parent, Options) :-
    this could be done earlier.
 */
 
-maybe_expand(Goal0, Goal, Template0, Template) :-
+maybe_expand(Goal0, Goal, Template0, Template, ReplyTo, Self) :-
     is_dict(Template0), !,
     dict_pairs(Template0, Tag, Pairs0),
-    wp_expand_query(Goal0, Goal, Pairs0, Pairs),
-    dict_pairs(Template, Tag, Pairs).
-maybe_expand(Goal, Goal, Template, Template). 
+    catch(wp_expand_query(Goal0, Goal, Pairs0, Pairs), Error, true),
+    (   var(Error)
+    ->  dict_pairs(Template, Tag, Pairs)
+    ;   ReplyTo ! error(Self, Error)
+    ).
+maybe_expand(Goal, Goal, Template, Template, _ReplyTo, _Self). 
 
 
         
