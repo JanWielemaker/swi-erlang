@@ -179,5 +179,16 @@ check :-
     
     
 
+:- http_handler(root(send), http_pengine_send, []).
+
+http_pengine_send(Request) :-
+    http_parameters(Request,
+        [ pid(Pid, []),
+          term(TermAtom, [])
+        ]),
+    read_term_from_atom(TermAtom, Term, []),
+    send(Pid, Term),
+    reply_json(_{ok:true}).
+
     
 
