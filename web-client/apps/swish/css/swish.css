@@ -17,6 +17,15 @@ button.ace_replacebtn {
 /* Application CSS
 -------------------------------------------------- */
 
+h1 {font-size: 36px; color:darkblue;}
+h2 {font-size: 20px; margin-top:36px;}
+h3 {font-size: 14px}
+
+em {
+    font-weight: bold;
+    font-style: normal;
+}
+
 pre {
     font-size: 12px;
 }
@@ -29,13 +38,13 @@ pre {
     right: 50%;
     left: 0;
     border-bottom: none;
-
+    display: none;
 }
 
 #tutorial {
     padding: 16px;
     overflow-y: scroll;
-    display: none;
+    display: block;
 }
 
 #cmdlineeditor {
