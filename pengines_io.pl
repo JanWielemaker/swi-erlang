@@ -1,6 +1,6 @@
 /*  Part of SWI-Prolog
 
-    Author:        Jan Wielemaker
+    Author:        Torbjörn Lager and Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (c)  2014-2017, VU University Amsterdam
@@ -252,7 +252,7 @@ pengine_portray_clause(Term) :-
                  /*******************************
                  *         PRINT MESSAGE        *
                  *******************************/
-/*
+
 :- multifile user:message_hook/3.
 
 %!  user:message_hook(+Term, +Kind, +Lines) is semidet.
@@ -262,7 +262,7 @@ pengine_portray_clause(Term) :-
 
 user:message_hook(Term, Kind, Lines) :-
     Kind \== silent,
-    pengine_self(_),
+    engine_self(_),
     atom_concat('msg-', Kind, Class),
     phrase(html(pre(class(['prolog-message', Class]),
                     \message_lines(Lines))), Tokens),
@@ -294,7 +294,7 @@ style(bold, Content, b(Content)).
 style(fg(Color), Content, span(style('color:'+Color), Content)).
 style(_, Content, Content).
 
-*/
+
 
                  /*******************************
                  *             INPUT            *
