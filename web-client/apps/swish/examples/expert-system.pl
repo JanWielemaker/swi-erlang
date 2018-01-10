@@ -12,9 +12,9 @@ prove(H) :-
     prove(B).
 prove(H) :-
     askable(H),
-    writeln(H),
-    read(Answer),
-	Answer == yes.
+    format(atom(Q), 'Is it true that: ~q?', [H]),
+    pengine_input(Q, Answer),
+    Answer == yes.
 
 
 good_pet(X) :- bird(X), small(X).

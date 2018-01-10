@@ -400,9 +400,9 @@ server's console.
 </p>
 
 
-<h2>Consulting</h2>
+<h2>Node resident code</h2>
 
-<p>Call <code>consult_text/1</code> in order to consult a program:</p>
+<p>For the purpose of this tutorial, this node has pre-loaded the following code:</p>
                                                                 
 <pre id="a">
 p(X) :- q(X), r(X).
@@ -410,14 +410,12 @@ p(X) :- q(X), r(X).
 q(a).
 q(b).
 q(c).
+q(d).
 
 r(b).
 r(c).
+r(d).
 </pre>
-
-<p>
-  <button onclick='consult("#a")' class="btn btn-xs btn-primary" type="button">Consult</button>
-</p>
 
 <p>And this is how we call <code>p/1</code>:</p>
 
@@ -429,11 +427,68 @@ r(c).
   <button onclick='enter("#p")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
+
+<h2>Expert system</h2>
+
+<p>
+    A meta-interpreter implementing a tiny expert-system:
+</p>
+                                                                
+<pre id="expert1">
+prove(true) :- !.
+prove((B, Bs)) :- !,
+    prove(B),
+    prove(Bs).
+prove(H) :-
+    clause(H, B),
+    prove(B).
+prove(H) :-
+    askable(H),
+    format(atom(Q), 'Is it true that: ~q?', [H]),
+    pengine_input(Q, Answer),
+    Answer == yes.
+
+
+good_pet(X) :- bird(X), small(X).
+good_pet(X) :- cuddly(X), yellow(X).
+
+bird(X) :- has_feathers(X), tweets(X).
+
+yellow(tweety).
+
+askable(tweets(_)).
+askable(small(_)).
+askable(cuddly(_)).
+askable(has_feathers(_)).
+</pre>
+
+<p>
+  <button onclick='consult("#expert1")' class="btn btn-xs btn-primary" type="button">Consult</button>
+</p>
+
+<p>And this is how we use it:</p>
+
+<pre id="expert2">
+?- prove(good_pet(tweety)).
+</pre>
+
+<p>
+  <button onclick='enter("#expert2")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+
 <h2>A priority queue</h2>
     
 <p> 
     The predicate <code>receive/1-2</code> has two features borrowed from Erlang: guards and a timeout  
     mechanism. The following program demonstrates their uses. 
+</p>
+
+<p> 
+    As a way to demonstrate the use of the <code>when</code> operator, as well as the use of another 
+    <code>receive/2</code> option that causes a goal to be run on timeout, here is a priority queue 
+    example borrowed from \citep{Hebert:2013:LYE:2543986}. Calling <code>important/1</code> will 
+    build a list of all messages with those with a priority above 10 coming first: 
 </p>
     
 <pre id="priority1">
@@ -461,7 +516,7 @@ normal(Messages) :-
 </p> 
 
 <p>
-    We use a combination of <code>self/1</code> and the bang operator <code>!/2</code> to send messages to the mailbox of the 
+    We use a combination of <code>self/1</code> and the bang operator <code>!/2</code> to send four messages to the mailbox of the 
     top-level pengine.
 </p>
 
@@ -507,12 +562,32 @@ normal() ->
         []
     end.
 </pre>
-          
+
+
+<h2>Spawning</h2>
+
+<p>
+   ...
+</p>
+
+<pre id="spawning1">
+?- self(Self), 
+   spawn((p(_X), Self ! _X), Pid), 
+   receive({X -> echo(X)}).
+</pre>
+
+<p>
+  <button onclick='enter("#spawning1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>...</p>
+
+
 
 <h2>Servers</h2>
     
 <p> 
-    ...
+    Using such primitives, we can for example easily write a program capable of responding with a <code>pong</code> to any client that passes along its pid in a <code>ping</code> message. In the Erlang community, such a program is usually referred to as a <code>server</code>. To write a ping server in Web Prolog we simply paste the following source code into the editor and tell our pengine to consult it:
 </p>
     
 <pre id="server1">
@@ -568,7 +643,7 @@ server :-
 </p>
 
 <p>
-    Finally, we call <code>flush/0</code> in order to investigate the content of the top-level 
+    Finally, we call <code>flush/0</code> in order to inspect (and consume) the content of the top-level 
     mailbox:
 </p>
 
@@ -581,7 +656,7 @@ server :-
 </p>
 
 <p> 
-    ...
+    Same server but a different implementation, possible since <code>receive/1-2</code> is semi-deterministic (i.e. either succeeds once or fails).
 </p>
     
 <pre id="server6">
@@ -590,9 +665,7 @@ server :-
     receive({
         ping(From) ->
             From ! new_pong,
-            fail;
-        terminate ->
-            true
+            fail
     }).
 </pre>
 
@@ -605,7 +678,7 @@ server :-
 </p>
 
 <pre id="server7">
-?- $Pid ! terminate.
+?- flush.
 </pre>
 
 <p>
@@ -614,7 +687,14 @@ server :-
 
 
 <h2>The fridge simulation</h2>
-    
+
+<p>
+    As a tastier example of how a process can be made to hold an updatable state during
+    a conversation, and for the purpose of demonstrating a receive call that uses different
+    receive clauses in order to listen for more than one kind of message, we have adapted a
+    fridge simulation example from Fred Hebert's excellent book on Erlang \citep{Hebert:2013:LYE:2543986}:
+</p>
+
 <p>
     Using <code>spawn/3</code>, the following program spawns a local process that simulates
     a fridge. The <code>src_text</code> option of <code>spawn/3</code> is used to pass the 
@@ -650,13 +730,13 @@ start(Pid) :-
 </p> 
 
 <p>
-  <button onclick='ask("start(Pid).")' class="btn btn-xs btn-primary" type="button">start(Pid).</button>
-  <button onclick='ask("self(Self).")' class="btn btn-xs" type="button">self(Self).</button>
-  <button onclick='ask("$Pid ! store($Self, meat).")' class="btn btn-xs" type="button">$Pid ! store($Self, meat).</button>
-  <button onclick='ask("$Pid ! store($Self, cheese).")' class="btn btn-xs" type="button">$Pid ! store($Self, cheese).</button>
-  <button onclick='ask("$Pid ! take($Self, meat).")' class="btn btn-xs" type="button">$Pid ! take($Self, meat).</button>
-  <button onclick='ask("$Pid ! take($Self, cheese).")' class="btn btn-xs" type="button">$Pid ! take($Self, cheese).</button>
-  <button onclick='ask("flush.")' class="btn btn-xs" type="button">flush.</button>
+  <button onclick='ask("start(Pid).")' class="btn btn-link" type="button">?- start(Pid).</button>
+  <button onclick='ask("self(Self).")' class="btn btn-link" type="button">?- self(Self).</button>
+  <button onclick='ask("$Pid ! store($Self, meat).")' class="btn btn-link" type="button">?- $Pid ! store($Self, meat).</button>
+  <button onclick='ask("$Pid ! store($Self, cheese).")' class="btn btn-link" type="button">?- $Pid ! store($Self, cheese).</button>
+  <button onclick='ask("$Pid ! take($Self, meat).")' class="btn btn-link" type="button">?- $Pid ! take($Self, meat).</button>
+  <button onclick='ask("$Pid ! take($Self, cheese).")' class="btn btn-link" type="button">?- $Pid ! take($Self, cheese).</button>
+  <button onclick='ask("flush.")' class="btn btn-link" type="button">?- flush.</button>
 </p>
 
 <p>...</p>
@@ -684,8 +764,9 @@ fridge(FoodList) ->
 <h2>Ping-pong</h2>
 
 <p>
-    In the following example, two processes are first created and then start 
-    sending messages to each other a specified number of times.
+    Erlang-style asynchronous communication is key to the kind of concurrent programming that 
+    Web Prolog's actor abstraction supports. In the following example, two processes are first
+    created and then start sending messages to each other a specified number of times.
 </p>
 
 <pre id="pingpong1">
@@ -712,11 +793,11 @@ pong :-
             echo('Pong finished')
     }).
    
-start :-
+start(N) :-
     spawn(pong, Pong_Pid, [
         src_predicates([pong/0])
     ]),
-    spawn(ping(3, Pong_Pid), _, [
+    spawn(ping(N, Pong_Pid), _, [
         src_predicates([ping/2])
     ]).
 </pre>
@@ -725,10 +806,10 @@ start :-
   <button onclick='consult("#pingpong1")' class="btn btn-xs btn-primary" type="button">Consult</button>
 </p>
 
-<p>We call <code>start/0</code> to start the process.</p>
+<p>We call <code>start/1</code> to start the process.</p>
 
 <pre id="pingpong2">
-?- start.
+?- start(3).
 </pre>
 
 <p>
@@ -768,7 +849,77 @@ start() ->
 </pre>
 
 
-<h2>A simple pengine implementation</h2>
+<h2>A simple but generic pengine implementation</h2>
+
+<p>
+   We can call the goal, send the result back to the calling process, and then use <code>receive/1</code> in order to listen for a message of the form <code>next</code> or <code>stop</code> before terminating:
+</p>
+
+<pre id="pre-pengine1">
+?- self(_Self),
+   spawn(( p(_X),
+           _Self ! _X,
+           receive({
+               next -> fail;
+               stop -> true
+           })
+        ), Pid).
+</pre>
+
+<p>
+  <button onclick='enter("#pre-pengine1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>...</p>
+
+<pre id="pre-pengine2">
+?- flush.
+</pre>
+
+<p>
+  <button onclick='enter("#pre-pengine2")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>...</p>
+
+<pre id="pre-pengine3">
+?- $Pid ! next.
+</pre>
+
+<p>
+  <button onclick='enter("#pre-pengine3")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>...</p>
+
+<pre id="pre-pengine4">
+?- flush.
+</pre>
+
+<p>
+  <button onclick='enter("#pre-pengine4")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>...</p>
+
+<pre id="pre-pengine5">
+?- $Pid ! stop.
+</pre>
+
+<p>
+  <button onclick='enter("#pre-pengine5")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>        
+
+<pre id="pre-pengine6">
+?- flush.
+</pre>
+
+<p>
+  <button onclick='enter("#pre-pengine6")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+
+<h2>A simple but generic pengine implementation</h2>
 
 <p>
     We can build a generic predicate by using a meta-predicate (such as <code>call_cleanup/2</code>) 
@@ -1633,27 +1784,84 @@ query(Goal, Self, Parent) :-
 <p>...</p>
 
 <pre id="pengine-simple8">
-?- exit($Pid, normal).
+?- flush.
 </pre>
 
 <p>
   <button onclick='enter("#pengine-simple8")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
+<h3>Using options</h3>
+
 <p>...</p>
 
-<pre id="pengine-simple9">
+<pre id="pengine-advanced1">
+?- pengine_spawn(Pid, [
+       monitor(true),
+       node('http://localhost:3060'),
+       src_text("p(a). p(b). p(c). p(d). p(e)."),
+       src_list([p(f), p(g), p(h), p(i), p(j)])
+   ]).
+</pre>
+
+<p>
+  <button onclick='enter("#pengine-advanced1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+    Using the <code>limit</code> option:
+</p>
+
+<pre id="pengine-advanced2">
+?- pengine_ask($Pid, p(_X), [
+       template(_X),
+       limit(2)
+   ]).
+</pre>
+
+<p>
+  <button onclick='enter("#pengine-advanced2")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+    Using the <code>limit</code> option when asking for the next solutions:
+</p>
+
+<pre id="pengine-advanced3">
+?- pengine_next($Pid, [
+       limit(1)
+   ]).
+</pre>
+
+<p>
+  <button onclick='enter("#pengine-advanced3")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>...</p>
+
+<pre id="pengine-simple11">
+?- exit($Pid, normal).
+</pre>
+
+<p>
+  <button onclick='enter("#pengine-simple11")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>...</p>
+
+<pre id="pengine-simple12">
 ?- flush.
 </pre>
 
 <p>
-  <button onclick='enter("#pengine-simple9")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#pengine-simple12")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
-      
 
 <h2>RPC</h2>
 
-<p>...</p>
+<p>
+    Web Prolog offers a predicate <code>rpc/2-3</code> capable of non-deterministic remote procedure calls:
+</p>
 
 <pre id="rpc-http">
 ?- rpc('http://localhost:3060', member(X,[a,b,c]), [
@@ -1665,7 +1873,10 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#rpc-http")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>
+    In order to inject code into the process, the option <code>src_text</code> (inherited from
+    <code>pengine_spawn/2</code> which in turn inherited it from <code>spawn/3</code>) may be passed:
+</p>
 
 <pre id="rpc-ws">
 ?- rpc('http://localhost:3060', p(X), [
@@ -1678,10 +1889,13 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#rpc-ws")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>
+    The special purpose URI <code>localnode</code> serves as the default value of the <code>node</code> option for both <code>spawn/2-3</code> and <code>pengine_spawn/1-2</code>. Thus it follows, perhaps a bit counter-intuitively, that in combination with the <code>src_uris</code> option <code>rpc/3</code> can also be used to "bring data to the code":
+</p>
 
 <pre id="rpc-localnode">
-?- rpc(localnode, p(X), [
+?- assert(p(d)),
+   rpc(localnode, p(X), [
        src_url('https://gist.githubusercontent.com/torbjornlager/21583e7238dc855f94f6b5f2f48788bb/raw/p.pl')
    ]).
 </pre>
@@ -1690,11 +1904,37 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#rpc-localnode")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>
+    For the purpose of reducing the number of network roundtrips, the option 
+    <code>limit</code> (inherited from <code>pengine_ask/3</code>) may be passed:
+</p>
+
+<pre id="rpc-limit">
+?- rpc('http://localhost:3060', between(0,12,N), [
+       limit(5)
+   ]).
+</pre>
+
+<p>
+  <button onclick='enter("#rpc-limit")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+    As the above example tries to convey, the behaviour of the call, as seen from the point 
+    of view of the client, does not change. Thus, the <code>limit</code> option serves as a
+    performance optimisation only, and has nothing to with logic and the declarative reading
+    of the query.
+</p>
+
 
 <h2>Promises (asynchronous RPC)</h2>
             
-<p>...</p>
+<p>
+    A promise is a type of RPC that does not suspend the caller until the result is 
+    computed. Instead, a reference is returned, which can later be used by <code>yield/2-3</code> 
+    to collect the answer. The reference can be viewed as a promise to deliver the 
+    answer.
+</p>
 
 <pre id="promise">
 ?- promise('http://localhost:3060', member(_X,[a,b,c]), Reference).
@@ -1704,7 +1944,13 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#promise")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p> 
             
-<p>The value of the timeout option is in seconds.</p>
+<p>
+    <code>yield/2-3</code> returns the promised answer from a previous call to <code>promise/3-4</code>. 
+    If the answer is available, it is returned immediately. Otherwise, the calling
+    process is suspended until the answer arrives from the node that was called.
+    Note that this predicate must be called by the same process from
+    which the previous call to <code>promise/3-4</code> was made, otherwise it will
+    not return. The value of the timeout option is in seconds.</p>
 
 <pre id="yield-timeout">
 ?- yield($Reference, Answer, [timeout(3)]).
@@ -1714,7 +1960,9 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#yield-timeout")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>
+    In order to see the result of no answer being available, you may want to click Enter again...
+</p>
 
 <pre id="promise-offset">
 ?- promise('http://localhost:3060', member(_X,[a,b,c]), Reference, [
@@ -1784,7 +2032,7 @@ query(Goal, Self, Parent) :-
     }
     function report(data) {
         if ($.isEmptyObject(data[0])) {
-            return "true";
+            return "true ";
         }
         return to_text(data[0]);
     }
@@ -1864,6 +2112,7 @@ query(Goal, Self, Parent) :-
                 } else if (type == "abort") {
                     trans("abort", 1);
                     term.echo("Aborted");
+                    term.scroll_to_bottom();
                 } else if (type == "exit") {
                     term.echo("Exiting");
                     term.pop();

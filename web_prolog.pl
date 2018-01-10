@@ -93,6 +93,7 @@
 :- use_module(restful_api).
 :- use_module(rpc).
 
+:- user:consult(resident).
 
 :- multifile
     actors:hook_goal/3.
