@@ -412,12 +412,14 @@ pengine_module(user).
    
 format:event_to_json(success(Pid, Answers0, More), JSON, 'json-s') :-
     !,
-    JSON = json{type:success, pid:Pid, data:Answers, more:More},
+    JSON = json{type:success, pid:PidString, data:Answers, more:More},
     maplist(dollar_expansion:wp_expand_answer, Answers0, Answers1),
+    term_string(Pid, PidString),
     maplist(answer_to_json_strings(Pid), Answers1, Answers).
 format:event_to_json(success(Pid, Answers0, Projection, Time, More), JSON, 'json-s') :-
     !,
-    JSON0 = json{type:success, pid:Pid, time:Time, data:Answers, more:More},
+    JSON0 = json{type:success, pid:PidString, time:Time, data:Answers, more:More},
+    term_string(Pid, PidString),    
     maplist(answer_to_json_strings(Pid), Answers0, Answers),
     add_projection(Projection, JSON0, JSON).
 format:event_to_json(output(Pid, Term), JSON, 'json-s') :-
@@ -463,12 +465,14 @@ term_string_value(Pengine, N-V, N-A) :-
 format:event_to_json(success(Pid, Answers0, More),
                        JSON, 'json-html') :-
     !,
-    JSON = json{type:success, pid:Pid, data:Answers, more:More},
+    JSON = json{type:success, pid:PidString, data:Answers, more:More},
+    term_string(Pid, PidString),
     maplist(map_answer(Pid), Answers0, _, Answers).
 format:event_to_json(success(Pid, Answers0, Projection, Time, More),
                        JSON, 'json-html') :-
     !,
-    JSON0 = json{type:success, pid:Pid, time:Time, data:Answers, more:More},
+    JSON0 = json{type:success, pid:PidString, time:Time, data:Answers, more:More},
+    term_string(Pid, PidString),    
     maplist(map_answer(Pid), Answers0, ResVars, Answers),
     add_projection(Projection, ResVars, JSON0, JSON).
 format:event_to_json(output(Pid, Term), JSON, 'json-html') :-
@@ -602,7 +606,8 @@ map_output(Pid, message(Term, Kind, HTMLString, Src), JSON) :-
     ->  JSON = JSON1.put(_{location:_{file:File, line:Line}})
     ;   JSON = JSON1
     ).
-map_output(Pid, Term, json{type:output, pid:Pid, data:Data}) :-
+map_output(Pid, Term, json{type:output, pid:PidString, data:Data}) :-
+    term_string(Pid, PidString),  
     (   atomic(Term)
     ->  Data = Term
     ;   is_dict(Term, json),

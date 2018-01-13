@@ -236,24 +236,28 @@ message_to_json_data(Message, JSON, Lang) :-
     event_to_json(Message, JSON, Lang),
     !. 
 message_to_json_data(success(Pid, Bindings0, More),
-                        json{type:success, pid:Pid,
+                        json{type:success, pid:PidString,
                              data:Bindings, more:More},
                         json) :-
     !,
+    term_string(Pid, PidString),
     term_to_json(Bindings0, Bindings).
 message_to_json_data(success(Pid, Bindings0, Projection, Time, More),
-                        json{type:success, pid:Pid, time:Time,
+                        json{type:success, pid:PidString, time:Time,
                              data:Bindings, more:More, projection:Projection},
                         json) :-
     !,
+    term_string(Pid, PidString),
     term_to_json(Bindings0, Bindings).
 message_to_json_data(failure(Pid, Time),
-                     json{type:failure, pid:Pid, time:Time}, _) :-
-    !.
+                     json{type:failure, pid:PidString, time:Time}, _) :-
+    !,
+    term_string(Pid, PidString).
 message_to_json_data(error(Pid, ErrorTerm), Error, _Style) :-
     !,
-    Error0 = json{type:error, pid:Pid, data:Message},
+    Error0 = json{type:error, pid:PidString, data:Message},
     add_error_details(ErrorTerm, Error0, Error),
+    term_string(Pid, PidString),
     message_to_string(ErrorTerm, Message).
 message_to_json_data(EventTerm, json{type:F, pid:PidString}, _Style) :-
     functor(EventTerm, F, 1),
