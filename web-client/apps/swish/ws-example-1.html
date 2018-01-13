@@ -1,0 +1,31 @@
+<html lang="en">
+    <head>
+		<script>
+		    var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
+			var id = Math.random().toString(36);
+		    ws.onerror = function(message) {
+		        console.log(message);
+		    };
+		    ws.onopen = function(message) {
+				ws.send(JSON.stringify({action:"pengine_spawn", options:'[reply_to("'+id+'")]'}));
+		    };
+		    ws.onmessage = function(message) {
+		        var event = JSON.parse(message.data);
+		        if (event.type == "spawned") {
+					ws.send(JSON.stringify({action:"pengine_ask", pid:event.pid, goal:"member(X, [a,b,c])"}));
+		        } else if (event.type == "success") {
+			        console.log(JSON.stringify(event.data));
+			        if (event.more) {
+			            ws.send(JSON.stringify({action:"pengine_next", pid:event.pid, options:'[reply_to("'+id+'")]'}));
+			        } else {
+			        }
+		        } 
+		    }; 
+		</script>
+    </head>
+    <body>
+		<div style="font-size:130%" id="output"></div>
+    </body>
+</html>
+
+      
