@@ -255,13 +255,15 @@ message_to_json_data(error(Pid, ErrorTerm), Error, _Style) :-
     Error0 = json{type:error, pid:Pid, data:Message},
     add_error_details(ErrorTerm, Error0, Error),
     message_to_string(ErrorTerm, Message).
-message_to_json_data(EventTerm, json{type:F, pid:Pid}, _Style) :-
+message_to_json_data(EventTerm, json{type:F, pid:PidString}, _Style) :-
     functor(EventTerm, F, 1),
     !,
-    arg(1, EventTerm, Pid).
-message_to_json_data(EventTerm, json{type:F, pid:Pid, data:JSON}, _Style) :-
+    arg(1, EventTerm, Pid),
+    term_string(Pid, PidString).
+message_to_json_data(EventTerm, json{type:F, pid:PidString, data:JSON}, _Style) :-
     functor(EventTerm, F, 2),
     arg(1, EventTerm, Pid),
+    term_string(Pid, PidString),
     arg(2, EventTerm, Data),
     term_to_json(Data, JSON).
 
