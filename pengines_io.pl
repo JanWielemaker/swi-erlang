@@ -599,7 +599,8 @@ subst_to_html(_, Term, _) :-
 map_output(Pid, message(Term, Kind, HTMLString, Src), JSON) :-
     atomic(HTMLString),
     !,
-    JSON0 = json{type:output, pid:Pid, message:Kind, data:HTMLString},
+    JSON0 = json{type:output, pid:PidString, message:Kind, data:HTMLString},
+    term_string(Pid, PidString), 
     format:add_error_details(Term, JSON0, JSON1),
     (   Src = File:Line,
         \+ JSON1.get(location) = _
