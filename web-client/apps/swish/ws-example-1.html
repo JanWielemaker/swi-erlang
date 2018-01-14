@@ -4,7 +4,7 @@
 		    var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
 			var id = Math.random().toString(36);
 		    ws.onerror = function(message) {
-		        console.log(message);
+		        document.getElementById("output").innerText += JSON.stringify(message) + "\n";;
 		    };
 		    ws.onopen = function(message) {
 				ws.send(JSON.stringify({action:"pengine_spawn", options:'[reply_to("'+id+'")]'}));
@@ -14,7 +14,7 @@
 		        if (event.type == "spawned") {
 					ws.send(JSON.stringify({action:"pengine_ask", pid:event.pid, goal:"member(X, [a,b,c])"}));
 		        } else if (event.type == "success") {
-			        console.log(JSON.stringify(event.data));
+					document.getElementById("output").innerText += JSON.stringify(event.data) + "\n";
 			        if (event.more) {
 			            ws.send(JSON.stringify({action:"pengine_next", pid:event.pid, options:'[reply_to("'+id+'")]'}));
 			        } else {
