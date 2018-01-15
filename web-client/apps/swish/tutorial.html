@@ -109,14 +109,39 @@ askable(has_feathers(_)).
   <button onclick='enter("#expert2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
+<h2>Spawning, sending and receiving</h2>
+
+<p>
+  	In the following example <code>spawn/1</code> is used to spawn a new actor process running a goal 
+	that will solve the query <code>?-length([a,b,c],_N)</code> and send the value of <code>_N</code>
+	back to the calling process identified as <code>_Self</code> where it will be received by 
+	<code>receive/1</code>:
+</p>
+
+<pre id="spawning1">
+?- self(_Self), 
+   spawn((length([a,b,c],_N), _Self ! _N)), 
+   receive({_N -> echo(_N)}).
+</pre>
+
+<p>
+  <button onclick='enter("#spawning1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>This is a silly example. </p>
+
+<p>
+  <button onclick='$("#spawning2").attr("style","display:block")' class="btn btn-link" type="button">Compare with Erlang</button>
+</p>
+
+<pre id="spawning2" style="display:none">
+1> Self = self(), 
+   Pid = spawn(fun() -> Self ! length([a b,c]) end), 
+   receive M -> io:write(M) end.
+</pre>
 
 <h2>A priority queue</h2>
     
-<p> 
-    The predicate <code>receive/1-2</code> has two features borrowed from Erlang: guards and a timeout  
-    mechanism. The following program demonstrates their uses. 
-</p>
-
 <p> 
     As a way to demonstrate the use of the <code>when</code> operator, as well as the use of another 
     <code>receive/2</code> option that causes a goal to be run on timeout, here is a priority queue 
@@ -174,9 +199,11 @@ normal(Messages) :-
   <button onclick='enter("#priority3")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>
+  <button onclick='$("#priority4").attr("style","display:block")' class="btn btn-link" type="button">Compare with Erlang</button>
+</p>
 
-<pre style="display:none">
+<pre id="priority4" style="display:none">
 See: http://learnyousomeerlang.com/more-on-multiprocessing
 
 important() ->
@@ -197,30 +224,11 @@ normal() ->
 </pre>
 
 
-<h2>Spawning</h2>
-
-<p>
-   ...
-</p>
-
-<pre id="spawning1">
-?- self(Self), 
-   spawn((p(_X), Self ! _X), Pid), 
-   receive({X -> echo(X)}).
-</pre>
-
-<p>
-  <button onclick='enter("#spawning1")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p>...</p>
-
-
 
 <h2>Servers</h2>
     
 <p> 
-    Using primitives for spawning, sending and receiving, we can easily write a program capable of responding with a <code>pong</code> to any client that passes along its pid in a <code>ping</code> message. In the Erlang community, such a program is usually referred to as a <i>server</i>. First, we consult the following source code:
+    Using primitives for spawning, sending and receiving, we can easily write a program capable of responding with a <code>pong</code> to any client that passes along its pid in a <code>ping</code> message. In the Erlang community, such a program is usually referred to as a <em>server</em>. First, we consult the following source code:
 </p>
     
 <pre id="server1">
@@ -308,16 +316,42 @@ server :-
   <button onclick='consult("#server6")' class="btn btn-xs btn-primary" type="button">Consult</button>
 </p> 
 
-<p> 
-    ...
+<p>
+    Then we need to start the server:
 </p>
 
 <pre id="server7">
-?- flush.
+?- spawn(server, Pid, [
+       src_predicates([server/0])
+   ]).
 </pre>
 
 <p>
   <button onclick='enter("#server7")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p> 
+    ...
+</p>
+
+<pre id="server8">
+?- $Pid ! ping($Self).
+</pre>
+
+<p>
+  <button onclick='enter("#server8")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p> 
+    ...
+</p>
+
+<pre id="server9">
+?- flush.
+</pre>
+
+<p>
+  <button onclick='enter("#server9")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
 
@@ -376,7 +410,11 @@ start(Pid) :-
 
 <p>...</p>
 
-<pre style="display:none">
+<p>
+  <button onclick='$("#fridge2").attr("style","display:block")' class="btn btn-link" type="button">Compare with Erlang</button>
+</p>
+
+<pre id="fridge2" style="display:none">
 fridge(FoodList) ->
     receive
         {From, {store, Food}} ->
@@ -451,7 +489,11 @@ start(N) :-
   <button onclick='enter("#pingpong2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<pre style="display:none">
+<p>
+  <button onclick='$("#pingpong3").attr("style","display:block")' class="btn btn-link" type="button">Compare with Erlang</button>
+</p>
+
+<pre id="pingpong3" style="display:none">
 -module(tut15).
 
 -export([start/0, ping/2, pong/0]).
@@ -1424,7 +1466,6 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#pengine-simple8")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<h3>Using options</h3>
 
 <p>
     The predicate <code>pengine_spawn/2</code> inherits all the options from <code>spawn/3</code>:
@@ -1459,12 +1500,12 @@ query(Goal, Self, Parent) :-
 </p>
 
 <p>
-    Using the <code>limit</code> option when asking for the next solutions:
+    Using the <code>limit</code> option when asking for more solutions:
 </p>
 
 <pre id="pengine-advanced3">
 ?- pengine_next($Pid, [
-       limit(1)
+       limit(4)
    ]).
 </pre>
 
@@ -1567,7 +1608,7 @@ query(Goal, Self, Parent) :-
 <h2>Promises (asynchronous RPC)</h2>
             
 <p>
-    A promise is a type of RPC that does not suspend the caller until the result is 
+    A <em>promise</em> is a type of RPC that does not suspend the caller until the result is 
     computed. Instead, a reference is immediately returned, which can later be used by <code>yield/2-3</code> 
     to collect the answer. The reference can be viewed as a promise to deliver the 
     answer.
@@ -1601,30 +1642,29 @@ query(Goal, Self, Parent) :-
     In order to see the result of no answer being available, you may want to click Enter again...
 </p>
 
-<h3>Using options</h3>
 
-<p>...</p>
+<p>The above use of <code>promise/3-4</code> and <code>yield/2-3</code> resulted in just the first answer to the query. To produce other answers, we can pass an option <code>offset</code>. And the <code>limit</code> option is also available, so that we can as for more than one answers at the same time:</p>
 
-<pre id="promise-offset">
+<pre id="promise-offset1">
 ?- promise('{{host}}', member(_X,[a,b,c,d]), Reference, [
+       template(_X),
        offset(1),
-       limit(2),
-       template(_X)
+       limit(2)
    ]).
 </pre>
             
 <p>
-  <button onclick='enter("#promise-offset")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#promise-offset1")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p> 
             
-<p>...</p>
+<p>Let's call <code>yield/3</code> again:</p>
 
-<pre id="yield-timeout">
+<pre id="promise-offset2">
 ?- yield($Reference, Answer, [timeout(0.5)]).
 </pre>
 
 <p>
-  <button onclick='enter("#yield-timeout")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#promise-offset2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
 <h2>Using the WebSocket API</h2>
@@ -1637,7 +1677,9 @@ query(Goal, Self, Parent) :-
     </a>
 </p>
 
-<p>Note that the page is going to open in a new window or tab.</p>
+<p>
+	Note that the page is going to open in a new window or tab. Use "View Page Source" to inspect the source code.
+</p>
 
 <p>
 	<a target="_blank" href="/apps/swish/ws-example-2.html">
