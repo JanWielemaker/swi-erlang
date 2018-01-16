@@ -91,12 +91,20 @@ node_action(pengine_spawn, Data, WebSocket) :-
     _{options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
-    option(reply_to(Stdout), Options),
+	uuid(UUID),
+    option(reply_to(Stdout), Options, UUID),
     assertz(actors:stdout(Stdout)),
     select_option(format(Format), Options, RestOptions, 'json-s'),
-    pengine_spawn(Pid, [sandboxed(false)|RestOptions]),
+    pengine_spawn(Pid, [sandboxed(false),reply_to(Stdout)|RestOptions]),
     assertz(pid_stdout_socket_format(Pid, Stdout, WebSocket, Format)),
     send(Stdout, spawned(Pid)).
+node_action(pengine_spawn, _Data, WebSocket) :-
+    !,
+	uuid(UUID),
+    assertz(actors:stdout(UUID)),
+    pengine_spawn(Pid, [sandboxed(false),reply_to(UUID)]),
+    assertz(pid_stdout_socket_format(Pid, UUID, WebSocket, json)),
+    send(UUID, spawned(Pid)).
 node_action(pengine_ask, Data, WebSocket) :-
     _{pid:PidString, goal:GoalString, options:OptionString} :< Data,
     !,
