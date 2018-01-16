@@ -139,6 +139,11 @@ node_action(pengine_stop, Data, _WebSocket) :-
     term_string(Options, OptionString),
     term_string(Pid, PidString),
     pengine_stop(Pid, Options).
+node_action(pengine_stop, Data, _WebSocket) :-
+    _{pid:PidString} :< Data,
+    !,
+    term_string(Pid, PidString),
+    pengine_stop(Pid).
 node_action(pengine_respond, Data, _WebSocket) :-
     _{pid:PidString, term:String} :< Data,
     !,

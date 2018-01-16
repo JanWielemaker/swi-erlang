@@ -146,7 +146,10 @@ ask(Goal0, Self, Parent, Options) :-
                         nb_setarg(1, State, Count),
                         fail;
                     pengine:stop(From) ->
-                        From ! stop(Self)  
+                        From ! stop(Self);
+                    pengine:stop ->
+						arg(1, OutPut, Out),
+                        Out ! stop(Self)  
                 })
             ;   Out ! success(Self, Solutions, false)
             )
@@ -241,9 +244,10 @@ pengine_stop(Pid) :-
     pengine_stop(Pid, []).
     
 pengine_stop(Pid, Options) :-
-    self(Self),
-    option(reply_to(ReplyTo), Options, Self),
-    Pid ! pengine:stop(ReplyTo). 
+    (	option(reply_to(ReplyTo), Options)
+    ->	Pid ! pengine:stop(ReplyTo)
+	;	Pid ! pengine:stop
+	).
     
     
 %!  pengine_output(+Term) is det.

@@ -420,18 +420,11 @@ server's console.
             return "true ";
         }
         return to_text(data[0]);
-    }
-    function S4() {
-        return (((1+Math.random())*0x10000)|0).toString(16).substring(1); 
-    }
-    function guid() {
-        return (S4() + S4() + "-" + S4() + "-4" + S4().substr(0,3) + "-" + S4() + "-" + S4() + S4() + S4()).toLowerCase();
-    }    
+    } 
     $(document).ready(function($) {
         var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
-        guid = guid();
         ws.onopen = function(message) {
-            ws.send(JSON.stringify({action:"pengine_spawn", options:'[reply_to("'+guid+'")]'}));
+            ws.send(JSON.stringify({action:"pengine_spawn", options:"[format('json-s')]"}));
         };
         ws.onerror = function(e) {
             console.log(e);
@@ -511,7 +504,7 @@ server's console.
             if (env.dirty) {
                 term.echo("Consulting from editor.");
                 var program = getProgram().replace(/'/g,"\\'");
-                ws.send(JSON.stringify({action:"pengine_ask", thread:guid, pid:pid, goal:"consult_text('" + program + "')", options:"[]"}));
+                ws.send(JSON.stringify({action:"pengine_ask", pid:pid, goal:"consult_text('" + program + "')"}));
                 env.dirty = false;
                 term.set_prompt("");
             }
@@ -522,7 +515,7 @@ server's console.
                 } else if (command.trim().endsWith('.')) {
                     currcommand += command.trim().slice(0, -1);
                     state = 2;
-                    ws.send(JSON.stringify({action:"pengine_ask", pid:pid, goal:currcommand, options:'[reply_to("'+guid+'")]'}));
+                    ws.send(JSON.stringify({action:"pengine_ask", pid:pid, goal:currcommand}));
                     trans("ask", 2);
                     currcommand = "";
                     term.pause();
@@ -533,11 +526,11 @@ server's console.
             } else if (state == 4) {
                 if (command == ";") {
                     state = 2;
-                    ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+guid+'")]'}));
+                    ws.send(JSON.stringify({action:"pengine_next", pid:pid}));
                     trans("next", 2);
                     term.pause();
                 } else if (command == "") {
-                    ws.send(JSON.stringify({action:"pengine_stop", pid:pid, options:'[reply_to("'+guid+'")]'}));
+                    ws.send(JSON.stringify({action:"pengine_stop", pid:pid}));
                     term.pause();
                 }
             } else if (state == 3) {
@@ -564,7 +557,7 @@ server's console.
              keypress: function(e) {
                  if (state == 4 && (e.which == 59 || e.which == 32)) {
                      gterm.echo(gterm.get_prompt() + ";");
-                     ws.send(JSON.stringify({action:"pengine_next", pid:pid, options:'[reply_to("'+guid+'")]'}));
+                     ws.send(JSON.stringify({action:"pengine_next", pid:pid}));
                      gterm.pause();
                      return false;
                  }
