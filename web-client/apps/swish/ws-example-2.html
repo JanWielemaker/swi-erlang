@@ -1,31 +1,37 @@
 <html lang="en">
-    <head>
-		<script>
-		    var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
-		    var program = "echo :- pengine_input(?,N), pengine_output(N), echo.";
-			function send(message) {
-				ws.send(JSON.stringify(message));
-			}
-		    ws.onerror = function(message) {
-		        document.getElementById("output").innerText += JSON.stringify(message) + "\n";
-		    };
-		    ws.onopen = function(message) {
-				send({action:"pengine_spawn", options:'[src_text("'+program+'")]'});
-		    };
-		    ws.onmessage = function(message) {
-		        var event = JSON.parse(message.data);
-		        if (event.type == "spawned") {
-					send({action:"pengine_ask", pid:event.pid, goal:"echo"});
-		        } else if (event.type == "prompt") {
-		            var response = prompt(event.data);
-                    send({action:"pengine_respond", pid:event.pid, term:response});
-		        } else if (event.type == "output") {
-		            document.getElementById("output").innerText += event.data + "\n";
-		        } 
-		    }; 
-		</script>
-    </head>
-    <body>
-		<div id="output"></div>
-    </body>
+  <head>
+    <meta charset="utf-8"/>
+    <script>
+      var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog');
+      var program = 'echo :- pengine_input(?,N), pengine_output(N), echo.';
+      ws.onerror = function (message) {
+        console.log(JSON.stringify(message));
+      };
+      ws.onopen = function (message) {
+        ws.send(JSON.stringify({
+          action: 'pengine_spawn',
+          options: '[src_text("' + program + '")]'
+        }));
+      };
+      ws.onmessage = function (message) {
+        var event = JSON.parse(message.data);
+        if (event.type == 'spawned') {
+          ws.send(JSON.stringify({
+            action: 'pengine_ask',
+            pid: event.pid,
+            goal: 'echo'
+          }));
+        } else if (event.type == 'prompt') {
+          var response = prompt(event.data);
+          ws.send(JSON.stringify({
+            action: 'pengine_respond',
+            pid: event.pid,
+            term: response
+          }));
+        } else if (event.type == 'output') {
+          console.log(JSON.stringify(event.data));
+        }
+      };
+    </script>
+  </head>
 </html>

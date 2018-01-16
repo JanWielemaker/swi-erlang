@@ -1,5 +1,6 @@
 <html lang="en">
   <head>
+    <meta charset="utf-8"/>
     <script>
 	  var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog');
 	  ws.onerror = function (message) {
@@ -30,9 +31,6 @@
 	  }; 	
     </script>
   </head>
-  <body>
-    <div id="output"></div>
-  </body>
 </html>
 
       
