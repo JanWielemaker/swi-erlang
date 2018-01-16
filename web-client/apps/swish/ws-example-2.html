@@ -3,7 +3,6 @@
 		<script>
 		    var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
 		    var program = "echo :- pengine_input(?,N), pengine_output(N), echo.";
-			var id = Math.random().toString(36);
 			function send(message) {
 				ws.send(JSON.stringify(message));
 			}
@@ -11,7 +10,7 @@
 		        document.getElementById("output").innerText += JSON.stringify(message) + "\n";
 		    };
 		    ws.onopen = function(message) {
-				send({action:"pengine_spawn", options:'[reply_to("'+id+'"),src_text("'+program+'")]'});
+				send({action:"pengine_spawn", options:'[src_text("'+program+'")]'});
 		    };
 		    ws.onmessage = function(message) {
 		        var event = JSON.parse(message.data);
