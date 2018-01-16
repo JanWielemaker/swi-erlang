@@ -98,14 +98,6 @@ node_action(pengine_spawn, Data, WebSocket) :-
     assertz(pid_stdout_socket_format(Pid, Stdout, WebSocket, Format)),
     send(Stdout, spawned(Pid)).
 node_action(pengine_ask, Data, WebSocket) :-
-    _{pid:PidString, goal:GoalString} :< Data,
-    !,
-    read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
-    term_string(Pid, PidString),
-    pid_stdout_socket_format(Pid, _Target, WebSocket, Format),
-    fix_template(Format, Goal, Bindings, NewTemplate),
-    pengine_ask(Pid, Goal, [template(NewTemplate)]).
-node_action(pengine_ask, Data, WebSocket) :-
     _{pid:PidString, goal:GoalString, options:OptionString} :< Data,
     !,
     read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
@@ -114,12 +106,25 @@ node_action(pengine_ask, Data, WebSocket) :-
     pid_stdout_socket_format(Pid, _Target, WebSocket, Format),
     fix_template(Format, Goal, Bindings, NewTemplate),
     pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
+node_action(pengine_ask, Data, WebSocket) :-
+    _{pid:PidString, goal:GoalString} :< Data,
+    !,
+    read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
+    term_string(Pid, PidString),
+    pid_stdout_socket_format(Pid, _Target, WebSocket, Format),
+    fix_template(Format, Goal, Bindings, NewTemplate),
+    pengine_ask(Pid, Goal, [template(NewTemplate)]).   
 node_action(pengine_next, Data, _WebSocket) :-
     _{pid:PidString, options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
     term_string(Pid, PidString),
     pengine_next(Pid, Options).    
+node_action(pengine_next, Data, _WebSocket) :-
+    _{pid:PidString} :< Data,
+    !,
+    term_string(Pid, PidString),
+    pengine_next(Pid). 
 node_action(pengine_stop, Data, _WebSocket) :-
     _{pid:PidString, options:OptionString} :< Data,
     !,
