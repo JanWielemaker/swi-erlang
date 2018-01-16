@@ -422,7 +422,7 @@ server's console.
         return to_text(data[0]);
     } 
     $(document).ready(function($) {
-        var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
+        var ws = new WebSocket('ws://localhost:3060/ws', 'pcp-0.2'); 
         ws.onopen = function(message) {
             ws.send(JSON.stringify({
 				action:"pengine_spawn", 

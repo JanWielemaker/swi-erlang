@@ -69,7 +69,7 @@
 :- http_handler(root(ws), node_manager, [spawn([]), id(ws)]).
 
 node_manager(Request) :-
-    http_upgrade_to_websocket(node_loop, [subprotocols([web_prolog])], Request).
+    http_upgrade_to_websocket(node_loop, [subprotocols(['pcp-0.2'])], Request).
 
 node_loop(WebSocket) :-
     ws_receive(WebSocket, Message, [format(json)]),
@@ -208,7 +208,7 @@ connection(Node, Socket) :-
     !.
 connection(Node, Socket) :-
     atom_concat(Node, '/ws', WsURI),
-    http_open_websocket(WsURI, Socket, [subprotocol(web_prolog)]),
+    http_open_websocket(WsURI, Socket, [subprotocol('pcp-0.2')]),
     thread_create(node_loop(Socket), Thread, [alias(Node)]),
     assertz(websocket(Node, Thread, Socket)).
 
