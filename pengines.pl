@@ -135,8 +135,14 @@ ask(Goal0, Self, Parent, Options) :-
         ->  (   var(Det)
             ->  Out ! success(Self, Solutions, true),
                 receive({
+                    pengine:next(Count) -> 
+                        nb_setarg(1, State, Count),
+                        fail;
                     pengine:next(From, Count) -> 
-                        nb_setarg(1, OutPut, From),
+						(	From \= ReplyTo
+						->	nb_setarg(1, OutPut, From)
+						;	true
+						),
                         nb_setarg(1, State, Count),
                         fail;
                     pengine:stop(From) ->
@@ -214,10 +220,11 @@ pengine_next(Pid) :-
     pengine_next(Pid, []).
 
 pengine_next(Pid, Options) :-
-    self(Self),
     option(limit(Limit), Options, 1),
-    option(reply_to(ReplyTo), Options, Self),
-    Pid ! pengine:next(ReplyTo, Limit).
+    (	option(reply_to(ReplyTo), Options)
+    ->	Pid ! pengine:next(ReplyTo, Limit)
+	;	Pid ! pengine:next(Limit)
+	).
 
 
 %!  pengine_stop(+Pid) is det.

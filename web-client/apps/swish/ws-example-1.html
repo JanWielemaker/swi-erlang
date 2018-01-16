@@ -19,7 +19,7 @@
 		        } else if (event.type == "success") {
 					document.getElementById("output").innerText += JSON.stringify(event.data) + "\n";
 			        if (event.more) {
-			            send({action:"pengine_next", pid:event.pid, options:'[reply_to("'+id+'")]'});
+			            send({action:"pengine_next", pid:event.pid});
 			        } 
 		        } 
 		    }; 
