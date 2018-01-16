@@ -128,15 +128,17 @@ wait_answer(success(anonymous, Solutions, true), Query, Offset0, Limit, QueryAto
 %
 
 rpc_ws(URI, Query, Options) :-
-    option(limit(Limit), Options, 1),
     pengine_spawn(Pid, [
          node(URI),
          exit(true),
-         monitor(false),
-         limit(Limit)
+         monitor(false)
        | Options
     ]),
-    pengine_ask(Pid, Query, Options),
+	option(limit(Limit), Options, 1),
+    pengine_ask(Pid, Query, [
+	     limit(Limit)
+	   | Options
+	]),
     wait_answer(Query, Pid, Limit).
 
 
