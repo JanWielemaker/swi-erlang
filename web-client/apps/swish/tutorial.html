@@ -145,8 +145,9 @@ askable(has_feathers(_)).
 <p> 
     As a way to demonstrate the use of the <code>when</code> operator, as well as the use of another 
     <code>receive/2</code> option that causes a goal to be run on timeout, here is a priority queue 
-    example borrowed from \citep{Hebert:2013:LYE:2543986}. Calling <code>important/1</code> will 
-    build a list of all messages with those with a priority above 10 coming first: 
+    example borrowed from <a href="http://learnyousomeerlang.com/">http://learnyousomeerlang.com/</a>. 
+	Calling <code>important/1</code> will build a list of all messages with those with a priority 
+	above 10 coming first: 
 </p>
     
 <pre id="priority1">
@@ -245,7 +246,7 @@ server :-
 </p> 
 
 <p>
-    Then we need to start the server:
+    This is how we spawn the server process:
 </p>
 
 <pre id="server2">
@@ -272,8 +273,8 @@ server :-
 
 <p>
     We use the bang operator <code>!/2</code> to send messages to the mailbox of the 
-    spawned process. Note also the use of another shell utility feature borrowed from SWI-Prolog. 
-	Bindings resulting from the successful execution of a top-level goal may be reused in future
+    spawned process. Note also the use of a shell utility feature borrowed from SWI-Prolog, allowing us
+	to reuse bindings resulting from the successful execution of a top-level goal in future
 	top-level goals as <code>$Var</code>.
 </p>
 
@@ -299,7 +300,8 @@ server :-
 </p>
 
 <p> 
-    Same server but a different implementation, possible since <code>receive/1-2</code> is semi-deterministic (i.e. either succeeds once or fails).
+    Same server but a different implementation, possible since <code>receive/1-2</code> is 
+	semi-deterministic (i.e. either fails or succeeds exactly once).
 </p>
     
 <pre id="server6">
@@ -317,7 +319,7 @@ server :-
 </p> 
 
 <p>
-    Then we need to start the server:
+    We need to start a new server:
 </p>
 
 <pre id="server7">
@@ -331,27 +333,17 @@ server :-
 </p>
 
 <p> 
-    ...
+    Sending a ping to the new server. For a change, we use <code>receive/1</code> instead of 
+	<code>flush/0</code> to capture the response:
 </p>
 
 <pre id="server8">
-?- $Pid ! ping($Self).
+?- $Pid ! ping($Self),
+   receive({Msg -> true}).
 </pre>
 
 <p>
   <button onclick='enter("#server8")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p> 
-    ...
-</p>
-
-<pre id="server9">
-?- flush.
-</pre>
-
-<p>
-  <button onclick='enter("#server9")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
 
@@ -361,7 +353,8 @@ server :-
     As a tastier example of how a process can be made to hold an updatable state during
     a conversation, and for the purpose of demonstrating a receive call that uses different
     receive clauses in order to listen for more than one kind of message, we have adapted a
-    fridge simulation example from Fred Hebert's excellent book on Erlang \citep{Hebert:2013:LYE:2543986}:
+    fridge simulation example from Fred Hebert's excellent book on Erlang, available at
+	<a href="http://learnyousomeerlang.com/">http://learnyousomeerlang.com/</a>.
 </p>
 
 <p>
@@ -538,7 +531,8 @@ start() ->
            _Self ! _X,
            receive({
                next -> fail;
-               stop -> true
+               stop -> 
+                   _Self ! stopped
            })
         ), Pid).
 </pre>
@@ -594,7 +588,7 @@ start() ->
 </p>
 
 
-<h2>A simple but generic pengine implementation</h2>
+<h2>A generic encapsulated search procedure</h2>
 
 <p>
     We can build a generic predicate by using a meta-predicate (such as <code>call_cleanup/2</code>) 
@@ -604,8 +598,8 @@ start() ->
     has been called or backtracked into.
 </p>
 
-<pre id="simple-pengine1">
-pengine(Goal, Pid) :-
+<pre id="encapsulated-search1">
+search(Goal, Pid) :-
     self(Self),
     spawn(query(Goal, Pid, Self), Pid, [
         monitor(true),
@@ -618,77 +612,76 @@ query(Goal, Self, Parent) :-
     ->  Parent ! success(Self, Goal, true),
         receive({
             next -> fail;
-            stop ->
-                Parent ! stop(Self)
+            stop -> true
         })
     ;   Parent ! success(Self, Goal, false)
     ).
 </pre>
 
 <p>
-  <button onclick='consult("#simple-pengine1")' class="btn btn-xs btn-primary" type="button">Consult</button>
+  <button onclick='consult("#encapsulated-search1")' class="btn btn-xs btn-primary" type="button">Consult</button>
 </p>
 
 <p>
-    ...
+    This is how we call <code>pengine/2</code> with a query:
 </p>
 
-<pre id="simple-pengine2">
-?- pengine(member(_X,[a,b,c]), Pid).
+<pre id="encapsulated-search2">
+?- search(member(_X,[a,b,c]), Pid).
 </pre>
 
 <p>
-  <button onclick='enter("#simple-pengine2")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#encapsulated-search2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>Let's flush to inspect the first solution:</p>
 
-<pre id="simple-pengine3">
+<pre id="encapsulated-search3">
 ?- flush.
 </pre>
 
 <p>
-  <button onclick='enter("#simple-pengine3")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#encapsulated-search3")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>Ask for the next solution:</p>
 
-<pre id="simple-pengine4">
+<pre id="encapsulated-search4">
 ?- $Pid ! next.
 </pre>
 
 <p>
-  <button onclick='enter("#simple-pengine4")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#encapsulated-search4")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>Let's flush again:</p>
 
-<pre id="simple-pengine5">
+<pre id="encapsulated-search5">
 ?- flush.
 </pre>
 
 <p>
-  <button onclick='enter("#simple-pengine5")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#encapsulated-search5")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>Tell the actor to stop:</p>
 
-<pre id="simple-pengine6">
+<pre id="encapsulated-search6">
 ?- $Pid ! stop.
 </pre>
 
 <p>
-  <button onclick='enter("#simple-pengine6")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#encapsulated-search6")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>Let's flush again:</p>
 
-<pre id="simple-pengine7">
+<pre id="encapsulated-search7">
 ?- flush.
 </pre>
 
 <p>
-  <button onclick='enter("#simple-pengine7")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#encapsulated-search7")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
 <p>
@@ -1386,7 +1379,7 @@ query(Goal, Self, Parent) :-
 </svg>
 
 
-<p>...</p>
+<p>This is how we spawn a pengine:</p>
 
 <pre id="pengine-simple1">
 ?- pengine_spawn(Pid).
@@ -1396,7 +1389,7 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#pengine-simple1")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>and this is how we ask a query:</p>
 
 <pre id="pengine-simple2">
 ?- pengine_ask($Pid, member(_X,[a,b,c])).
@@ -1406,7 +1399,7 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#pengine-simple2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>We use <code>flush/0</code> to inspect the result:</p>
 
 <pre id="pengine-simple3">
 ?- flush.
@@ -1416,7 +1409,7 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#pengine-simple3")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>This is how we request the next solution:</p>
 
 <pre id="pengine-simple4">
 ?- pengine_next($Pid).
@@ -1426,44 +1419,67 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#pengine-simple4")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>Let's flush!</p>
 
 <pre id="pengine-simple5">
-?- pengine_stop($Pid).
+?- flush.
 </pre>
 
 <p>
   <button onclick='enter("#pengine-simple5")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>When we don't want more answers, we call <code>pengine_stop/1</code></p>
 
 <pre id="pengine-simple6">
-?- pengine_ask($Pid, (between(1,30, _N), echo(_N), sleep(1), fail)).
+?- pengine_stop($Pid).
 </pre>
 
 <p>
   <button onclick='enter("#pengine-simple6")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
-
 <pre id="pengine-simple7">
-?- pengine_abort($Pid).
+?- flush.
 </pre>
 
 <p>
   <button onclick='enter("#pengine-simple7")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>
+	Having spawned a process running a goal, it sometimes happens that it loops indefinitely, so that we may 
+  	need to terminate it by force.
+</p>
+
+<p>Let's ask a query that takes a while to terminate...</p>
 
 <pre id="pengine-simple8">
-?- flush.
+?- pengine_ask($Pid, (between(1,30, _N), echo(_N), sleep(1), fail)).
 </pre>
 
 <p>
   <button onclick='enter("#pengine-simple8")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>...just to be able to abort it:</p>
+
+<pre id="pengine-simple9">
+?- pengine_abort($Pid).
+</pre>
+
+<p>
+  <button onclick='enter("#pengine-simple9")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>Let's flush!</p>
+
+<pre id="pengine-simple10">
+?- flush.
+</pre>
+
+<p>
+  <button onclick='enter("#pengine-simple10")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
 
@@ -1513,8 +1529,9 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#pengine-advanced3")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>Having spawned a process running a goal, it sometimes happens that it loops indefinitely, so that we may 
-	need to terminate it by force. This is where the <code>exit/2</code> predicate comes in.
+<p>
+	We are running a session, and may want to terminate it. This is where the <code>exit/2</code> predicate 
+	comes in.
 </p>
 
 <pre id="pengine-simple11">
@@ -1525,7 +1542,7 @@ query(Goal, Self, Parent) :-
   <button onclick='enter("#pengine-simple11")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...</p>
+<p>Let's flush the top-level mailbox:</p>
 
 <pre id="pengine-simple12">
 ?- flush.
@@ -1538,7 +1555,43 @@ query(Goal, Self, Parent) :-
 <h2>RPC</h2>
 
 <p>
-    Web Prolog offers a predicate <code>rpc/2-3</code> capable of non-deterministic remote procedure calls:
+    Web Prolog offers a predicate <code>rpc/2-3</code> capable of non-deterministic remote procedure 
+	calls. Simplifying somewhat, it's implemented like so:
+</p>
+
+<pre>
+rpc(URI, Query, Options) :-
+    pengine_spawn(Pid, [
+         node(URI),
+         exit(true),
+         monitor(false)
+       | Options
+    ]),
+	option(limit(Limit), Options, 1),
+    pengine_ask(Pid, Query, [
+	     limit(Limit)
+	   | Options
+	]),
+    wait_answer(Query, Pid, Limit).
+
+
+wait_answer(Query, Pid, Limit) :-
+    receive({
+        failure(Pid) -> fail;            
+        error(Pid, Exception) -> 
+            throw(Exception);                  
+        success(Pid, Solutions, true) -> 
+            (   member(Query, Solutions)
+            ;   pengine_next(Pid, [limit(Limit)]), 
+                wait_answer(Query, Pid, Limit)
+            );
+        success(Pid, Solutions, false) -> 
+            member(Query, Solutions)
+    }).
+</pre>
+
+<p>
+    Here is how we can test it:
 </p>
 
 <pre id="rpc-http">
@@ -1598,7 +1651,8 @@ query(Goal, Self, Parent) :-
 </p>
 
 <p>
-    As the above example tries to convey, the behaviour of the call, as seen from the point 
+    As the above example tries to convey, although the call only makes three network roundtrips 
+	in order to generate all twelve solutions, the behaviour of the call, as seen from the point 
     of view of the client, does not change. Thus, the <code>limit</code> option serves as a
     performance optimisation only, and has nothing to with logic and the declarative reading
     of the query.
@@ -1643,7 +1697,7 @@ query(Goal, Self, Parent) :-
 </p>
 
 
-<p>The above use of <code>promise/3-4</code> and <code>yield/2-3</code> resulted in just the first answer to the query. To produce other answers, we can pass an option <code>offset</code>. And the <code>limit</code> option is also available, so that we can as for more than one answers at the same time:</p>
+<p>The above use of <code>promise/3-4</code> and <code>yield/2-3</code> resulted in just the first answer to the query. To produce other answers, we can pass an option <code>offset</code>. And the <code>limit</code> option is also available, so that we can ask for more than one answer at the same time:</p>
 
 <pre id="promise-offset1">
 ?- promise('{{host}}', member(_X,[a,b,c,d]), Reference, [
@@ -1705,6 +1759,6 @@ query(Goal, Self, Parent) :-
 
 <h2>Using the HTTP send API</h2>
 
-<p>...</p>
+<p>Given a pid or an alias, you are able to send a message to the "named" pengine (or other actor):</p>
 
             </div>
