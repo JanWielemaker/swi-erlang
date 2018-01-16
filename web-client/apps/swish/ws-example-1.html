@@ -1,32 +1,38 @@
 <html lang="en">
-    <head>
-		<script>
-		    var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
-			function send(message) {
-				ws.send(JSON.stringify(message));
-			}
-		    ws.onerror = function(message) {
-		        document.getElementById("output").innerText += JSON.stringify(message) + "\n";
-		    };
-		    ws.onopen = function(message) {
-				send({action:"pengine_spawn"});
-		    };
-		    ws.onmessage = function(message) {
-		        var event = JSON.parse(message.data);
-		        if (event.type == "spawned") {
-					send({action:"pengine_ask", pid:event.pid, goal:"member(X, [a,b,c])"});
-		        } else if (event.type == "success") {
-					document.getElementById("output").innerText += JSON.stringify(event.data) + "\n";
-			        if (event.more) {
-			            send({action:"pengine_next", pid:event.pid});
-			        } 
-		        } 
-		    }; 
-		</script>
-    </head>
-    <body>
-		<div id="output"></div>
-    </body>
+  <head>
+    <script>
+	  var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog');
+	  ws.onerror = function (message) {
+	    console.log(message);
+	  };
+	  ws.onopen = function (message) {
+	    ws.send(JSON.stringify({
+	      action: 'pengine_spawn'
+	    }));
+	  };
+	  ws.onmessage = function (message) {
+	    var event = JSON.parse(message.data);
+	    if (event.type == 'spawned') {
+	      ws.send(JSON.stringify({
+	        action: 'pengine_ask',
+	        pid: event.pid,
+	        goal: 'member(X,[a,b,c])'
+	      }));
+	    } else if (event.type == 'success') {
+	      console.log(JSON.stringify(event.data));
+	      if (event.more) {
+	        ws.send(JSON.stringify({
+	          action: 'pengine_next',
+	          pid: event.pid
+	        }));
+	      }
+	    }
+	  }; 	
+    </script>
+  </head>
+  <body>
+    <div id="output"></div>
+  </body>
 </html>
 
       

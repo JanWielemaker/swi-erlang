@@ -77,7 +77,7 @@ prove(H) :-
     prove(B).
 prove(H) :-
     askable(H),
-    format(atom(Q), 'Is it true that: ~q?', [H]),
+    format(atom(Q), '~q?', [H]),
     pengine_input(Q, Answer),
     Answer == yes.
 
@@ -119,8 +119,8 @@ askable(has_feathers(_)).
 </p>
 
 <pre id="spawning1">
-?- self(_Self), 
-   spawn((length([a,b,c],_N), _Self ! _N)), 
+?- self(Self), 
+   spawn((length([a,b,c],_N), Self ! _N)), 
    receive({_N -> echo(_N)}).
 </pre>
 
@@ -1724,6 +1724,45 @@ wait_answer(Query, Pid, Limit) :-
 <h2>Using the WebSocket API</h2>
 
 <p>Note that the page is going to open in a new window or tab.</p>
+
+<pre>
+&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;script&gt;
+      var ws = new WebSocket(&#x27;ws:/localhost:3060/ws&#x27;, &#x27;web_prolog&#x27;);
+      ws.onerror = function (message) {
+        console.log(message);
+      };
+      ws.onopen = function (message) {
+        ws.send(JSON.stringify({
+          action: &#x27;pengine_spawn&#x27;
+        }));
+      };
+      ws.onmessage = function (message) {
+        var event = JSON.parse(message.data);
+        if (event.type == &#x27;spawned&#x27;) {
+          ws.send(JSON.stringify({
+            action: &#x27;pengine_ask&#x27;,
+            pid: event.pid,
+            goal: &#x27;member(X,[a,b,c])&#x27;
+          }));
+        } else if (event.type == &#x27;success&#x27;) {
+          console.log(JSON.stringify(event.data));
+          if (event.more) {
+            ws.send(JSON.stringify({
+              action: &#x27;pengine_next&#x27;,
+              pid: event.pid
+            }));
+          }
+        }
+      };   
+    &lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id=&quot;output&quot;&gt;&lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</pre>
 
 <p>
 	<a target="_blank" href="/apps/swish/ws-example-1.html">

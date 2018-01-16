@@ -424,7 +424,10 @@ server's console.
     $(document).ready(function($) {
         var ws = new WebSocket('ws://localhost:3060/ws', 'web_prolog'); 
         ws.onopen = function(message) {
-            ws.send(JSON.stringify({action:"pengine_spawn", options:"[format('json-s')]"}));
+            ws.send(JSON.stringify({
+				action:"pengine_spawn", 
+				options:"[format('json-s')]"
+			}));
         };
         ws.onerror = function(e) {
             console.log(e);
@@ -478,7 +481,7 @@ server's console.
                 } else if (type == "prompt") {
                     state = 3;
                     trans("prompt", 3);
-                    term.set_prompt(JSON.stringify(msg.data, null, ' ') + ": ");
+                    term.set_prompt(msg.data + ": ");
                 } else if (type == "output") {
                     trans("output", 2);
                     term.echo(msg.data);                    
@@ -504,7 +507,11 @@ server's console.
             if (env.dirty) {
                 term.echo("Consulting from editor.");
                 var program = getProgram().replace(/'/g,"\\'");
-                ws.send(JSON.stringify({action:"pengine_ask", pid:pid, goal:"consult_text('" + program + "')"}));
+                ws.send(JSON.stringify({
+					action:"pengine_ask", 
+					pid:pid, 
+					goal:"consult_text('" + program + "')"
+				}));
                 env.dirty = false;
                 term.set_prompt("");
             }
@@ -515,7 +522,11 @@ server's console.
                 } else if (command.trim().endsWith('.')) {
                     currcommand += command.trim().slice(0, -1);
                     state = 2;
-                    ws.send(JSON.stringify({action:"pengine_ask", pid:pid, goal:currcommand}));
+                    ws.send(JSON.stringify({
+						action:"pengine_ask", 
+						pid:pid, 
+						goal:currcommand
+					}));
                     trans("ask", 2);
                     currcommand = "";
                     term.pause();
@@ -526,17 +537,27 @@ server's console.
             } else if (state == 4) {
                 if (command == ";") {
                     state = 2;
-                    ws.send(JSON.stringify({action:"pengine_next", pid:pid}));
+                    ws.send(JSON.stringify({
+						action:"pengine_next", 
+						pid:pid
+					}));
                     trans("next", 2);
                     term.pause();
                 } else if (command == "") {
-                    ws.send(JSON.stringify({action:"pengine_stop", pid:pid}));
+                    ws.send(JSON.stringify({
+						action:"pengine_stop", 
+						pid:pid
+					}));
                     term.pause();
                 }
             } else if (state == 3) {
                 state = 2;
                 if (command !== "") {
-                    ws.send(JSON.stringify({action:"pengine_respond", pid:pid, term:command}));
+                    ws.send(JSON.stringify({
+						action:"pengine_respond", 
+						pid:pid, 
+						term:command
+					}));
                 }
             }
          }, {
@@ -548,7 +569,10 @@ server's console.
              keymap: {
                  'CTRL+C': function(e, a) {
                      if (state == 2 || state == 3) {
-                         ws.send(JSON.stringify({action:"pengine_abort", pid:pid}));
+                         ws.send(JSON.stringify({
+							 action:"pengine_abort", 
+							 pid:pid
+						 }));
                          gterm.pause();
                          return false;
                      }
@@ -557,7 +581,10 @@ server's console.
              keypress: function(e) {
                  if (state == 4 && (e.which == 59 || e.which == 32)) {
                      gterm.echo(gterm.get_prompt() + ";");
-                     ws.send(JSON.stringify({action:"pengine_next", pid:pid}));
+                     ws.send(JSON.stringify({
+						 action:"pengine_next", 
+						 pid:pid
+					 }));
                      gterm.pause();
                      return false;
                  }
