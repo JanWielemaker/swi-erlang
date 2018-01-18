@@ -138,14 +138,14 @@ copy_flag(Module, Application, Flag) :-
 copy_flag(_, _, _).
 
 source_option(src_text(_)).
-source_option(src_url(_)).
+source_option(src_uri(_)).
 
 load_source(Module, Options, src_text(Text)) :-
     !,
     load_src_text(Text, Module, Options).
-load_source(Module, Options, src_url(URL)) :-
+load_source(Module, Options, src_uri(URI)) :-
     !,
-    load_src_url(URL, Module, Options).
+    load_src_uri(URI, Module, Options).
 
 
 
@@ -184,19 +184,19 @@ system:'#file'(File, _Line) :-
     set_stream(Stream, record_position(false)),
     set_stream(Stream, record_position(true)).
 
-%%   load_src_url(+URL, +Module, Options) is det
+%%   load_src_uri(+URI, +Module, Options) is det
 %
-%    Asserts the clauses defined in URL in   the private database of the
-%    current actor. This predicate processes   the `src_url' option of
+%    Asserts the clauses defined in URI in   the private database of the
+%    current actor. This predicate processes   the `src_uri' option of
 %    spawn/3.
 %
 %    @tbd: make a sensible guess at the encoding.
 
-load_src_url(URL, Module, Options) :-
+load_src_uri(URI, Module, Options) :-
     option(source_id(ID), Options, Module),
     (   option(debug(false), Options, false)
     ->  setup_call_cleanup(
-            http_open(URL, Stream, []),
+            http_open(URI, Stream, []),
             ( set_stream(Stream, encoding(utf8)),
               load_files(Module:ID,
                          [ stream(Stream),
@@ -206,7 +206,7 @@ load_src_url(URL, Module, Options) :-
             ),
             close(Stream))
     ;   setup_call_cleanup(
-            http_open(URL, TempStream, []),
+            http_open(URI, TempStream, []),
             ( set_stream(TempStream, encoding(utf8)),
               read_string(TempStream, _, Src)
             ),

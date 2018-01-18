@@ -1605,12 +1605,12 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-    The special purpose URI <code>localnode</code> serves as the default value of the <code>node</code> option for both <code>spawn/2-3</code> and <code>pengine_spawn/1-2</code>. Thus it follows, perhaps a bit counter-intuitively, that in combination with the <code>src_uris</code> option <code>rpc/3</code> can also be used to "bring data to the code":
+    The special purpose URI <code>localnode</code> serves as the default value of the <code>node</code> option for both <code>spawn/2-3</code> and <code>pengine_spawn/1-2</code>. Thus it follows, perhaps a bit counter-intuitively, that in combination with the <code>src_uri</code> option <code>rpc/3</code> can also be used to "bring data to the code":
 </p>
 
 <pre id="rpc-localnode">
 ?- rpc(localnode, p(X), [
-       src_url('https://gist.githubusercontent.com/torbjornlager/21583e7238dc855f94f6b5f2f48788bb/raw/p.pl')
+       src_uri('https://gist.githubusercontent.com/torbjornlager/21583e7238dc855f94f6b5f2f48788bb/raw/p.pl')
    ]).
 </pre>
 
