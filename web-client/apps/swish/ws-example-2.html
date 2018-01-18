@@ -1,15 +1,23 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
     <script>
-      var ws = new WebSocket('ws://localhost:3060/ws', 'pcp-0.2');
-      var program = 'echo :- pengine_input(?,N), pengine_output(N), echo.';
+      var ws = new WebSocket('ws://localhost:3060/ws','pcp-0.2');
+      var program = 
+         `echo :-
+              pengine_input('Input term!', Something),
+              (   Something == null
+              ->  pengine_output(done)
+              ;   pengine_output(Something),
+                  echo
+              ).`;
       ws.onerror = function (message) {
         console.log(JSON.stringify(message));
       };
       ws.onopen = function (message) {
         ws.send(JSON.stringify({
-          action: 'pengine_spawn',
+          command: 'pengine_spawn',
           options: '[src_text("' + program + '")]'
         }));
       };
@@ -17,14 +25,14 @@
         var event = JSON.parse(message.data);
         if (event.type == 'spawned') {
           ws.send(JSON.stringify({
-            action: 'pengine_ask',
+            command: 'pengine_ask',
             pid: event.pid,
-            goal: 'echo'
+            query: 'echo'
           }));
         } else if (event.type == 'prompt') {
           var response = prompt(event.data);
           ws.send(JSON.stringify({
-            action: 'pengine_respond',
+            command: 'pengine_respond',
             pid: event.pid,
             term: response
           }));
@@ -34,4 +42,12 @@
       };
     </script>
   </head>
+  <body>
+	<p>
+	   To inspect the program output, please open your browser's console. 
+    </p>
+	<p>
+	   Use "View Page Source" to view the source code.
+    </p>
+  </body>
 </html>

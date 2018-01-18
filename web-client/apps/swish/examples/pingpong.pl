@@ -33,13 +33,13 @@ start() ->
 
 ping(0, Pong_Pid) :-
     Pong_Pid ! finished,
-    echo('Ping finished').
+    io:writeln('Ping finished').
 ping(N, Pong_Pid) :-
     self(Self),
     Pong_Pid ! ping(Self),
     receive({
         pong ->
-            echo('Ping received pong')
+            io:writeln('Ping received pong')
     }),
     N1 is N - 1,
     ping(N1, Pong_Pid).
@@ -47,11 +47,11 @@ ping(N, Pong_Pid) :-
 pong :-
     receive({
         ping(Ping_Pid) ->
-            echo('Pong received ping'),
+            io:writeln('Pong received ping'),
             Ping_Pid ! pong,
             pong;
         finished ->
-            echo('Pong finished')
+            io:writeln('Pong finished')
     }).
    
 start :-

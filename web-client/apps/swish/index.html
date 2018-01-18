@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -316,61 +315,6 @@ server's console.
             <pre id="editor">
   
             </pre>
-
-
-<script>
-    
-    function recursiveReplace(node, host) {
-        if (node.nodeType == 3) { // text node
-            node.nodeValue = node.nodeValue.replace("{{host}}", host);
-        } else if (node.nodeType == 1) { // element
-            $(node).contents().each(function () {
-                recursiveReplace(this, host);
-            });
-        }
-    }
-    
-    function consult(id) {
-        if (gterm.get_prompt().trim() != "?-") {
-            gterm.exec("");
-        }
-        setTimeout(function() {
-            var val = $(id).text();
-            var program = val.replace(/'/g,"\\'");
-            gterm.echo("\n?- consult_text('"+id+"').");
-            gterm.exec("consult_text('"+program+"').", true);
-            setTimeout(gterm.enable, 0);
-        }, 5)
-    }
-    
-    function enter(id) {
-        if (gterm.get_prompt().trim() != "?-") {
-            gterm.exec("");
-        }
-        setTimeout(function(){ask($(id).text().slice(3).trim())}, 5);
-    }
-    function ask(query) {
-        gterm.exec(query);
-        setTimeout(gterm.enable, 0);
-    }
-    
-    function next() {
-        gterm.exec(";");
-        setTimeout(gterm.enable, 0);
-    }
-    
-    function stop() {
-        gterm.exec("");
-        setTimeout(gterm.enable, 0);
-    }
-    
-    function trans(id, state) {
-        $('svg [id^=state]').attr('style','fill: white');
-        $('svg [id^=d]').attr('style','stroke: black');
-        $('svg #state-'+state).attr('style','fill: lightcoral');
-        $('svg #d-'+id).attr('style','stroke: red; stroke-width:2');
-    }
-</script>
                 
 
             <div id="tutorial-container"></div>
@@ -425,7 +369,7 @@ server's console.
         var ws = new WebSocket('ws://localhost:3060/ws', 'pcp-0.2'); 
         ws.onopen = function(message) {
             ws.send(JSON.stringify({
-				action:"pengine_spawn", 
+				command:"pengine_spawn", 
 				options:"[format('json-s')]"
 			}));
         };
@@ -508,9 +452,9 @@ server's console.
                 term.echo("Consulting from editor.");
                 var program = getProgram().replace(/'/g,"\\'");
                 ws.send(JSON.stringify({
-					action:"pengine_ask", 
+					command:"pengine_ask", 
 					pid:pid, 
-					goal:"consult_text('" + program + "')"
+					query:"consult_text('" + program + "')"
 				}));
                 env.dirty = false;
                 term.set_prompt("");
@@ -523,9 +467,9 @@ server's console.
                     currcommand += command.trim().slice(0, -1);
                     state = 2;
                     ws.send(JSON.stringify({
-						action:"pengine_ask", 
+						command:"pengine_ask", 
 						pid:pid, 
-						goal:currcommand
+						query:currcommand
 					}));
                     trans("ask", 2);
                     currcommand = "";
@@ -538,14 +482,14 @@ server's console.
                 if (command == ";") {
                     state = 2;
                     ws.send(JSON.stringify({
-						action:"pengine_next", 
+						command:"pengine_next", 
 						pid:pid
 					}));
                     trans("next", 2);
                     term.pause();
                 } else if (command == "") {
                     ws.send(JSON.stringify({
-						action:"pengine_stop", 
+						command:"pengine_stop", 
 						pid:pid
 					}));
                     term.pause();
@@ -554,7 +498,7 @@ server's console.
                 state = 2;
                 if (command !== "") {
                     ws.send(JSON.stringify({
-						action:"pengine_respond", 
+						command:"pengine_respond", 
 						pid:pid, 
 						term:command
 					}));
@@ -570,7 +514,7 @@ server's console.
                  'CTRL+C': function(e, a) {
                      if (state == 2 || state == 3) {
                          ws.send(JSON.stringify({
-							 action:"pengine_abort", 
+							 command:"pengine_abort", 
 							 pid:pid
 						 }));
                          gterm.pause();
@@ -582,7 +526,7 @@ server's console.
                  if (state == 4 && (e.which == 59 || e.which == 32)) {
                      gterm.echo(gterm.get_prompt() + ";");
                      ws.send(JSON.stringify({
-						 action:"pengine_next", 
+						 command:"pengine_next", 
 						 pid:pid
 					 }));
                      gterm.pause();

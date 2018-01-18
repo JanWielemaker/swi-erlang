@@ -7,7 +7,7 @@ start(NumberProcesses, Message) :-
     	Msg ->
         	get_time(End),
         	Wall is End - Start,
-            echo(Msg-Wall)
+            io:writeln(Msg-Wall)
      }).
               
 create(1, NextProcess, Message) :- !,

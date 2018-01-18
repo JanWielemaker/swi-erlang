@@ -134,23 +134,19 @@ rpc_ws(URI, Query, Options) :-
          monitor(false)
        | Options
     ]),
-	option(limit(Limit), Options, 1),
-    pengine_ask(Pid, Query, [
-	     limit(Limit)
-	   | Options
-	]),
-    wait_answer(Query, Pid, Limit).
+    pengine_ask(Pid, Query, Options),
+    wait_answer(Query, Pid).
 
 
-wait_answer(Query, Pid, Limit) :-
+wait_answer(Query, Pid) :-
     receive({
         failure(Pid) -> fail;            
         error(Pid, Exception) -> 
             throw(Exception);                  
         success(Pid, Solutions, true) -> 
             (   member(Query, Solutions)
-            ;   pengine_next(Pid, [limit(Limit)]), 
-                wait_answer(Query, Pid, Limit)
+            ;   pengine_next(Pid), 
+                wait_answer(Query, Pid)
             );
         success(Pid, Solutions, false) -> 
             member(Query, Solutions)

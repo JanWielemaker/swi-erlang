@@ -1,15 +1,16 @@
 <div id="tutorial">
+	
 <h1>Web Prolog Tutorial</h1>
 
 <p>
     If everything works as it should, the frame to the right is showing what is more or less
-    a traditional Prolog terminal. It is talking to a <em>pengine</em> running on a Prolog
+    a traditional Prolog shell. It is talking to a <em>pengine</em> running on a Prolog
     Web <em>node</em> running on a computer somewhere. The node is identified by the URI '{{host}}'.
 </p>
 
 <p>
     Each pengine has access to a fullblown Prolog language, except that it doesn't allow
-    talking to the OS, and is also extended with primitives for doing Erlang-style
+    talking to the OS, access files, etc., and is also extended with primitives for doing Erlang-style
     concurrent and distributed programming. 
 </p>
 
@@ -112,7 +113,7 @@ askable(has_feathers(_)).
 <h2>Spawning, sending and receiving</h2>
 
 <p>
-  	In the following example <code>spawn/1</code> is used to spawn a new actor process running a goal 
+  	In the following example <code>spawn/2</code> is used to spawn a new actor process running a goal 
 	that will solve the query <code>?-length([a,b,c],_N)</code> and send the value of <code>_N</code>
 	back to the calling process identified as <code>_Self</code> where it will be received by 
 	<code>receive/1</code>:
@@ -120,31 +121,29 @@ askable(has_feathers(_)).
 
 <pre id="spawning1">
 ?- self(Self), 
-   spawn((length([a,b,c],_N), Self ! _N)), 
-   receive({_N -> echo(_N)}).
+   spawn((length([a,b,c],_N), Self ! _N), _Pid), 
+   receive({_M -> io:writeln(_M)}).
 </pre>
 
-<p>
-  <button onclick='enter("#spawning1")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p>This is a silly example. </p>
-
-<p>
-  <button onclick='$("#spawning2").attr("style","display:block")' class="btn btn-link" type="button">Compare with Erlang</button>
-</p>
-
-<pre id="spawning2" style="display:none">
+<pre id="spawning2" class="collapse">
 1> Self = self(), 
    Pid = spawn(fun() -> Self ! length([a b,c]) end), 
    receive M -> io:write(M) end.
 </pre>
 
+<p>
+  <button onclick='enter("#spawning1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#spawning2">&nbsp;Compare Erlang</input>
+</p>
+
+<p>This is a silly example. </p>
+
+
 <h2>A priority queue</h2>
     
 <p> 
     As a way to demonstrate the use of the <code>when</code> operator, as well as the use of another 
-    <code>receive/2</code> option that causes a goal to be run on timeout, here is a priority queue 
+    <code>receive/2</code> option that causes a goal to be run on timeout, here's a priority queue 
     example borrowed from <a href="http://learnyousomeerlang.com/">http://learnyousomeerlang.com/</a>. 
 	Calling <code>important/1</code> will build a list of all messages with those with a priority 
 	above 10 coming first: 
@@ -170,43 +169,7 @@ normal(Messages) :-
     }).  
 </pre>
 
-<p>
-  <button onclick='consult("#priority1")' class="btn btn-xs btn-primary" type="button">Consult</button>
-</p> 
-
-<p>
-    We use a combination of <code>self/1</code> and the bang operator <code>!/2</code> to send four messages to the mailbox of the 
-    top-level pengine.
-</p>
-
-<pre id="priority2">
-?- self(S), S ! 15-high, S ! 7-low, S ! 1-low, S ! 17-high.
-</pre>
-
-<p>
-  <button onclick='enter("#priority2")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p>
-    Finally, we call <code>important/1</code> in order to compute a list where all the important messages appear
-    before the less important ones:
-</p>
-
-<pre id="priority3">
-?- important(Messages).
-</pre>
-
-<p>
-  <button onclick='enter("#priority3")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p>
-  <button onclick='$("#priority4").attr("style","display:block")' class="btn btn-link" type="button">Compare with Erlang</button>
-</p>
-
-<pre id="priority4" style="display:none">
-See: http://learnyousomeerlang.com/more-on-multiprocessing
-
+<pre id="priority4" class="collapse">
 important() ->
     receive
         {Priority, Message} when Priority > 10 ->
@@ -224,6 +187,37 @@ normal() ->
     end.
 </pre>
 
+<p>
+  <button onclick='consult("#priority1")' class="btn btn-xs btn-primary" type="button">Consult</button>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#priority4">&nbsp;Compare Erlang</input>
+</p> 
+
+
+<p>
+    We use a combination of <code>self/1</code> and the bang operator <code>!/2</code> to send four messages to the mailbox of the 
+    top-level pengine.
+</p>
+
+<pre id="priority2">
+?- self(S), S ! 15-high, S ! 7-low, S ! 1-low, S ! 17-high.
+</pre>
+
+<p>
+  <button onclick='enter("#priority2")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+    Finally, to compute a list where all the important messages appear
+    before the less important ones we call <code>important/1</code>:
+</p>
+
+<pre id="priority3">
+?- important(Messages).
+</pre>
+
+<p>
+  <button onclick='enter("#priority3")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
 
 
 <h2>Servers</h2>
@@ -386,28 +380,8 @@ start(Pid) :-
         ")
     ]).   
 </pre>
-    
-<p>
-  <button onclick='consult("#fridge")' class="btn btn-xs btn-primary" type="button">Consult</button>
-</p> 
 
-<p>
-  <button onclick='ask("start(Pid).")' class="btn btn-link" type="button">?- start(Pid).</button>
-  <button onclick='ask("self(Self).")' class="btn btn-link" type="button">?- self(Self).</button>
-  <button onclick='ask("$Pid ! store($Self, meat).")' class="btn btn-link" type="button">?- $Pid ! store($Self, meat).</button>
-  <button onclick='ask("$Pid ! store($Self, cheese).")' class="btn btn-link" type="button">?- $Pid ! store($Self, cheese).</button>
-  <button onclick='ask("$Pid ! take($Self, meat).")' class="btn btn-link" type="button">?- $Pid ! take($Self, meat).</button>
-  <button onclick='ask("$Pid ! take($Self, cheese).")' class="btn btn-link" type="button">?- $Pid ! take($Self, cheese).</button>
-  <button onclick='ask("flush.")' class="btn btn-link" type="button">?- flush.</button>
-</p>
-
-<p>...</p>
-
-<p>
-  <button onclick='$("#fridge2").attr("style","display:block")' class="btn btn-link" type="button">Compare with Erlang</button>
-</p>
-
-<pre id="fridge2" style="display:none">
+<pre id="fridge2" class="collapse">
 fridge(FoodList) ->
     receive
         {From, {store, Food}} ->
@@ -427,6 +401,23 @@ fridge(FoodList) ->
     end.
 </pre>
 
+<p>
+  <button onclick='consult("#fridge")' class="btn btn-xs btn-primary" type="button">Consult</button>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#fridge2">&nbsp;Compare Erlang</input>
+</p> 
+
+<p>
+  <button onclick='ask("start(Pid).")' class="btn btn-link" type="button">?- start(Pid).</button>
+  <button onclick='ask("self(Self).")' class="btn btn-link" type="button">?- self(Self).</button>
+  <button onclick='ask("$Pid ! store($Self, meat).")' class="btn btn-link" type="button">?- $Pid ! store($Self, meat).</button>
+  <button onclick='ask("$Pid ! store($Self, cheese).")' class="btn btn-link" type="button">?- $Pid ! store($Self, cheese).</button>
+  <button onclick='ask("$Pid ! take($Self, meat).")' class="btn btn-link" type="button">?- $Pid ! take($Self, meat).</button>
+  <button onclick='ask("$Pid ! take($Self, cheese).")' class="btn btn-link" type="button">?- $Pid ! take($Self, cheese).</button>
+  <button onclick='ask("flush.")' class="btn btn-link" type="button">?- flush.</button>
+</p>
+
+<p>...</p>
+
 <h2>Ping-pong</h2>
 
 <p>
@@ -438,13 +429,13 @@ fridge(FoodList) ->
 <pre id="pingpong1">
 ping(0, Pong_Pid) :-
     Pong_Pid ! finished,
-    echo('Ping finished').
+    io:writeln('Ping finished').
 ping(N, Pong_Pid) :-
     self(Self),
     Pong_Pid ! ping(Self),
     receive({
         pong ->
-            echo('Ping received pong')
+            io:writeln('Ping received pong')
     }),
     N1 is N - 1,
     ping(N1, Pong_Pid).
@@ -452,11 +443,11 @@ ping(N, Pong_Pid) :-
 pong :-
     receive({
         ping(Ping_Pid) ->
-            echo('Pong received ping'),
+            io:writeln('Pong received ping'),
             Ping_Pid ! pong,
             pong;
         finished ->
-            echo('Pong finished')
+            io:writeln('Pong finished')
     }).
    
 start(N) :-
@@ -468,25 +459,8 @@ start(N) :-
     ]).
 </pre>
 
-<p>
-  <button onclick='consult("#pingpong1")' class="btn btn-xs btn-primary" type="button">Consult</button>
-</p>
 
-<p>We call <code>start/1</code> to start the process.</p>
-
-<pre id="pingpong2">
-?- start(3).
-</pre>
-
-<p>
-  <button onclick='enter("#pingpong2")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p>
-  <button onclick='$("#pingpong3").attr("style","display:block")' class="btn btn-link" type="button">Compare with Erlang</button>
-</p>
-
-<pre id="pingpong3" style="display:none">
+<pre id="pingpong3" class="collapse">
 -module(tut15).
 
 -export([start/0, ping/2, pong/0]).
@@ -518,6 +492,20 @@ start() ->
     spawn(tut15, ping, [3, Pong_PID]).
 </pre>
 
+<p>
+  <button onclick='consult("#pingpong1")' class="btn btn-xs btn-primary" type="button">Consult</button>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#pingpong3">&nbsp;Compare Erlang</input>
+</p>
+
+<p>We call <code>start/1</code> to start the process.</p>
+
+<pre id="pingpong2">
+?- start(3).
+</pre>
+
+<p>
+  <button onclick='enter("#pingpong2")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
 
 <h2>Controlling backtracking</h2>
 
@@ -1455,7 +1443,7 @@ query(Goal, Self, Parent) :-
 <p>Let's ask a query that takes a while to terminate...</p>
 
 <pre id="pengine-simple8">
-?- pengine_ask($Pid, (between(1,30, _N), echo(_N), sleep(1), fail)).
+?- pengine_ask($Pid, (between(1,30, _N), io:writeln(_N), sleep(1), fail)).
 </pre>
 
 <p>
@@ -1560,6 +1548,9 @@ query(Goal, Self, Parent) :-
 </p>
 
 <pre>
+rpc(URI, Query) :-
+    rpc(URI, Query, []).
+	
 rpc(URI, Query, Options) :-
     pengine_spawn(Pid, [
          node(URI),
@@ -1567,23 +1558,18 @@ rpc(URI, Query, Options) :-
          monitor(false)
        | Options
     ]),
-	option(limit(Limit), Options, 1),
-    pengine_ask(Pid, Query, [
-	     limit(Limit)
-	   | Options
-	]),
-    wait_answer(Query, Pid, Limit).
+    pengine_ask(Pid, Query, Options),
+    wait_answer(Query, Pid).
 
-
-wait_answer(Query, Pid, Limit) :-
+wait_answer(Query, Pid) :-
     receive({
         failure(Pid) -> fail;            
         error(Pid, Exception) -> 
             throw(Exception);                  
         success(Pid, Solutions, true) -> 
             (   member(Query, Solutions)
-            ;   pengine_next(Pid, [limit(Limit)]), 
-                wait_answer(Query, Pid, Limit)
+            ;   pengine_next(Pid), 
+                wait_answer(Query, Pid)
             );
         success(Pid, Solutions, false) -> 
             member(Query, Solutions)
@@ -1595,9 +1581,7 @@ wait_answer(Query, Pid, Limit) :-
 </p>
 
 <pre id="rpc-http">
-?- rpc('{{host}}', member(X,[a,b,c]), [
-       transport(http)
-   ]).
+?- rpc('{{host}}', member(X,[a,b,c])).
 </pre>
 
 <p>
@@ -1606,7 +1590,7 @@ wait_answer(Query, Pid, Limit) :-
 
 <p>
     In order to inject code into the process, the option <code>src_text</code> (inherited from
-    <code>pengine_spawn/2</code> which is in turn inherited it from <code>spawn/3</code>) may be passed:
+    <code>pengine_spawn/2</code> which in turn inherited it from <code>spawn/3</code>) may be passed:
 </p>
 
 <pre id="rpc-ws">
@@ -1625,8 +1609,7 @@ wait_answer(Query, Pid, Limit) :-
 </p>
 
 <pre id="rpc-localnode">
-?- assert(p(d)),
-   rpc(localnode, p(X), [
+?- rpc(localnode, p(X), [
        src_url('https://gist.githubusercontent.com/torbjornlager/21583e7238dc855f94f6b5f2f48788bb/raw/p.pl')
    ]).
 </pre>
@@ -1641,7 +1624,7 @@ wait_answer(Query, Pid, Limit) :-
 </p>
 
 <pre id="rpc-limit">
-?- rpc('{{host}}', between(0,12,N), [
+?- rpc('{{host}}', between(1,12,N), [
        limit(5)
    ]).
 </pre>
@@ -1653,7 +1636,7 @@ wait_answer(Query, Pid, Limit) :-
 <p>
     As the above example tries to convey, although the call only makes three network roundtrips 
 	in order to generate all twelve solutions, the behaviour of the call, as seen from the point 
-    of view of the client, does not change. Thus, the <code>limit</code> option serves as a
+    of view of the client, doesn't change. Indeed, the <code>limit</code> option serves as a
     performance optimisation only, and has nothing to with logic and the declarative reading
     of the query.
 </p>
@@ -1662,7 +1645,7 @@ wait_answer(Query, Pid, Limit) :-
 <h2>Promises (asynchronous RPC)</h2>
             
 <p>
-    A <em>promise</em> is a type of RPC that does not suspend the caller until the result is 
+    A <em>promise</em> is a type of RPC method that doesn't suspend the caller until the result is 
     computed. Instead, a reference is immediately returned, which can later be used by <code>yield/2-3</code> 
     to collect the answer. The reference can be viewed as a promise to deliver the 
     answer.
@@ -1693,11 +1676,10 @@ wait_answer(Query, Pid, Limit) :-
 </p>
 
 <p>
-    In order to see the result of no answer being available, you may want to click Enter again...
+    To see the behaviour when no answer is available, click Enter again...
 </p>
 
-
-<p>The above use of <code>promise/3-4</code> and <code>yield/2-3</code> resulted in just the first answer to the query. To produce other answers, we can pass an option <code>offset</code>. And the <code>limit</code> option is also available, so that we can ask for more than one answer at the same time:</p>
+<p>The above use of <code>promise/3-4</code> and <code>yield/2-3</code> only gave the first answer to the query. To produce other answers, we can pass an option <code>offset</code>. The <code>limit</code> option is also available, allowing us to ask for more than one answer at a time:</p>
 
 <pre id="promise-offset1">
 ?- promise('{{host}}', member(_X,[a,b,c,d]), Reference, [
@@ -1721,18 +1703,23 @@ wait_answer(Query, Pid, Limit) :-
   <button onclick='enter("#promise-offset2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
+<p>
+	Note that if we would now request the last of the answers by re-running the call to <code>promise/4</code> with 
+	<code>offset</code> set to <code>3</code>, it is likely that the work that generated the three first solutions does not have 
+	to be repeated. A pengine running on the node serves as a form of cache.
+</p>
+
 <h2>Using the WebSocket API</h2>
 
-<p>Note that the page is going to open in a new window or tab.</p>
+<p>
+	Note that the pages will open in a new window or tab. To see any output from the program, 
+	please open your browser's console. Use "View Page Source" to inspect the source code.
+</p>
 
 <p>
 	<a target="_blank" href="/apps/swish/ws-example-1.html">
     	{{host}}/apps/swish/ws-example-1.html
     </a>
-</p>
-
-<p>
-	Note that the page is going to open in a new window or tab. Use "View Page Source" to inspect the source code.
 </p>
 
 <p>
@@ -1745,8 +1732,7 @@ wait_answer(Query, Pid, Limit) :-
 
 <h2>Using the HTTP ask API</h2>
 
-<p>Four profiles - used defined ops need not be handled by isotope profile</p>
-
+<p>Four profiles - user defined ops need not be handled by isotope profile</p>
 
 
 <p>Note that the page is going to open in a new window or tab.</p>
@@ -1761,4 +1747,46 @@ wait_answer(Query, Pid, Limit) :-
 
 <p>Given a pid or an alias, you are able to send a message to the "named" pengine (or other actor):</p>
 
-            </div>
+
+<script>
+    function recursiveReplace(node, host) {
+        if (node.nodeType == 3) { // text node
+            node.nodeValue = node.nodeValue.replace("{{host}}", host);
+        } else if (node.nodeType == 1) { // element
+            $(node).contents().each(function () {
+                recursiveReplace(this, host);
+            });
+        }
+    }
+    function consult(id) {
+        if (gterm.get_prompt().trim() != "?-") {
+            gterm.exec("");
+        }
+        setTimeout(function() {
+            var val = $(id).text();
+            var program = val.replace(/'/g,"\\'");
+            gterm.echo("\n?- consult_text('"+id+"').");
+            gterm.exec("consult_text('"+program+"').", true);
+            setTimeout(gterm.enable, 0);
+        }, 5)
+    }
+    function enter(id) {
+        if (gterm.get_prompt().trim() != "?-") {
+            gterm.exec("");
+        }
+        setTimeout(function(){ask($(id).text().slice(3).trim())}, 5);
+    }
+    function ask(query) {
+        gterm.exec(query);
+        setTimeout(gterm.enable, 0);
+    }
+
+    
+    function trans(id, state) {
+        $('svg [id^=state]').attr('style','fill: white');
+        $('svg [id^=d]').attr('style','stroke: black');
+        $('svg #state-'+state).attr('style','fill: lightcoral');
+        $('svg #d-'+id).attr('style','stroke: red; stroke-width:2');
+    }
+</script>
+</div>

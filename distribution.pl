@@ -71,24 +71,24 @@
 node_manager(Request) :-
     http_upgrade_to_websocket(node_loop, [subprotocols(['pcp-0.2'])], Request).
 
-node_loop(WebSocket) :-
-    ws_receive(WebSocket, Message, [format(json)]),
+node_loop(Socket) :-
+    ws_receive(Socket, Message, [format(json)]),
     (   Message.opcode == close
-    ->  retractall(websocket(_, _, WebSocket)),
-        retract(pid_stdout_socket_format(Pid, _, WebSocket, _)),
+    ->  retractall(websocket(_, _, Socket)),
+        retract(pid_stdout_socket_format(Pid, _, Socket, _)),
 		engine_destroy(Pid),
         thread_self(Me),
         thread_detach(Me)
     ;   Data = Message.data,
         debug(ws, 'Got ~p', [Data]),
-        atom_string(Action, Data.action),
-        node_action(Action, Data, WebSocket),
-        node_loop(WebSocket)
+        atom_string(Action, Data.command),
+        node_action(Action, Data, Socket),
+        node_loop(Socket)
     ).
 
 % clauses for pengines running from a shell    
 
-node_action(pengine_spawn, Data, WebSocket) :-
+node_action(pengine_spawn, Data, Socket) :-
     _{options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
@@ -97,61 +97,61 @@ node_action(pengine_spawn, Data, WebSocket) :-
     assertz(actors:stdout(Stdout)),
     select_option(format(Format), Options, RestOptions, 'json-s'),
     pengine_spawn(Pid, [sandboxed(false),reply_to(Stdout)|RestOptions]),
-    assertz(pid_stdout_socket_format(Pid, Stdout, WebSocket, Format)),
+    assertz(pid_stdout_socket_format(Pid, Stdout, Socket, Format)),
     send(Stdout, spawned(Pid)).
-node_action(pengine_spawn, _Data, WebSocket) :-
+node_action(pengine_spawn, _Data, Socket) :-
     !,
 	uuid(UUID),
     assertz(actors:stdout(UUID)),
     pengine_spawn(Pid, [sandboxed(false),reply_to(UUID)]),
-    assertz(pid_stdout_socket_format(Pid, UUID, WebSocket, json)),
+    assertz(pid_stdout_socket_format(Pid, UUID, Socket, json)),
     send(UUID, spawned(Pid)).
-node_action(pengine_ask, Data, WebSocket) :-
-    _{pid:PidString, goal:GoalString, options:OptionString} :< Data,
+node_action(pengine_ask, Data, Socket) :-
+    _{pid:PidString, query:GoalString, options:OptionString} :< Data,
     !,
     read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
     term_string(Options, OptionString),
     term_string(Pid, PidString),
-    pid_stdout_socket_format(Pid, _Target, WebSocket, Format),
+    pid_stdout_socket_format(Pid, _Target, Socket, Format),
     fix_template(Format, Goal, Bindings, NewTemplate),
     pengine_ask(Pid, Goal, [template(NewTemplate)|Options]).
-node_action(pengine_ask, Data, WebSocket) :-
-    _{pid:PidString, goal:GoalString} :< Data,
+node_action(pengine_ask, Data, Socket) :-
+    _{pid:PidString, query:GoalString} :< Data,
     !,
     read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
     term_string(Pid, PidString),
-    pid_stdout_socket_format(Pid, _Target, WebSocket, Format),
+    pid_stdout_socket_format(Pid, _Target, Socket, Format),
     fix_template(Format, Goal, Bindings, NewTemplate),
     pengine_ask(Pid, Goal, [template(NewTemplate)]).   
-node_action(pengine_next, Data, _WebSocket) :-
+node_action(pengine_next, Data, _Socket) :-
     _{pid:PidString, options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
     term_string(Pid, PidString),
     pengine_next(Pid, Options).    
-node_action(pengine_next, Data, _WebSocket) :-
+node_action(pengine_next, Data, _Socket) :-
     _{pid:PidString} :< Data,
     !,
     term_string(Pid, PidString),
     pengine_next(Pid). 
-node_action(pengine_stop, Data, _WebSocket) :-
+node_action(pengine_stop, Data, _Socket) :-
     _{pid:PidString, options:OptionString} :< Data,
     !,
     term_string(Options, OptionString),
     term_string(Pid, PidString),
     pengine_stop(Pid, Options).
-node_action(pengine_stop, Data, _WebSocket) :-
+node_action(pengine_stop, Data, _Socket) :-
     _{pid:PidString} :< Data,
     !,
     term_string(Pid, PidString),
     pengine_stop(Pid).
-node_action(pengine_respond, Data, _WebSocket) :-
+node_action(pengine_respond, Data, _Socket) :-
     _{pid:PidString, term:String} :< Data,
     !,
     term_string(Term, String),
     term_string(Pid, PidString),
     pengine_respond(Pid, Term).
-node_action(pengine_abort, Data, _WebSocket) :-
+node_action(pengine_abort, Data, _Socket) :-
     _{pid:PidString} :< Data,
     !,
     term_string(Pid, PidString),
@@ -159,32 +159,32 @@ node_action(pengine_abort, Data, _WebSocket) :-
 
 % clauses for bare actors    
 
-node_action(spawn, Data, WebSocket) :-
+node_action(spawn, Data, Socket) :-
     _{thread:Creator, prolog:String, options:OptionString} :< Data,
     !,
     term_string(Goal, String),
     term_string(Options, OptionString),
     spawn(Goal, Pid, [sandboxed(false)|Options]),
-    ws_send(WebSocket, json(_{action:spawned, thread:Creator, pid:Pid})).
-node_action(spawned, Data, _WebSocket) :-
+    ws_send(Socket, json(_{command:spawned, thread:Creator, pid:Pid})).
+node_action(spawned, Data, _Socket) :-
     _{thread:CreatorId, pid:Pid} :< Data,
     !,
     thread_property(Creator, id(CreatorId)),
     canonical_pid(Pid, CanPid),
     thread_send_message(Creator, spawned(CanPid)).
-node_action(send, Data, _WebSocket) :-
+node_action(send, Data, _Socket) :-
     _{receiver:PidString, prolog:String} :< Data,
     !,
     term_string(Message, String),
     atom_string(Pid, PidString),
     send(Pid, Message).
-node_action(send, Data, _WebSocket) :-
+node_action(send, Data, _Socket) :-
     _{thread:Id, prolog:String} :< Data,
     !,
     term_string(Message, String),
     thread_property(Engine, id(Id)),
     send(thread(Engine), Message).
-node_action(_Action, Data, _WebSocket) :-
+node_action(_Action, Data, _Socket) :-
     debug(ws, 'Got unknown data: ~p', [Data]).
 
 
@@ -224,7 +224,7 @@ spawn_remote(Node, Goal, Id@Node, Options0) :-
     term_string(Options, OptionString),
     thread_self(Me),
     thread_property(Me, id(MyId)),
-    ws_send(Socket, json(_{action:spawn, thread:MyId, prolog:String, options:OptionString})),
+    ws_send(Socket, json(_{command:spawn, thread:MyId, prolog:String, options:OptionString})),
     thread_get_message(Me, spawned(Id)).
 
 
@@ -243,11 +243,11 @@ send_remote(thread(Id)@Node, Message) :-
     !,
     connection(Node, Socket),
     term_string(Message, String),
-    ws_send(Socket, json(_{action:send, thread:Id, prolog:String})).
+    ws_send(Socket, json(_{command:send, thread:Id, prolog:String})).
 send_remote(Id@Node, Message) :-
     connection(Node, Socket),
     term_string(Message, String),
-    ws_send(Socket, json(_{action:send, receiver:Id, prolog:String})).
+    ws_send(Socket, json(_{command:send, receiver:Id, prolog:String})).
 
 %!  self_remote(-Self)
 %

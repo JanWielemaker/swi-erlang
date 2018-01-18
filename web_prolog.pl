@@ -92,6 +92,7 @@
 :- use_module(pengines).
 :- use_module(restful_api).
 :- use_module(rpc).
+:- use_module(io).
 
 :- user:consult(resident).
 

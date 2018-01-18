@@ -1,29 +1,30 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
     <script>
-	  var ws = new WebSocket('ws://localhost:3060/ws', 'pcp-0.2');
+	  var ws = new WebSocket('ws://localhost:3060/ws','pcp-0.2');
 	  ws.onerror = function (message) {
 	    console.log(message);
 	  };
 	  ws.onopen = function (message) {
 	    ws.send(JSON.stringify({
-	      action: 'pengine_spawn'
+	      command: 'pengine_spawn'
 	    }));
 	  };
 	  ws.onmessage = function (message) {
 	    var event = JSON.parse(message.data);
 	    if (event.type == 'spawned') {
 	      ws.send(JSON.stringify({
-	        action: 'pengine_ask',
+	        command: 'pengine_ask',
 	        pid: event.pid,
-	        goal: 'member(X,[a,b,c])'
+	        query: 'member(X,[a,b,c])'
 	      }));
 	    } else if (event.type == 'success') {
 	      console.log(JSON.stringify(event.data));
 	      if (event.more) {
 	        ws.send(JSON.stringify({
-	          action: 'pengine_next',
+	          command: 'pengine_next',
 	          pid: event.pid
 	        }));
 	      }
@@ -31,6 +32,14 @@
 	  }; 	
     </script>
   </head>
+  <body>
+	<p>
+	   To inspect the program output, please open your browser's console. 
+    </p>
+	<p>
+	   Use "View Page Source" to view the source code.
+    </p>
+  </body>
 </html>
 
       
