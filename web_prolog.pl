@@ -47,6 +47,7 @@
             self/1,                     % -Pid
             register/2,                 % +Alias, +Pid
             unregister/1,               % +Alias
+            whereis/2,                  % +Alias, -Pid
            
             pengine_spawn/1,            % -Pid
             pengine_spawn/2,            % -Pid, +Options

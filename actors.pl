@@ -47,6 +47,7 @@
             self/1,                     % -Pid
             register/2,                 % +Alias, +Pid
             unregister/1,               % +Alias
+            whereis/2,                  % +Alias, -Pid
 
             dump_backtrace/2,           % +Pid, +Depth
             dump_queue/2,               % +Pid, -Queue
@@ -572,9 +573,12 @@ send(Pid, Message) :-
     ->  instantiation_error(Pid)
     ).
 send(Alias, Message) :-
-    registered(Alias, SelfLocal, Pid),
-    self_local(SelfLocal),
+    registered(Alias, _SelfLocal, Pid),
+    % Commented out so that the node resident ping server will work,
+    % TODO: Will have to deal with this later
+    %self_local(SelfLocal), 
     !,
+    debug(dispatch(send), 'Sending to pid ~p registred as ~p', [Pid, Alias]),
     send(Pid, Message).
 send(Pid, Message) :-
     hook_send(Pid, Message),
@@ -594,6 +598,7 @@ send_local(Pid, Type, Message) :-
 
 %!  register(+Alias, +Pid) is det.
 %!  unregister(?Alias) is det.
+%!  whereis(?Alias, Pid) is det.
 %
 %   Register the given Pid under the alias Alias.
 
@@ -605,6 +610,13 @@ register(Alias, Pid) :-
 unregister(Alias) :-
     self_local(Self),
     retractall(registered(Alias, Self, _)).
+    
+whereis(Alias, Pid) :-
+    must_be(atom, Alias),
+    registered(Alias, _Self, Pid),
+    !.
+whereis(_Alias, undefined).
+
 
 %!  flush
 %
