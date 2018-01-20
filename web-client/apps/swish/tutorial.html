@@ -20,10 +20,13 @@
     that will print (and remove) any messages in the mailbox belonging to the top-level pengine. 
 </p>
 
+<p>
+    We will try to tell a story. 
+</p>
 
 <h2>Simple calls</h2>
 
-<p>Running the familiar <code>append/3</code> in the non-deterministic mode:
+<p>Running the familiar <code>append/3</code> in the non-deterministic mode. Clicking the Enter button generates only the first solution:
 
 <pre id="append">
 ?- append(Xs,Ys,[a,b,c]).
@@ -33,8 +36,27 @@
   <button onclick='enter("#append")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
+<p>
+    To force the generation of more solutions, key in a semicolon (;) or use the space bar. 
+    Hit return to stop the generation of solutions.
+</p>
 
-<h2>Node resident code</h2>
+<p>
+    Want to try this query with a different list? Use the Arrow-Up key to insert the most recent
+    query at the prompt. Edit it to your hearts delight and hit return when you are done.
+</p>
+
+<p>
+    As those who have tried Prolog before knows, this is how Prolog usually works. This is intentional.
+    Want to try a more sophisticated online GUI? Head over to <a target="_blank" href="https://swish.swi-prolog.org">SWISH</a>.  
+    Please understand, though, that the present version of SWISH doesn't implement Web Prolog, but something slightly different.
+</p>
+
+<p>
+   How does this work? We shall see this later, but the short story is that ...
+</p>
+
+<h2>Node-resident code</h2>
 
 <p>For the purpose of this tutorial, this node has pre-loaded the following code:</p>
                                                                 
@@ -142,9 +164,9 @@ askable(has_feathers(_)).
 <h2>A priority queue</h2>
     
 <p> 
-    As a way to demonstrate the use of the <code>when</code> operator, as well as the use of another 
-    <code>receive/2</code> option that causes a goal to be run on timeout, here's a priority queue 
-    example borrowed from <a href="http://learnyousomeerlang.com/">http://learnyousomeerlang.com/</a>. 
+    As a way to demonstrate the use of the <code>when</code> operator, as well as the use of two 
+    <code>receive/2</code> options that causes a goal to be run on timeout, here's a priority queue 
+    example borrowed from <a href="http://learnyousomeerlang.com">http://learnyousomeerlang.com</a>. 
 	Calling <code>important/1</code> will build a list of all messages with those with a priority 
 	above 10 coming first: 
 </p>
@@ -341,6 +363,40 @@ server :-
 </p>
 
 
+<h2>Node-resident actors</h2>
+
+<p>
+    As we saw from an earlier example, the owner of a node may install programs that can be accessed 
+    by any client. The owner of a node may also install node-resident actor processes. Here is one
+    example, installed by the present node, using <code>register/2</code> to give the process a mnemonic name: 
+</p>
+
+<pre>
+server :-
+    receive({
+        ping(From) ->
+            From ! pong,
+            server
+    }).
+    
+:- spawn(server, Pid),
+   register(pingpong, Pid).    
+</pre>
+
+<p>
+    The registered name can be used instead of the pid when sending to the process:
+</p>
+
+<pre id="node-res-actor">
+?- self(_Self),
+   pingpong ! ping(_Self),
+   receive({Msg -> true}).
+</pre>
+
+<p>
+  <button onclick='enter("#node-res-actor")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
 <h2>The fridge simulation</h2>
 
 <p>
@@ -348,7 +404,7 @@ server :-
     a conversation, and for the purpose of demonstrating a receive call that uses different
     receive clauses in order to listen for more than one kind of message, we have adapted a
     fridge simulation example from Fred Hebert's excellent book on Erlang, available at
-	<a href="http://learnyousomeerlang.com/">http://learnyousomeerlang.com/</a>.
+	<a href="http://learnyousomeerlang.com">http://learnyousomeerlang.com</a>.
 </p>
 
 <p>
@@ -507,6 +563,68 @@ start() ->
   <button onclick='enter("#pingpong2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
+<p>
+   In our next example, we move the "ponger" to another node:
+</p>
+
+<pre id="pingpong4">
+ping(0, Pong_Pid) :-
+    Pong_Pid ! finished,
+    io:writeln('Ping finished').
+ping(N, Pong_Pid) :-
+    self(Self),
+    Pong_Pid ! ping(Self),
+    receive({
+        pong ->
+            io:writeln('Ping received pong')
+    }),
+    N1 is N - 1,
+    ping(N1, Pong_Pid).
+    
+pong :-
+    receive({
+        ping(Ping_Pid) ->
+            io:writeln('Pong received ping'),
+            Ping_Pid ! pong,
+            pong;
+        finished ->
+            io:writeln('Pong finished')
+    }).
+   
+start(N) :-
+    spawn(pong, Pong_Pid, [
+        node('{{host}}'),   % This line is our only addition!
+        src_predicates([pong/0])
+    ]),
+    spawn(ping(N, Pong_Pid), _, [
+        src_predicates([ping/2])
+    ]).
+</pre>
+
+<p>
+  <button onclick='consult("#pingpong4")' class="btn btn-xs btn-primary" type="button">Consult</button>
+</p>
+
+<p>Again, we call <code>start/1</code> to start the process.</p>
+
+<pre id="pingpong5">
+?- start(3).
+</pre>
+
+<p>
+  <button onclick='enter("#pingpong5")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+   So, why do we get the output of the "pinger" only, and not the output written by the "ponger"?
+   This is because a shell can only receive and render output that is written from pengines or other
+   actors that live on the same node as the top-level pengine to which the shell is attached. This 
+   restriction may be lifted in the future, but you should also note that <code>pengine_input/2</code>
+   <code>pengine_output/1</code> and <code>send/2</code> are the principal I/O predicates in Web Prolog
+   (along with <code>io:read/1</code>). <code>io:write/1</code> should be considered a debugging tool).
+</p>
+
+
 <h2>Controlling backtracking</h2>
 
 <p>
@@ -575,6 +693,14 @@ start() ->
   <button onclick='enter("#pre-pengine6")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
+<p>
+    This suggests that Prolog's backtracking mechanism is perfectly compatible with, and in fact 
+    complements, the proposed Erlang-like mechanism for spawning actors and handling the communication
+    between them. We need to observe, however, that the goal to be solved in the above example is
+    hard-coded into the program, and that the program handles neither failure of the spawned goal, nor
+    exceptions thrown by it. 
+</p>
+
 
 <h2>A generic encapsulated search procedure</h2>
 
@@ -611,7 +737,7 @@ query(Goal, Self, Parent) :-
 </p>
 
 <p>
-    This is how we call <code>pengine/2</code> with a query:
+    This is how we call <code>search/2</code> with a query:
 </p>
 
 <pre id="encapsulated-search2">
@@ -673,7 +799,7 @@ query(Goal, Self, Parent) :-
 </p>
 
 <p>
-    This section gave some insight into how a pengine works and that a pengine is no more than an 
+    This section gave some insight into how a pengine works and that a pengine is nothing more than an 
     actor that adheres to a particular protocol.
 </p>
 
@@ -1728,11 +1854,31 @@ wait_answer(Query, Pid) :-
     </a>
 </p>
 
+<h2>How the shell works</h2>
 
+<p>
+    By selecting Toggle JSON trace from the Shell menu, it is possible to inspect the JSON traffic
+    between the shell and the node. This should give you a good idea of how the shell works. (The
+    implementation relies a lot on a library called <a href="http://terminal.jcubic.pl">jQuery Terminal</a>.)
+</p>
+
+<p>
+    In the future, we plan to integrate Web Prolog with <a target="_blank" href="https://swish.swi-prolog.org/">
+    SWISH</a>, a more mature web-based GUI to Prolog, featuring semantic source code colouring, Prolog notebooks,
+    tools for collaboration, etc.
+</p>
+
+<p>
+    We take it as obvious that all sorts of windows to the Prolog Web can be written using the PCP protocol. But all applications are not in need of all this.
+</p>
 
 <h2>Using the HTTP ask API</h2>
 
 <p>Four profiles - user defined ops need not be handled by isotope profile</p>
+
+<p>We plan to implement a JavaScript library that makes it possible to use substitute between WebSocket and HTTP with a flick of a switch.</p>
+
+http.send{}
 
 
 <p>Note that the page is going to open in a new window or tab.</p>
@@ -1747,6 +1893,7 @@ wait_answer(Query, Pid) :-
 
 <p>Given a pid or an alias, you are able to send a message to the "named" pengine (or other actor):</p>
 
+<h2>Questionnaire</h2>
 
 <script>
     function recursiveReplace(node, host) {
