@@ -1,4 +1,11 @@
-:- use_module(actors).
+/*
+    This is the node-resident code available in this node. It is loaded
+    in the module `web_prolog' using the following code:
+
+    :- user:consult(resident).
+*/
+
+:- use_module(web_prolog).
 
 p(X) :- q(X), r(X).
 
@@ -12,10 +19,14 @@ r(c).
 r(d).
 
 
+% Node-resident pingpong server:
+
 server :-
-	self(S),
     receive({
         ping(From) ->
-            From ! output(S,pong),
+            From ! pong,
             server
     }).
+    
+:- spawn(server, Pid),
+   register(pingpong, Pid).
