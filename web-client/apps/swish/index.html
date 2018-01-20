@@ -21,8 +21,8 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     </button>
-                    <a href="/"><img style="position:absolute;top:4px;left:4px;" src="/apps/swish/img/logo.svg"></a>
-                    <a href="/" style="margin-left:30px;font-size:24px" class="navbar-brand">&nbsp;<b><span style="color:maroon">Web Prolog</span></b></a>
+                    <a href="/"><img style="position:absolute;top:4px;left:4px;" src="/apps/swish/img/logo.png"></a>
+                    <a href="/" style="margin-left:30px;font-size:24px" class="navbar-brand"><b><span style="color:maroon">Web Prolog</span></b></a>
                 </div>
                 <nav class="collapse navbar-collapse bs-navbar-collapse pull-left">
                     <ul class="nav navbar-nav">
@@ -52,6 +52,14 @@
                                 <li><a id="comment">Toggle comment</a></li>
                                 <li class="divider"></li>
                                 <li><a id="find">Find and replace...</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Shell<b class="caret"></b></a>
+                            <ul id="shell-menu" class="dropdown-menu">
+                                <li><a id="clear">Clear</a></li>
+                                <li class="divider"></li>
+                                <li><a id="json-trace">Toggle JSON trace</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
@@ -311,14 +319,8 @@ server's console.
 	</div>
         <!-- Begin page content -->
         <div class="container">
-
-            <pre id="editor">
-  
-            </pre>
-                
-
+            <pre id="editor"></pre>
             <div id="tutorial-container"></div>
-
             <div id="shell"></div>
         </div>
         <header class="navbar navbar-default navbar-fixed-bottom bs-docs-nav">
@@ -342,6 +344,7 @@ server's console.
     var gterm;
     var state = 1;
     var currcommand = "";
+	var trace = false;
     $('#tutorial-container').load('/apps/swish/tutorial.html', function() {
             recursiveReplace(document.body, window.location.origin);
     });
@@ -367,11 +370,22 @@ server's console.
     } 
     $(document).ready(function($) {
         var ws = new WebSocket('ws://localhost:3060/ws', 'pcp-0.2'); 
+		function mysend(json) {
+			var jsonstr = JSON.stringify(json, null, 1);
+			if (trace) {
+				gterm.echo(jsonstr, {
+					finalize: function(div) {
+    					div.css("color", "blue");
+					}					
+				});
+			};
+			ws.send(jsonstr); 
+		}
         ws.onopen = function(message) {
-            ws.send(JSON.stringify({
+            mysend({
 				command:"pengine_spawn", 
 				options:"[format('json-s')]"
-			}));
+			});
         };
         ws.onerror = function(e) {
             console.log(e);
@@ -389,8 +403,14 @@ server's console.
             ws.onmessage = function(message) {
                 term.resume();
                 var msgstr = message.data;
-                //term.echo(msgstr);
                 msg = JSON.parse(msgstr);
+                if (trace) {
+					term.echo(JSON.stringify(msg, null, 1), {
+    					finalize: function(div) {
+        					div.css("color", "green");
+    					}
+					});
+				}
                 var type = msg.type;
                 if (type == "success") {
                     if (msg.more) {
@@ -419,7 +439,11 @@ server's console.
                 } else if (type == "stop") {
                     state = 1;
                     trans("stop", 1);
-                    term.update(-1, term.get_prompt().trim() + ".");
+					if (trace) {
+						term.update(-3, term.get_prompt().trim() + ".");
+					} else {
+						term.update(-1, term.get_prompt().trim() + ".");
+					}
                     term.set_prompt(myprompt);
                     term.scroll_to_bottom();
                 } else if (type == "prompt") {
@@ -451,11 +475,11 @@ server's console.
             if (env.dirty) {
                 term.echo("Consulting from editor.");
                 var program = getProgram().replace(/'/g,"\\'");
-                ws.send(JSON.stringify({
+                mysend({
 					command:"pengine_ask", 
 					pid:pid, 
 					query:"consult_text('" + program + "')"
-				}));
+				});
                 env.dirty = false;
                 term.set_prompt("");
             }
@@ -466,11 +490,11 @@ server's console.
                 } else if (command.trim().endsWith('.')) {
                     currcommand += command.trim().slice(0, -1);
                     state = 2;
-                    ws.send(JSON.stringify({
+                    mysend({
 						command:"pengine_ask", 
 						pid:pid, 
 						query:currcommand
-					}));
+					});
                     trans("ask", 2);
                     currcommand = "";
                     term.pause();
@@ -481,27 +505,27 @@ server's console.
             } else if (state == 4) {
                 if (command == ";") {
                     state = 2;
-                    ws.send(JSON.stringify({
+                    mysend({
 						command:"pengine_next", 
 						pid:pid
-					}));
+					});
                     trans("next", 2);
                     term.pause();
                 } else if (command == "") {
-                    ws.send(JSON.stringify({
+                    mysend({
 						command:"pengine_stop", 
 						pid:pid
-					}));
+					});
                     term.pause();
                 }
             } else if (state == 3) {
                 state = 2;
                 if (command !== "") {
-                    ws.send(JSON.stringify({
+                    mysend({
 						command:"pengine_respond", 
 						pid:pid, 
 						term:command
-					}));
+					});
                 }
             }
          }, {
@@ -513,10 +537,10 @@ server's console.
              keymap: {
                  'CTRL+C': function(e, a) {
                      if (state == 2 || state == 3) {
-                         ws.send(JSON.stringify({
+                         mysend({
 							 command:"pengine_abort", 
 							 pid:pid
-						 }));
+						 });
                          gterm.pause();
                          return false;
                      }
@@ -525,10 +549,10 @@ server's console.
              keypress: function(e) {
                  if (state == 4 && (e.which == 59 || e.which == 32)) {
                      gterm.echo(gterm.get_prompt() + ";");
-                     ws.send(JSON.stringify({
+                     mysend({
 						 command:"pengine_next", 
 						 pid:pid
-					 }));
+					 });
                      gterm.pause();
                      return false;
                  }

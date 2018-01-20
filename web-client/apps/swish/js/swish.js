@@ -2,7 +2,7 @@ var env = {};
 
 
 env.editor = ace.edit("editor");
-env.editor.setTheme("ace/theme/spyder");
+env.editor.setTheme("ace/theme/brain");
 env.editor.getSession().setMode("ace/mode/prolog");
 env.editor.setHighlightActiveLine(false);
 env.editor.setDisplayIndentGuides(false);
@@ -218,6 +218,22 @@ $("#edit-menu").on("click", "a#find", function(evt) {
 	env.editor.commands.commands.replace.exec(env.editor, "left")
 });
 
+$("#shell-menu").on("click", "a#clear", function(evt) {
+	evt.preventDefault();
+    gterm.clear();
+    setTimeout(gterm.enable, 0);
+});
+
+$("#shell-menu").on("click", "a#json-trace", function(evt) {
+	evt.preventDefault();
+	if (trace) {
+	    trace = false;
+	} else {
+	    trace = true;
+	};
+    setTimeout(gterm.enable, 0);
+});
+
 $("#example-menu").on("click", "a", function(evt) {
 	evt.preventDefault();
     if (evt.target.id == "tut") {
@@ -300,19 +316,8 @@ $("#line-numbering-checkbox").on("change", function() {
 $("#slider").on("input", function() {
     var val = this.value;
     $("#editor").css("width", val+"%");
+    $("#tutorial").css("width", val+"%");
     $("#shell").css("width", (100-val)+"%");
-    if (val > 69) {
-        $("#shell").css("display","none");
-        $("#editor").css("width", "100%");
-    } else {
-        $("#shell").css("display","block");
-    }
-    if (val < 31) {
-        $("#editor").css("display","none");
-        $("#shell").css("width", "100%");
-    } else {
-        $("#editor").css("display","block");
-    }
 });
 
 
