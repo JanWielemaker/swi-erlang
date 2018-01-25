@@ -534,7 +534,7 @@ receive_clause2((HeadAndGuard -> Body), Message, Body) :- !,
     ->  when(Head,Guard) = HeadAndGuard,
         subsumes_term(Head, Message),
         Head = Message,
-        call(Guard)
+        catch(Guard, _, fail) % As in Erlang, the guard will fail if the goal fails or if it raises an exception. 
     ;   subsumes_term(HeadAndGuard, Message),
         HeadAndGuard = Message
     ),
