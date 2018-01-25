@@ -2134,6 +2134,30 @@ query(Query, Self, Parent) :-
 
 <h3>Pengines and I/O</h3>
 
+<p>
+    This is how I/O works in a pengine:
+</p>
+
+<pre id="pengines-io1">
+?- pengine_spawn(Pid),
+   pengine_ask(Pid, io:writeln(hello)),
+   pengine_ask(Pid, pengine_output(goodbye)).
+</pre>
+
+<p>
+  <button onclick='enter("#pengines-io1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>Let's flush the top-level mailbox:</p>
+
+<pre id="pengines-io2">
+?- flush.
+</pre>
+
+<p>
+  <button onclick='enter("#pengines-io2")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
 
 <h3>Non-deterministic RPC</h3>
 
@@ -2184,32 +2208,31 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-    In order to inject code into the process, the option <code>src_text</code> (inherited from
+    The following example shows that the first (slow) solution is not recomputed when we ask for the second one:
+</p>
+
+<pre id="rpc-http2">
+?- rpc('{{host}}', (sleep(1), X=a; X=b)).
+</pre>
+
+<p>
+  <button onclick='enter("#rpc-http2")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+    By default, <code>rpc/2-3</code> uses the the RESTful HTTP transport. The <code>transport</code> option allows us to use WebSockets instead. In order to inject code into the process, the option <code>src_text</code> (inherited from
     <code>pengine_spawn/2</code> which in turn inherited it from <code>spawn/3</code>) may be passed:
 </p>
 
 <pre id="rpc-ws">
 ?- rpc('{{host}}', p(X), [
+       transport(ws),
        src_text('p(a). p(b). p(c).')
    ]).
 </pre>
 
 <p>
   <button onclick='enter("#rpc-ws")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p>
-    By default, <code>rpc/3</code> uses the WebSocket transport. The <code>transport</code> option allows us to use the RESTful HTTP transport instead. The following example shows that the first (slow) solution is not recomputed when we ask for the second one:
-</p>
-
-<pre id="rpc-http2">
-?- rpc('{{host}}', (sleep(1), X=a; X=b), [
-       transport(http)
-   ]).
-</pre>
-
-<p>
-  <button onclick='enter("#rpc-http2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
 <p>
@@ -2312,8 +2335,7 @@ wait_answer(Query, Pid) :-
 
 <p>
 	Note that if we would now request the remaining answers by re-running the call to <code>promise/4</code> with 
-	<code>offset</code> set to <code>3</code> this time, it is likely that the work that generated the three first solutions does not have 
-	to be repeated. A pengine running on the node serves as a form of cache.
+	<code>offset</code> set to <code>3</code> this time, it is likely that the work that generated the three first solutions does not have to be repeated. A pengine running on the node serves as a form of cache.
 </p>
 
 <h3>What should we use?</h3>
@@ -2324,24 +2346,24 @@ wait_answer(Query, Pid) :-
 
 <ol>
     <li>
-        Use <code>spawn/3</code> with the <code>node</code> option set to a non-default URI value pointing to a remote node. This is the simplest approach to distribution and closely mirrors how one would use the related Erlang primitives. The communication with the remote actor is asynchronous. 
+        Use <code>spawn/3</code> with the <code>node</code> option set to a non-default URI value pointing to a remote node. This is the simplest approach to distribution and closely mirrors how one would use the related Erlang primitives. The communication with the remote actor is asynchronous. It also allows you to run several actors concurrently. This predicate uses the WebSocket transport in its communication with the remote node.
     </li>
 
     <li>
-        Use <code>pengine_spawn/2</code> with the <code>node</code> option set to a non-default URI value. This gives us a first-class Prolog top-level running on the remote node. This is the obvious choice when dealing with queries with more than one solution. The communication with the remote pengine is asynchronous. It also allows you to run several pengines concurrently.
+        Use <code>pengine_spawn/2</code> with the <code>node</code> option set to a non-default URI value. This gives us a first-class Prolog top-level running on the remote node. This is the obvious choice when dealing with queries with more than one solution. The communication with the remote pengine is asynchronous. It also allows you to run several pengines concurrently. The limit option allows you to implement pagination of solutions. This predicate uses the WebSocket transport in its communication with the remote node.
     </li>
 
     <li>
-        Use <code>rpc/2-3</code>. This implements non-deterministic remote procedure calls. When the client is Prolog-based, this is by far the easiest way to make a remote call. It doesn't involve any concurrency, however, and it is a synchronous construct. You may choose transport &ndash; WebSocket (default) or HTTP &ndash; and the <code>limit</code> option allows you to limit the number of network roundtrips needed to run a query to completion.
+        Use <code>rpc/2-3</code>. This implements non-deterministic remote procedure calls. When the client is Prolog-based, this is by far the easiest way to make a remote call. It doesn't involve any concurrency, however, and it's a synchronous construct. You may choose transport &ndash; HTTP (default) or WebSocket &ndash; and the <code>limit</code> option allows you to limit the number of network roundtrips needed to run a query to completion.
     </li>
 
     <li>
-        Use <code>promise/3-4</code> in combination with <code>yield/2-3</code>. Since <code>promise/3-4</code> doesn't wait for the answer to arrive, it is an asynchronous alternative to <code>rpc/2-3</code>. The waiting is instead done by <code>yield/2-3</code>.
+        Use <code>promise/3-4</code> in combination with <code>yield/2-3</code>. Since <code>promise/3-4</code> doesn't wait for the answer to arrive, it is an asynchronous alternative to <code>rpc/2-3</code>. The waiting is instead done by <code>yield/2-3</code>. This predicate uses the HTTP transport in its communication with the remote node. Should WebSockets be available, you may want to use <code>pengine_spawn/2</code> as another asynchronous alternative to <code>rpc/2-3</code>. 
     </li>
 </ol>
 
 <p>
-  ...
+  Some of the complexity is due to the fact that we are in the process of defining a profile of Web Prolog that only accepts the use of HTTP as the underlying transport. A Prolog client will then only be able to use <code>rpc/2-3</code> (with transport set to the default HTTP) or <code>promise/3-4</code> in its communication with such a node.
 </p>
 
 <h2 id="web-apis">Web APIs</h2>
