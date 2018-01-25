@@ -72,7 +72,7 @@ rpc(URI, Query) :-
     rpc(URI, Query, []).
     
 rpc(URI, Query, Options) :-
-    select_option(transport(Transport), Options, RestOptions, http),
+    select_option(transport(Transport), Options, RestOptions, websocket),
     (   Transport == http
     ->  rpc_http(URI, Query, RestOptions)
     ;   memberchk(Transport, [websocket, ws])
