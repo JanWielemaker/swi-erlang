@@ -57,7 +57,9 @@
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Shell<b class="caret"></b></a>
                             <ul id="shell-menu" class="dropdown-menu">
-                                <li><a id="clear">Clear</a></li>
+                                <li><a id="clear">Clear (^L)</a></li>
+                                <li class="divider"></li>
+                                <li><a id="break">Break (^C)</a></li>
                                 <li class="divider"></li>
                                 <li><a id="json-trace">Toggle JSON trace</a></li>
                             </ul>
@@ -342,6 +344,7 @@ server's console.
 <script>
     var pid;
     var gterm;
+    var gmysend;
     var state = 1;
     var currcommand = "";
 	var trace = false;
@@ -381,6 +384,7 @@ server's console.
 			};
 			ws.send(jsonstr); 
 		}
+        gmysend = mysend;
         ws.onopen = function(message) {
             mysend({
 				command:"pengine_spawn", 
@@ -475,6 +479,7 @@ server's console.
             if (env.dirty) {
                 term.echo("Consulting from editor.");
                 var program = getProgram().replace(/'/g,"\\'");
+                console.log(program);
                 mysend({
 					command:"pengine_ask", 
 					pid:pid, 

@@ -224,6 +224,16 @@ $("#shell-menu").on("click", "a#clear", function(evt) {
     setTimeout(gterm.enable, 0);
 });
 
+$("#shell-menu").on("click", "a#break", function(evt) {
+	evt.preventDefault();
+    gterm.resume();
+    gmysend({
+	 command:"pengine_abort", 
+	 pid:pid
+    });
+    setTimeout(gterm.enable, 0);
+});
+
 $("#shell-menu").on("click", "a#json-trace", function(evt) {
 	evt.preventDefault();
 	if (trace) {
