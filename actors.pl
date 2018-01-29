@@ -368,7 +368,8 @@ get_stdout(null).
 
 
 make_pid(Pid) :-
-    uuid((Pid), [version(4)]).
+    uuid((Pid0), [version(4)]),
+    sub_atom(Pid0, 0, 8, 28, Pid).
 
 
 self(Pid) :-
