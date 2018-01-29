@@ -31,5 +31,5 @@ problem(1, [[_,_,_,_,_,_,_,_,_],
 
 /** Examples
 
-problem(1, Rows), time(sudoku(Rows)), maplist(writeln, Rows).
+problem(1, Rows), time(sudoku(Rows)), maplist(io:writeln, Rows).
 */
