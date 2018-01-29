@@ -183,11 +183,12 @@ check :-
 
 http_pengine_send(Request) :-
     http_parameters(Request,
-        [ pid(Pid, []),
+        [ name(Name, []),
           term(TermAtom, [])
         ]),
     read_term_from_atom(TermAtom, Term, []),
-    send(Pid, Term),
+    debug(rest, "Sending: ~p to ~p", [Term, Name]),
+    send(Name, Term),
     reply_json(_{ok:true}).
 
     
