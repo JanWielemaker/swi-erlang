@@ -23,18 +23,40 @@ father_child(mike, tom).
 
 % Node-resident counting server:
 
-count_server(N0) :-
-    N is N0 + 1,
+count_server(Count0) :-
+    Count is Count0 + 1,
     receive({
         count(From) ->
-            From ! N,
-            count_server(N)
+            From ! Count,
+            count_server(Count)
     }).
     
 :- spawn(count_server(0), Pid),
    register(counter, Pid).
    
 
+
+% Th core of a publish and subscribe service:
+
+pubsub_service(Subscribers0) :-
+    receive({
+        publish(Message) ->
+            forall(member(Pid, Subscribers0), Pid ! msg(Message)),
+            pubsub_service(Subscribers0);
+        subscribe(Pid) ->
+            pubsub_service([Pid|Subscribers0]);
+        unsubscribe(Pid) ->
+            (   select(Pid, Subscribers0, Subscribers)
+            ->  pubsub_service(Subscribers)
+            ;   pubsub_service(Subscribers0)
+            )   
+    }).
+
+:- spawn(pubsub_service([]), Pid),
+   register(pubsub_service, Pid).
+   
+   
+   
  
   
 sleep :-
@@ -151,3 +173,31 @@ dining :-
             io:format("Dining room closed.")
     }),
     unregister(diningRoom).
+    
+    
+    
+
+chatserver_loop(Guests) :-
+    receive({
+        enter(Pid, Nick) ->
+            broadcast(Guests, entered(Nick)),
+            chatserver_loop([guest(Pid, Nick)|Guests]);
+        leave(Pid) ->
+            (   select(guest(Pid, Nick), Guests, Rest)
+            ->  broadcast(Rest, left(Nick)),
+                chatserver_loop(Rest)
+            ;   chatserver_loop(Guests)
+            );
+        say(Nick, Message) ->
+            broadcast(Guests, said(Nick, Message)),
+            chatserver_loop(Guests)
+    }).
+
+broadcast(Guests, Message) :-
+    forall(member(guest(Pid, _), Guests), Pid ! Message).
+
+
+?- spawn(chatserver_loop([]), Pid),
+   register(chatserver, Pid).
+
+

@@ -6,12 +6,15 @@
     <meta name="author" content="Torbjörn Lager">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- CSS -->
-    <!-- 
+    <!--
     <link rel="stylesheet" href="../../www/vendor/bootstrap/css/bootstrap.min.css">
     <style>
         #tutorial {
             margin: 50px;
             padding: 16px;
+            display: block;
+        }
+        .collapse {
             display: block;
         }
     </style>
@@ -45,7 +48,7 @@
 
 
         h1 {font-size: 36px; color:darkblue;}
-        h2 {font-size: 24px; margin-top:36px; color:navy;}
+        h2 {font-size: 24px; margin-top:48px; color:navy;}
         h3 {font-size: 20px; margin-top:24px; color:maroon;}
 
         em {
@@ -55,6 +58,13 @@
 
         pre {
             font-size: 12px;
+        }
+        
+        blockquote p {
+            font-size: 12px;
+        }
+        blockquote {
+            margin-top: 12px;
         }
         
     </style>   
@@ -71,9 +81,21 @@
 <h2 id="intro">Introduction</h2>
 
 <p>
-    If everything works as it should, the frame to the right is showing what is a more or less
-    traditional Prolog shell. It is talking to a <em>pengine</em> running on a Prolog
-    Web <em>node</em> running on a computer somewhere. The node is identified by the URI '{{host}}'.
+    This tutorial is written to be used online.
+</p>
+
+<div class="alert alert-danger">
+  <strong>BUG!</strong> You are hopefully not doing that yet?! It's not ready for this, since security features aren't 
+  implemented yet.
+</div>
+
+<p>
+    It's not really a tutorial, by the way, since its purpose is not to teach a well-established programming language, but to present a proposal for a new programming language. To be more precise, the language isn't really new either, but a hybrid of two languages &ndash; Prolog and Erlang. It's more Prolog than Erlang, though. 
+</p>
+
+<p>
+    If everything works as it should, the area to the right is showing what is a more or less traditional Prolog shell. The shell is talking to a <em>pengine</em> running on a Prolog
+    Web <em>node</em> running on a computer somewhere. The node is identified by the URI '{{host}}'. The name of the pengine that the shell is talking to is {{pengine}}. That's its short name. Its long name is '{{pengine}}'@'{{host}}'. Other people may be using shells talking to other pengines running on the same node.
 </p>
 
 <p>
@@ -83,31 +105,50 @@
 </p>
 
 <p>
-    We like to think of the "conversation" between a programmer and a Prolog top-level as a form of <em>mediated communication</em>, and of the shell as a <em>mediator</em> between the two of them.
+    The purpose of a node is to host pengines and other actors. A pengine is an actor and a programming abstraction modelled on the interactive top-level of Prolog. In other words, a pengine is like a first-class interactive Prolog top-level, accessible from Prolog as well as from other programming languages. Alternatively, it can be seen as an encapsulated Prolog session, or as a compute server for Prolog programming tasks. 
 </p>
 
 <p>
-    The purpose of a Prolog Web node is to host pengines and other actors. A pengine is an actor and a programming abstraction modelled on the interactive top-level of Prolog. In other words, a pengine is like a first-class interactive Prolog top-level, accessible from Prolog as well as from other programming languages. Alternatively, it can be seen as an encapsulated Prolog session, or as a compute server for Prolog programming tasks. 
+    Working with the interactive shell is a vital part of using dynamic programming languages such as Prolog and Erlang (and Elixir). It’s useful for testing all kinds of code and programs. Here it's used to present the ideas behind a ”new" language &ndash; Web Prolog.
 </p>
 
 <p>
-    Working with the interactive shell is a vital part of using dynamic programming languages such as Prolog and Erlang. It’s useful for testing all kinds of code and programs.
+    The Web Prolog programming language may not be to everyones liking, but if we hope that by showing it first of all to Prolog and Erlang programmers we will steer free of negative critique of the kind "it's bad because..." followed by "...it's not object oriented" or "...it has the same syntax as Erlang" or "...it is just as impure as Prolog". Sure, all these things may be true, but we don't mind.
 </p>
 
 <p>
-    In the first part of the tutorial, we will demonstrate concepts that Erlang doesn't support: backtracking depth-first search, unification, logic-based knowledge representation, reasoning, meta-programming, user defined operators, a term expansion mechanism and Definite Clause Grammar (DCG).
+    Soon or later, we ought to target also front-end programmers and JavaScript aficionados with no previous exposure to Prolog or Erlang. This requires a different kind of tutorial.
 </p>
+
+<div class="alert alert-info">
+  <strong>Tip!</strong> The examples from the tutorial can also be run from an editor that will fill the space that this tutorial currently occupies. Select various examples from the Examples menu.
+</div>
+
+
+<div class="alert alert-info">
+  <strong>Tip!</strong> We are writing a book about Web Prolog. Here's the first paragraph in the introduction:
+  <blockquote>
+    <p>
+        In this report, we describe a programming language called <em>Web Prolog</em>. We think of it as a <em>web programming language</em>, or, more specifically, as a web <em>logic</em> programming language. It is based on Prolog, with a pinch of Erlang sprinkled in. We stay really, really close to traditional Prolog, indeed so close that the vast majority of example programs in Prolog text books will run without modification. Towards Erlang we are less faithful, picking only those features from Erlang that we regard as useful in a web programming language. In particular, we pick the features that make Erlang into an <i>actor programming language</i>, and on top of these we define the concept a <i>pengine</i> &ndash; a programming abstraction in the form of a special kind of actor which closely mirrors the behaviour of a Prolog top-level. However, Erlang has not been the only inspiration. When it comes to the <i>purpose</i> of Web Prolog, the inspiration has been JavaScript &ndash; a scripting language for the Web that is usually embedded in other programming systems and where processes must be sandboxed in order to allow the execution of untrusted code.
+    </p>
+  </blockquote>
+  The draft manuscript can be downloaded from <a target="_blank" href="">here</a> [but not just yet].
+</div>
 
 <h2 id="for-erlangers">Web Prolog is a dialect of Prolog</h2>
 
 <p>
-    Prolog can be characterised as a logic programming language with imperative and procedural features added to ensure its usefulness as a general purpose programming language. It is also a relational programming language, in contrast to Erlang, which is functional.
+    Prolog can be characterised as a logic programming language with imperative and procedural features added to ensure its usefulness as a general purpose programming language.
+</p>
+
+<p>
+    In this part of the tutorial we will demonstrate concepts that Erlang doesn't support: backtracking depth-first search, unification, logic-based knowledge representation, reasoning, meta-programming, and Definite Clause Grammar (DCG).
 </p>
 
 <h3>Calling built-in predicates</h3>
 
 <p>
-    Running the built-in <code>append/3</code> in the deterministic mode. Clicking the Enter button generates the only solution:
+    In our first example, we're running the built-in predicate <code>append/3</code> in the deterministic mode. Clicking the Enter button below binds <code>Xs</code> to the first and only solution that this query has:
 </p>
 
 <pre id="append1">
@@ -118,13 +159,13 @@
   <button onclick='enter("#append1")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>
-    Want to try this query with a different input lists? Use the up arrow key to insert the most recent
+<div class="alert alert-info">
+  <strong>Tip!</strong> Want to try the same query but with different input lists? Use the up arrow key to insert the most recent
     query at the prompt. Edit it to your heart's delight and hit return when you are done.
-</p>
+</div>
 
 <p>
-    Running <code>append/3</code> in the non-deterministic mode &ndash; running it backwards, so to speak. Clicking the Enter button generates the first solution:
+    In our second example, we're running <code>append/3</code> in the non-deterministic mode &ndash; running it backwards, so to speak. Clicking the Enter button gives us the first solution:
 </p>
 
 <pre id="append2">
@@ -135,24 +176,23 @@
   <button onclick='enter("#append2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>
-    To force the search for more solutions, key in a semicolon (;) or use the space bar. 
+<div class="alert alert-info">
+  <strong>Tip!</strong> To force the search for more solutions, press the semicolon (;) key on your keyboard or use the space bar. 
     Hit return to stop looking for more solutions.
-</p>
+</div>
 
 <p>
     As those who have tried Prolog before know, this is how a Prolog shell usually works.
 </p>
 
-<p>
-    Want to try a more sophisticated online GUI? Head over to <a target="_blank" href="https://swish.swi-prolog.org">SWISH</a>.  
-    Please understand, though, that the present version of SWISH doesn't implement Web Prolog, but something slightly different.
-</p>
-
 
 <h3>Reasoning with a node-resident program</h3>
 
-<p>For the purpose of this tutorial, the node has pre-loaded the following code:</p>
+<p>
+    Crucially, a node may host a Web Prolog <i>program</i> &ndash; a database, an expert system, a game engine, a digital assistent, a home control system, or another kind of program. If it does, a pengine running on the node has access to the predicates defined by this program. The program is typically maintained by the owner of the node. Unless clients are authorised to do so, they are not able to make any changes to it, only the owner is allowed to do so. Clients may however, by means of code injection in the workspace of the pengine, be able to <i>complement</i> the hosted program with source code that their owners have written. 
+</p>
+
+<p>For the purpose of this tutorial, we, as the owners of the node, have installed a small number of node-resident programs. Here's the first one, a so called ancestor database:</p>
                                                                 
 <pre id="a">
 ancestor_decendant(X, Y) :- parent_child(X, Y).
@@ -169,7 +209,7 @@ father_child(mike, tom).
 </pre>
 
 <p>
-    Who are decendants of Mike? Here's how we call <code>ancestor_decendant/2</code>:
+    Who are decendants of Mike? To find out, here's how to call <code>ancestor_decendant/2</code>:
 </p>
 
 <pre id="ancestor1">
@@ -181,7 +221,7 @@ father_child(mike, tom).
 </p>
 
 <p>
-    Using <code>assert/1</code> to complement the node-resident program:
+    Unauthenticated clients (like yourself) are not allowed to make any changes to node-resident code. They are allowed, however, to use <code>assert/1</code> to <i>complement</i> the node-resident program:
 </p>
 
 <pre id="ancestor2">
@@ -193,7 +233,7 @@ father_child(mike, tom).
 </p>
 
 <p>
-    Here's how we call <code>siblings/2</code>:
+    Here's how to call <code>siblings/2</code>:
 </p>
 
 <pre id="ancestor3">
@@ -204,11 +244,19 @@ father_child(mike, tom).
   <button onclick='enter("#ancestor3")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
+<div class="alert alert-info">
+  <strong>Tip!</strong> You want to be able to make changes to the node-resident code as well? If so, you need to download the implementation of the present node from at its <a target="_blank" href="https://github.com/JanWielemaker/swi-erlang">GitHub repo</a>, install it locally and run you own private node. Instructions in the README [but just not yet].
+</div>
+
+<div class="alert alert-info">
+  <strong>Tip!</strong> If you are an experienced Prolog programmer, you may want to skip the following two sections. We just want to show Erlang programmers a couple of things that are easy and natural in Prolog, but not so in Erlang. 
+</div>
+
 
 <h3>An expert system meta-interpreter</h3>
 
 <p>
-    A meta-interpreter implementing a tiny expert-system:
+    There was a time when expert systems was a big thing. There is even a Prolog text book that focuses on this. But expert systems never really went anywhere, so expert systems in Prolog, using the quite elegant meta-interpreter approach, never really went anywhere either. Nevertheless, it is worth presenting as an example. Here's a meta-interpreter implementing a tiny expert-system:
 </p>
                                                                 
 <pre id="expert1">
@@ -256,7 +304,7 @@ askable(has_feathers(_)).
 <h3>Parsing and generating with a DCG</h3>
 
 <p>
-    A simple Definite Clause Grammar (DCG) for a fragment of English:
+    In a logic programming language such as Web Prolog, Definite Clause Grammar (DCG) is a way of writing grammars, either for natural or formal languages. Here's a simple DCG for a fragment of English:
 </p>
 
 <pre id="dcg1">
@@ -292,7 +340,7 @@ p(p(with)) --> [with].
 </p>
 
 <p>
-    Here's how to use it for parsing:
+    Here's how to use the grammar for parsing. Note that since the sentence that we parse is ambigous, we get two solutions:
 </p>
 
 <pre id="dcg2">
@@ -303,26 +351,35 @@ p(p(with)) --> [with].
   <button onclick='enter("#dcg2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
+<div class="alert alert-info">
+  <strong>Tip!</strong> Wouldn't it be nice if a goal such as the one above could print a graphical parse tree? Since we are dealing with a shell written in HTML, CSS and JavaScript, this can be arranged in the future. <strong>Tip in tip!</strong> SWISH can do it &ndash; see <a target="_blank" href="https://swish.swi-prolog.org/example/grammar.pl">here</a> and click the Run button.
+</div>
+
 <p>
-    Here's how to use it for generation:
+    A DCG can be used for generaton too. Here's a way to generate all sentences less than 9 words long that are covered by the grammar:
 </p>
 
 <pre id="dcg3">
-?- between(1, 8, N), length(S, N), phrase(s(_), S), io:writeln(S), false.
+?- forall((between(1,8,_N), length(_S,_N), phrase(s(_),_S)), io:writeln(_S)).
 </pre>
 
 <p>
   <button onclick='enter("#dcg3")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>
-    At this point, you may want to clear the shell. There are two ways to do this: either select Clear from the Shell menu or use your keyboard to produce a Ctrl-L.
-</p>
+<div class="alert alert-info">
+  <strong>Tip!</strong> At this point, you may want to clear the shell. There are two ways to do this: either select Clear from the Shell menu or use your keyboard to produce a Ctrl-L.
+</div>
+
 
 <h2 id="for-prologers">Web Prolog is a dialect of Erlang</h2>
 
 <p>
-    We admit that this may be stretching the notion of a "dialect" a bit too far, but given that we may see Web Prolog as a variant of the Erlang language where we have "plugged out" its sequential part and "plugged in" sequential Prolog instead, it deserves at least a thought. Consider the syntactic, semantic and pragmatic similarities between Web Prolog and Erlang: dynamic typing, assign-once variables, reliance on pattern matching and recursion, and also the fact that the difference between a function and a relation is not all that big, since the former is a special case of the latter. Consider also the Web Prolog primitives for spawning and messaging that are borrowed straight from Erlang. Web Prolog is an actor programming language, just like Erlang.
+    We admit that this may be stretching the notion of a "dialect" a bit too far, but given that we may see Web Prolog as a variant of the Erlang language where we have "plugged out" its sequential part and "plugged in" sequential Prolog instead, it deserves at least a thought. Consider the syntactic, semantic and pragmatic similarities between Web Prolog and Erlang: dynamic typing, assign-once variables, reliance on pattern matching and recursion, and also the fact that the difference between a function and a relation is not all that big, since the former is a special case of the latter. Consider also the Web Prolog primitives for spawning and messaging that are borrowed straight from Erlang. Web Prolog is an <em>actor programming language</em>, just like Erlang.
+</p>
+
+<p>
+    Purity and practical usefulness...
 </p>
 
 <h3>Spawning, sending and receiving</h3>
@@ -354,22 +411,25 @@ p(p(with)) --> [with].
 
 <p>
   <button onclick='enter("#spawning1")' class="btn btn-xs btn-primary" type="button">Enter</button>
-  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#spawning2">&nbsp;Compare Erlang</input>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#spawning2">&nbsp;Compare with Erlang</input>
 </p>
 
 <p>
-    This example is obviously really trivial. The spawned process terminates almost immediately and <code>!/2</code> is only used to send a variable binding to the top-level process. A much more typical use of <code>spawn/1-3</code> is to call a locally or remotely defined Web Prolog procedure that specifies the (usually longtime) behaviour of the actor process thus created, the kind of messages it will listen for, and what kind of messages will be sent to other actors. 
+    Yep, this example is kind of silly. The spawned process terminates almost immediately and <code>!/2</code> is only used to send the value of a variable to the top-level process. We'll look at more realistic examples further down in the text.
 </p>
 
+<div class="alert alert-info">
+  <strong>Tip!</strong> Did you notice the Compare with Erlang checkbox? Selecting it will show the Erlang way of writing the example.
+</div>
 
 <h3>A priority queue</h3>
 
 <p> 
-    Just like in Erlang, a receive clause in Web Prolog can have a <i>guard</i> in the form of a <code>when</code> operator.
+    Just like in Erlang, a receive clause in Web Prolog can have a <em>guard</em> in the form of a goal placed just after the <code>when</code> operator and before the arrow <code>-></code>.
 </p>
 
 <p> 
-    As a way to demonstrate the use of the <code>when</code> operator, as well as the use of two 
+    As a way to demonstrate the use of a guard, as well as the use of two 
     <code>receive/2</code> options that causes a goal to be run on timeout, here's a priority queue 
     example borrowed from <a target="_blank" href="http://learnyousomeerlang.com">http://learnyousomeerlang.com</a>. 
 	Calling <code>important/1</code> will build a list of all messages with those with a priority 
@@ -416,7 +476,7 @@ normal() ->
 
 <p>
   <button onclick='consult("#priority1")' class="btn btn-xs btn-primary" type="button">Consult</button>
-  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#priority4">&nbsp;Compare Erlang</input>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#priority4">&nbsp;Compare with Erlang</input>
 </p> 
 
 <p>
@@ -445,100 +505,23 @@ normal() ->
   <button onclick='enter("#priority3")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<h3>Links and monitors</h3>
-
-<p>
-    Links in Web Prolog are uni-directional, whereas in Erlang they are bi-directional. As argued in \citep{conf/erlang/SvenssonFE10}, uni-directional links simplify things and do not harm expressivity. 
-(We are not yet sure if this is the right decision.)
-Note that an unauthorised user cannot spawn a process which is <em>not</em> linked. This is to avoid
-leaving zombie processes around.
-</p>
-
-<p>
-    Monitors in Web Prolog are also somewhat simpler than monitors in Erlang. The only kind of monitor 
-    currently supported is in the form of an option to <code>spawn/3</code>. The notion of a <i>monitor
-    reference</i> is not (yet) supported, and <i>demonitoring</i> is not possible.
-</p>
-
-<h3>Two kinds of exits</h3>
-    
-<p>
-    Just like in Erlang, two kinds of exits exist in Web Prolog:
-</p>
-
-<ul>
-    <li>
-        <i>Internal exits</i> are triggered by calling the predicate <code>exit/1</code> which makes the 
-        current process stop its execution. 
-    </li>
-    <li>
-        <i>External exits</i> are called with <code>exit/2</code> and have to do with multiple processes 
-        in the concurrent aspect of Web Prolog.
-    </li>
-</ul>
-
-<p>Here's an example of the use of an internal exit:</p>
-
-<pre id="exit1">
-?- spawn(exit(hello), _, [
-       monitor(true)
-   ]).
-</pre>
-
-<p>
-  <button onclick='enter("#exit1")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p>
-    Let's look at what the monitoring produced:
-</p>
-
-<pre id="exit2">
-?- flush.
-</pre>
-
-<p>
-  <button onclick='enter("#exit2")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p>Here's an example of the use of an external exit:</p>
-
-<pre id="exit3">
-?- spawn(sleep(1), Pid, [
-       monitor(true)
-   ]),
-   exit(Pid, goodbye).
-</pre>
-
-<p>
-  <button onclick='enter("#exit3")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p>
-    Again, let's look at the result of monitoring the process:
-</p>
-
-<pre id="exit4">
-?- flush.
-</pre>
-
-<p>
-  <button onclick='enter("#exit4")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
 
 <h3>Servers</h3>
     
+<p>
+    A typical use of <code>spawn/1-3</code> is to call a locally or remotely defined Web Prolog procedure that specifies the (usually longtime) behaviour of the actor process thus created, the kind of messages it will listen for, and what kind of messages will be sent to other actors. 
+</p>
+
 <p> 
-    Using the primitives for spawning, sending and receiving, we can easily write a program that can respond with a <code>pong</code> to any client that passes along its pid in a <code>ping</code> message. In the Erlang community, such a program is usually referred to as a <em>server</em>. First, we consult the following source code:
+    Let's start by defining a <i>stateless</i> server. Using the primitives for spawning, sending and receiving, we can easily write a program that can respond with a <code>pong</code> message to any client that sends it a <code>ping</code> message. The pid of the client must be included in the <code>ping</code> message. In the Erlang community, programs such as these are usually referred to as <em>servers</em>. First, we consult the following source code:
 </p>
     
 <pre id="server1">
-server :-
+pong_server :-
     receive({
         ping(From) ->
             From ! pong,
-            server
+            pong_server
     }).
 </pre>
 
@@ -547,12 +530,12 @@ server :-
 </p> 
 
 <p>
-    This is how we spawn the server process:
+    Here's how to spawn the server process:
 </p>
 
 <pre id="server2">
-?- spawn(server, Pid, [
-       src_predicates([server/0])
+?- spawn(pong_server, Pid, [
+       src_predicates([pong_server/0])
    ]).
 </pre>
 
@@ -562,7 +545,7 @@ server :-
 
 <p>
     The option <code>src_predicates</code> is one of several options that can be used to inject 
-    source code into the actor process to be created.  As shown above, it takes a list of predicate indicators. Other options that can be used for this purpose is <code>src_text</code>, <code>src_list</code> and <code>src_uri</code>. Their uses will be demonstrated further down in the tutorial.
+    source code into the actor process to be created.  As shown above, it takes a list of predicate indicators. (Other options that can be used for the purpose of injecting code are <code>src_text</code>, <code>src_list</code> and <code>src_uri</code>. Their uses will be demonstrated further down in the tutorial.)
 </p>
 
 <p>
@@ -607,16 +590,15 @@ server :-
 </p>
 
 <p> 
-    Same behaviour but a different implementation, possible since <code>receive/1-2</code> is 
-	semi-deterministic (i.e. either fails or succeeds exactly once).
+    The similarity with Erlang is striking. Web Prolog allow us to define such a server in another way, using a repeat-fail loop rather than a recursive loop. This is possible since <code>receive/1-2</code> is semi-deterministic (i.e. either fails or succeeds exactly once). This isn't possible in Erlang.
 </p>
     
 <pre id="server6">
-server :-
+repeat_fail_pong_server :-
     repeat,
     receive({
         ping(From) ->
-            From ! new_pong,
+            From ! pong,
             fail
     }).
 </pre>
@@ -626,51 +608,44 @@ server :-
 </p> 
 
 <p>
-    We need to start a new server:
+    Repeat-fail loops (or the more general concept of failure-driven loops) are not really likened in Prolog, so although they form the basis of the all-solutions predicates and predicates such as <code>forall/2</code>, most Prolog programmers like to keep them hidden as far under the hood as possible. We agree with this, so we like the server with the recursive loop better.
+</p>
+
+<p>
+    We then need to start the new server and send a ping to it. For a change, we use <code>receive/1</code> instead of 
+	<code>flush/0</code> to capture responses. We also send a ping twice, and wait for the pong response twice:
 </p>
 
 <pre id="server7">
-?- spawn(server, Pid, [
-       src_predicates([server/0])
-   ]).
+?- spawn(repeat_fail_pong_server, _Pid, [
+       src_predicates([repeat_fail_pong_server/0])
+   ]),
+   self(_Self),
+   _Pid ! ping(_Self),
+   _Pid ! ping(_Self),
+   receive({Msg1 -> true}),
+   receive({Msg2 -> true}).
 </pre>
 
 <p>
   <button onclick='enter("#server7")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p> 
-    Sending a ping to the new server. For a change, we use <code>receive/1</code> instead of 
-	<code>flush/0</code> to capture the response:
-</p>
-
-<pre id="server8">
-?- $Pid ! ping($Self),
-   receive({Msg -> true}).
-</pre>
-
-<p>
-  <button onclick='enter("#server8")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
 
 <h3>Node-resident actor processes</h3>
 
 <p>
-    As we saw from in an earlier example, the owner of a node may install source code for predicates 
-    that can be accessed by any client to this node. The owner of a node may also install node-resident actor 
-    processes &ndash; long-lived processes that can be accessed by any client. Below is one example that 
-    uses <code>register/2</code> to give the process a mnemonic name. For the purpose of this
-    tutorial the code has been installed by the present node.
+    As we saw in an earlier example, the owner of a node may install source code for predicates 
+    that can be accessed by any client to this node, as if they were built-in. The owner of a node may also install <em>node-resident actor processes</em> &ndash; long-lived processes that can be accessed by any client. Below is one example, installed for the purpose of this tutorial, that uses <code>register/2</code> to give the process a mnemonic name. 
 </p>
 
 <pre>
-count_server(N0) :-
-    N is N0 + 1,
+count_server(Count0) :-
+    Count is Count0 + 1,
     receive({
         count(From) ->
-            From ! N,
-            count_server(N)
+            From ! Count,
+            count_server(Count)
     }).
     
 :- spawn(count_server(0), Pid),
@@ -678,7 +653,7 @@ count_server(N0) :-
 </pre>
 
 <p>
-    This also happend to be our first example of a <em>stateful</em> server, as it uses the argument in the loop to carry around the state of the counter, i.e. the count itself.
+    This also happens to be our first example of a <i>stateful</i> server, as it uses the argument in <code>count_server/1</code> to carry around the state of the counter, i.e. the count itself.
 </p>
 
 <p>
@@ -696,7 +671,11 @@ count_server(N0) :-
 </p>
 
 <p>
-    You may want to click the Enter button once again, to make sure that it works as is should. (Note that someone else, visiting the same node, may have clicked the button so that the value is now larger than the last value that you received + 1.)
+    Did you receive a count greater than 1? If so, it just means that someone else has clicked the button before you did. The state of the server is globally accessible.
+</p>
+
+<p>
+    You may want to click the Enter button once again, to make sure that it works as is should. 
 </p>
 
 <h3>The fridge simulation</h3>
@@ -712,7 +691,7 @@ count_server(N0) :-
 <p>
     Using <code>spawn/3</code>, the program spawns a local process that simulates
     a fridge. The <code>src_text</code> option of <code>spawn/3</code> is used to pass the 
-    program to the process. 
+    program to the actor process to be created. 
 </p>
     
 <pre id="fridge">
@@ -761,7 +740,7 @@ fridge(FoodList) ->
 
 <p>
   <button onclick='consult("#fridge")' class="btn btn-xs btn-primary" type="button">Consult</button>
-  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#fridge2">&nbsp;Compare Erlang</input>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#fridge2">&nbsp;Compare with Erlang</input>
 </p> 
 
 <p>
@@ -774,13 +753,240 @@ fridge(FoodList) ->
   <button onclick='ask("flush.")' class="btn btn-link" type="button">?- flush.</button>
 </p>
 
-<p>...</p>
+<div class="alert alert-info">
+  <strong>Tip! (for prologers)</strong> Yep, Fred Hebert's book is awesome, and it's free. Read it online at <a target="_blank" href="http://learnyousomeerlang.com">http://learnyousomeerlang.com</a>. If you are a prologer you could probably start from <a target="_blank" href="http://learnyousomeerlang.com/the-hitchhikers-guide-to-concurrency">here</a>.
+</div>
+
+<h3>A dynamic database fridge</h3>
+
+<p>
+    The dynamic database cannot be updated from the outside, and when updates are performed from the inside, they are not accessible from the outside. In other words, an actor's dynamic database is private to it. Here's how the fridge simulation may be written in this style:
+</p>
+
+<pre id="dynamic1">
+start(Pid) :-
+    spawn(fridge, Pid, [
+        src_text("
+    
+            fridge :-
+                receive({
+                    store(From, Food) ->
+                        assert(food(Food)),
+                        From ! ok,
+                        fridge;
+                    take(From, Food) ->
+                        (   retract(food(Food))
+                        ->  From ! ok(Food),
+                            fridge
+                        ;   From ! not_found,
+                            fridge
+                        );
+                    terminate ->
+                        true
+                }).    
+        ")
+    ]).   
+</pre>
+
+<p>
+  <button onclick='consult("#dynamic1")' class="btn btn-xs btn-primary" type="button">Consult</button>
+</p> 
+
+<p>
+   ...
+</p>
+
+
+<h3>Using all-solutions predicates</h3>
+
+<p>
+    You can do it, they are there:
+</p>
+
+<pre id="findall1">
+?- findall(_I, between(1, 10, _I), L).
+</pre>
+
+<p>
+  <button onclick='enter("#findall1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+    One thing that a top-level pengine can do, but that the traditional shell doesn't really take advantage of, is to generate batches of n solutions at a time. (The SWISH GUI is much better at this!)
+</p>
+
+<p>
+    Not all is lost, however, since we can call <code>findnsols/3</code>:
+</p>
+
+<pre id="findnsols1">
+?- findnsols(4, _I, between(1, 10, _I), L).
+</pre>
+
+<p>
+  <button onclick='enter("#findnsols1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+   ...
+</p>
+
+<h3>Links and monitors</h3>
+
+<p>
+    Links in Web Prolog are somewhat simpler than links in Erlang. The only kind of link 
+    currently supported is in the form of an option to <code>spawn/3</code>. 
+</p>
+
+<p>
+    Links in Web Prolog are uni-directional, whereas in Erlang they are bi-directional. As argued in \citep{conf/erlang/SvenssonFE10}, uni-directional links simplify things and do not harm expressivity. 
+Note that an unauthorised user cannot spawn a process which is <em>not</em> linked to the process that spawned it. This is to avoid
+leaving zombie processes around. For the same reason, <code>unlink/1</code> is not defined.
+</p>
+
+<p>
+    Monitors in Web Prolog are also somewhat simpler than monitors in Erlang. The only kind of monitor 
+    currently supported is in the form of an option to <code>spawn/3</code>. The notion of a <i>monitor
+    reference</i> is not (yet) supported, and <i>demonitoring</i> is not possible.
+</p>
+
+<div class="alert alert-danger">
+  <strong>Strong warning!</strong> These may change in the future since we are not yet sure this is the right design. Comments are welcome!
+</div>
+
+<h3>Two kinds of exits</h3>
+    
+<p>
+    Just like in Erlang, two kinds of exits exist in Web Prolog:
+</p>
+
+<ul>
+    <li>
+        <i>Internal exits</i> are triggered by calling the predicate <code>exit/1</code> which makes the 
+        current process stop its execution. 
+    </li>
+    <li>
+        <i>External exits</i> are called with <code>exit/2</code> and can be used to kill any process. But only if you know its pid.
+    </li>
+</ul>
+
+<p>Here's an example of the use of an internal exit:</p>
+
+<pre id="exit1">
+?- spawn(exit(hello), _, [
+       monitor(true)
+   ]).
+</pre>
+
+<p>
+  <button onclick='enter("#exit1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+    Let's look in the top-level mailbox at what the monitoring produced:
+</p>
+
+<pre id="exit2">
+?- flush.
+</pre>
+
+<p>
+  <button onclick='enter("#exit2")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>Here's an example of the use of an external exit:</p>
+
+<pre id="exit3">
+?- spawn(sleep(1), Pid, [
+       monitor(true)
+   ]),
+   exit(Pid, goodbye).
+</pre>
+
+<p>
+  <button onclick='enter("#exit3")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+    Again, let's look at the result of monitoring the process:
+</p>
+
+<pre id="exit4">
+?- flush.
+</pre>
+
+<p>
+  <button onclick='enter("#exit4")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+
+<h3>A publish-subscribe service</h3>
+
+<p>
+     A node-resident actor working as a publish-subscribe service has been installed. Here's the source code:
+</p>
+
+<pre>
+pubsub_service(Subscribers0) :-
+    receive({
+        publish(Message) ->
+            forall(member(Pid, Subscribers0), Pid ! msg(Message)),
+            pubsub_service(Subscribers0);
+        subscribe(Pid) ->
+            pubsub_service([Pid|Subscribers0]);
+        unsubscribe(Pid) ->
+            (   select(Pid, Subscribers0, Subscribers)
+            ->  pubsub_service(Subscribers)
+            ;   pubsub_service(Subscribers0)
+            ).    
+    }).
+
+:- spawn(pubsub_service([]), Pid),
+   register(pubsub_service, Pid).
+</pre>
+
+<p>
+   In the following example we subscribe to the service, and (too lazy to write a recursive loop) invoke a repeat-fail loop waiting for messages to arrive from it: 
+</p>
+
+<pre id="pubsub1">
+?- self(Self),
+   pubsub_service ! subscribe(Self),
+   repeat,
+   io:write("Waiting for a message..."),
+   receive({
+       msg(Message) ->
+           io:format("Received: ~p", [Message]),
+           fail
+   }).
+</pre>
+
+<p>
+  <button onclick='enter("#pubsub1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p> 
+
+<p>
+   The above call is blocking, so to see the effect of publishing a term to the service, you will either have to wait for someone else to publish to it, or (more realistically) open this tutorial in another page and do:
+</p>
+
+<pre id="pubsub2">
+?- pubsub_service ! publish(hello).
+</pre>
+
+<p>
+  <button onclick='enter("#pubsub2")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p> 
+
+<div class="alert alert-danger">
+  <strong>BUG!</strong> Unfortunately, a bug stops you from aborting the blocking repeat-fail loop using Ctrl-C. Your only way out at this point is to reload the page.
+</div>
+
 
 <h3>Ping-pong</h3>
 
 <p>
     Erlang-style asynchronous communication is key to the kind of concurrent programming that 
-    Web Prolog's actor abstraction supports. In the following example, two processes are first
+    Web Prolog's actor abstraction supports. In the following example, adapted from the example at <a target="_blank" href="http://erlang.org/doc/getting_started/conc_prog.html#id69544">http://erlang.org/doc/getting_started/conc_prog.html</a>, two processes are first
     created and then start sending messages to each other a specified number of times.
 </p>
 
@@ -852,10 +1058,10 @@ start() ->
 
 <p>
   <button onclick='consult("#pingpong1")' class="btn btn-xs btn-primary" type="button">Consult</button>
-  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#pingpong3">&nbsp;Compare Erlang</input>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#pingpong3">&nbsp;Compare with Erlang</input>
 </p>
 
-<p>We call <code>start/1</code> to start the process.</p>
+<p>We call <code>start/1</code> to start the processes:</p>
 
 <pre id="pingpong2">
 ?- start(3).
@@ -919,16 +1125,16 @@ start(N) :-
 
 <p>
    So, why do we get the output of the "pinger" only, and not the output written by the "ponger"?
-   This is because a shell can only receive and render output that is written from pengines or other
-   actors that live on the same node as the top-level pengine to which the shell is attached. This 
+   The reason is that a shell can only receive and render output that is written from 
+   actors that 1) live on the same node as the top-level pengine to which the shell is attached, and 2) are decendants of this top-level pengine. This 
    restriction may be lifted in the future, but you should also note that <code>pengine_input/2</code>
    <code>pengine_output/1</code> and <code>send/2</code> are the principal I/O predicates in Web Prolog
    (along with <code>io:read/1</code>). <code>io:write/1</code> should be considered a debugging tool).
 </p>
 
-<p>
-   You may have noted that we lied a little when we wrote that we moved the "ponger" process to another node, since we actually used the same node as the pinger is running on. This is so that we don't have to run more than one node for the purpose of this tutorial.
-</p>
+<div class="alert alert-warning">
+  <strong>Heads up!</strong> Note that we lie a little when we write that we moved the "ponger" process to another node. We are actually using the same node as the pinger is running on. This is so that we don't have to run more than one node for the purpose of this tutorial.
+</div>
 
 <h3>Porting Erlang programs to Web Prolog</h3>
 
@@ -1066,8 +1272,15 @@ dining :-
 </p>
 
 <p>
-    Due to the many similarities between Erlang and Web Prolog, porting the code was fairly straightforward. We could even take advantage of the fact that a structure such as <code>{grabforks,{Left,Right}}</code> is valid in Prolog too, where it is not a tuple but a complex term of the form <code>{}((grabforks,{}((Left,Right))))</code>. In general, however, we recommend that such terms are replaced by less complex ones.
-</p>
+    Due to the many similarities between Erlang and Web Prolog, porting the code was fairly straightforward. We could even take advantage of the fact that an Erlang tuple such as <code>{grabforks,{Left,Right}}</code> is valid syntax in Prolog too, where it is not a tuple but a complex term of the form <code>{}((grabforks,{}((Left,Right))))</code>. 
+</p>    
+    
+<div class="alert alert-info">
+  <strong>Tip!</strong> In general, however, we recommend that such terms are replaced by less complex ones. In this case, <code>grabforks(Left-Right)</code> would probably work just fine.
+</div>
+    
+    
+<h2>Web Prolog is a hybrid of Prolog and Erlang</h2>
 
 <h3>Controlling backtracking</h3>
 
@@ -1077,13 +1290,13 @@ dining :-
 </p>
 
 <p>
-    Let's turn to an example which shows that the mix is both sound and easy to understand. Suppose the goal given in the first argument to <code>spawn/2</code> has more than one answer, a goal such as <code>?-ancestor_decendant(mike,X)</code> for example. We can call the goal, send the result back to the calling process, and then use <code>receive/1</code> to listen for a message of the form <code>next</code> or <code>stop</code> before terminating.
+    Let's turn to a tiny but illustrative example which seems to show that the mix is both sound and easy to understand. Suppose the goal given in the first argument to <code>spawn/2</code> has more than one answer, a goal such as <code>?-ancestor_decendant(mike,Who)</code> for example. We can call the goal, send the result back to the calling process, and then use <code>receive/1</code> to listen for a message of the form <code>next</code> or <code>stop</code> before terminating.
 </p>
 
 <pre id="pre-pengine1">
 ?- self(_Self),
-   spawn(( ancestor_decendant(mike, _X),
-           _Self ! _X,
+   spawn(( ancestor_decendant(mike, _Who),
+           _Self ! _Who,
            receive({
                next -> fail;
                stop -> 
@@ -1093,7 +1306,8 @@ dining :-
 </pre>
 
 <p>
-  <button onclick='enter("#pre-pengine1")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#pre-pengine1")' class="btn btn-xs btn-primary" type="button">Enter</button> or 
+  <button onclick='' class="btn btn-xs" type="button">Write a mail to the author arguing about his point</button>
 </p>
 
 <p>At this point, the first answer to the query can be found in the mailbox of the top-level pengine:</p>
@@ -1106,7 +1320,9 @@ dining :-
   <button onclick='enter("#pre-pengine2")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>Let's check if there are more answers:</p>
+<p>
+    At this point, the receive is blocking. To check if there are more answers we send a message <code>next</code> to the actor which will cause the receive to fail and thus force the backtracking that will lead to the succesful search for the next answer:
+</p>
 
 <pre id="pre-pengine3">
 ?- $Pid ! next.
@@ -1114,6 +1330,10 @@ dining :-
 
 <p>
   <button onclick='enter("#pre-pengine3")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
+    Did we get the next solution?:
 </p>
 
 <pre id="pre-pengine4">
@@ -1124,7 +1344,9 @@ dining :-
   <button onclick='enter("#pre-pengine4")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>Sending <code>stop</code> will terminate the query:</p>
+<p>
+    Sending <code>stop</code> will terminate the query:
+</p>
 
 <pre id="pre-pengine5">
 ?- $Pid ! stop.
@@ -1137,6 +1359,7 @@ dining :-
 <pre id="pre-pengine6">
 ?- flush.
 </pre>
+
 
 <p>
   <button onclick='enter("#pre-pengine6")' class="btn btn-xs btn-primary" type="button">Enter</button>
@@ -1186,7 +1409,7 @@ query(Query, Self, Parent) :-
 </p>
 
 <p>
-    This is how we call <code>search/2</code> with a query:
+    Here's how to call <code>search/2</code> with a query:
 </p>
 
 <pre id="encapsulated-search2">
@@ -1207,58 +1430,63 @@ query(Query, Self, Parent) :-
   <button onclick='enter("#encapsulated-search3")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>Ask for the next solution:</p>
+<p>Ask for the next solution, but now let's wait for the expected message using receive instead:</p>
 
 <pre id="encapsulated-search4">
-?- $Pid ! next.
+?- $Pid ! next,
+   receive({Message -> true}).
 </pre>
 
 <p>
   <button onclick='enter("#encapsulated-search4")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>Let's flush again:</p>
-
-<pre id="encapsulated-search5">
-?- flush.
-</pre>
-
-<p>
-  <button onclick='enter("#encapsulated-search5")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
 
 <p>Tell the actor to stop:</p>
 
 <pre id="encapsulated-search6">
-?- $Pid ! stop.
+?- $Pid ! stop,
+   receive({Message -> true}).
 </pre>
 
 <p>
   <button onclick='enter("#encapsulated-search6")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>Let's flush again:</p>
+<p>
+    What about failures and exceptions? Well, try the following queries and see for yourself:
+</p>
 
-<pre id="encapsulated-search7">
-?- flush.
+<pre id="encapsulated-search8">
+?- search(false, _Pid),
+   receive({Message -> true}).
 </pre>
 
 <p>
-  <button onclick='enter("#encapsulated-search7")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#encapsulated-search8")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<pre id="encapsulated-search9">
+?- search(not_defined, _Pid),
+   receive({Message -> true}).
+</pre>
+
+<p>
+  <button onclick='enter("#encapsulated-search9")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
 <p>
-    This section gave some insight into how encapsulated search works when understood as an actor that adheres to a particular protocol.
+    This section offered some insight into how encapsulated search works when understood as an actor that adheres to a particular protocol.
 </p>
 
 <h3>The pengine behaviour</h3>
 
 <p>
-    You don't need to build your own implementations of encapsulated search. In Web Prolog, a pengine is a programming abstraction modelled on the interactive top-level of Prolog. A pengine is like a first-class interactive Prolog top-level, accessible from Web Prolog as well as from other programming languages. 
+    You don't need to build your own implementations of encapsulated search. In Web Prolog, a pengine is a built-in programming abstraction modelled on the interactive top-level of Prolog. A pengine is like a first-class interactive Prolog top-level, accessible from Web Prolog as well as from other programming languages. The shell in the area to the right is an application that accesses a pengine.
 </p>
 
 <p>
-    Whereas encapsulated search (as implemented above) allows only one query per process, a pengine allows a full <i>session</i> per process created, possibly involving many queries. Indeed, we may want to refer to a pengine as an <i>encapsulated Prolog session</i>, an abstraction designed to make Prolog programmers feel right at home.
+    Whereas encapsulated search (as implemented above) allows only one query per process created, a pengine allows a full <i>session</i> per process, possibly involving many queries. Indeed, we may want to refer to a pengine as an <i>encapsulated Prolog session</i>. In our opinion, it's an abstraction that ought to be able to make Prolog programmers feel right at home.
 </p>
 
 <p>
@@ -1963,7 +2191,7 @@ query(Query, Self, Parent) :-
   <button onclick='enter("#pengine-simple1")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>and here's how to ask a query:</p>
+<p>and here's how to ask the spawned pengine a query:</p>
 
 <pre id="pengine-simple2">
 ?- pengine_ask($Pid, member(_X,[a,b,c])).
@@ -1986,85 +2214,65 @@ query(Query, Self, Parent) :-
 <p>Here's how to request the next solution to our query:</p>
 
 <pre id="pengine-simple4">
-?- pengine_next($Pid).
+?- pengine_next($Pid),
+   receive({Message -> true})..
 </pre>
 
 <p>
   <button onclick='enter("#pengine-simple4")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>Let's flush the mailbox again!</p>
-
-<pre id="pengine-simple5">
-?- flush.
-</pre>
-
-<p>
-  <button onclick='enter("#pengine-simple5")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
 <p>When we don't need more answers, we call <code>pengine_stop/1</code></p>
 
 <pre id="pengine-simple6">
-?- pengine_stop($Pid).
+?- pengine_stop($Pid),
+   receive({Message -> true})..
 </pre>
 
 <p>
   <button onclick='enter("#pengine-simple6")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<pre id="pengine-simple7">
-?- flush.
-</pre>
-
-<p>
-  <button onclick='enter("#pengine-simple7")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
 
 <p>
 	Having spawned a process running a goal, it sometimes happens that it loops indefinitely, so that we may 
   	need to terminate it by force.
 </p>
 
-<p>Let's ask a query that takes a while to terminate...</p>
+<p>Let's ask a query that takes a while to terminate ...</p>
 
 <pre id="pengine-simple8">
-?- pengine_ask($Pid, (between(1,30, _N), io:writeln(_N), sleep(1), fail)).
+?- pengine_ask($Pid, forall(between(1,30, _N), (io:writeln(_N), sleep(1)))).
 </pre>
 
 <p>
   <button onclick='enter("#pengine-simple8")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>...just to be able to abort it:</p>
+<p>... just to be able to show how to abort it:</p>
 
 <pre id="pengine-simple9">
-?- pengine_abort($Pid).
+?- pengine_abort($Pid),
+   receive({Message -> true}).
 </pre>
 
 <p>
   <button onclick='enter("#pengine-simple9")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>Let's flush!</p>
-
-<pre id="pengine-simple10">
-?- flush.
-</pre>
+<div class="alert alert-danger">
+  <strong>BUG!</strong> The abort generated the wrong response. Should have been <code>abort(&lt;pid&gt;)</code>.
+</div>
 
 <p>
-  <button onclick='enter("#pengine-simple10")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
-
-<p>
-  Note that aborting the running query doesn't mean that the pengine is dying. The pengine is still alive, ready to accept new queries. To kill a pengine from the outside, we need to use <code>exit/2</code>.
+  Note that aborting the running query doesn't kill the pengine. It's still alive, ready to accept new queries. To kill a pengine from the outside, you'd need to call <code>exit/2</code>.
 </p>
 
 
 <h3>Pengines and options</h3>
 
 <p>
-    The predicate <code>pengine_spawn/2</code> inherits all its options from <code>spawn/3</code>. Here's how to use some of them:
+    The predicate <code>pengine_spawn/2</code> inherits all its options from <code>spawn/3</code>. Here's how to use some of them when creating a monitored session running remotely:
 </p>
 
 <pre id="pengine-advanced1">
@@ -2081,14 +2289,15 @@ query(Query, Self, Parent) :-
 </p>
 
 <p>
-    <code>pengine_ask/3</code> introduces two new options, <code>template</code> and <code>limit</code>. Here's how they may be used:
+    The predicate <code>pengine_ask/3</code> introduces two new options, <code>template</code> and <code>limit</code>. Here's how they may be used when querying the pengine just created:
 </p>
 
 <pre id="pengine-advanced2">
 ?- pengine_ask($Pid, p(_X), [
        template(_X),
        limit(2)
-   ]).
+   ]),
+   receive({Message -> true}).
 </pre>
 
 <p>
@@ -2096,13 +2305,12 @@ query(Query, Self, Parent) :-
 </p>
 
 <p>
-    <code>pengine_next/2</code> supports the option <code>limit</code> too:
+    The predicate <code>pengine_next/2</code> is used for retrieving more solutions, and will get two of them this time too, just because the previous call to <code>pengine_ask/3</code> set that limit:
 </p>
 
 <pre id="pengine-advanced3">
-?- pengine_next($Pid, [
-       limit(4)
-   ]).
+?- pengine_next($Pid),
+   receive({Message -> true}).
 </pre>
 
 <p>
@@ -2110,27 +2318,34 @@ query(Query, Self, Parent) :-
 </p>
 
 <p>
+    But <code>pengine_next/2</code> supports the option <code>limit</code> as well, so that we are allowed to increase (or decrease) the number of solutions that we like to get:
+</p>
+
+<pre id="pengine-advanced4">
+?- pengine_next($Pid, [
+       limit(4)
+   ]),
+   receive({Message -> true}).
+</pre>
+
+<p>
+  <button onclick='enter("#pengine-advanced4")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p>
+
+<p>
 	At some point, we may want to terminate the session. This is where the <code>exit/2</code> predicate 
 	comes in.
 </p>
 
-<pre id="pengine-simple11">
-?- exit($Pid, normal).
+<pre id="pengine-advanced5">
+?- exit($Pid, normal),
+   receive({Message -> true}).
 </pre>
 
 <p>
-  <button onclick='enter("#pengine-simple11")' class="btn btn-xs btn-primary" type="button">Enter</button>
+  <button onclick='enter("#pengine-advanced5")' class="btn btn-xs btn-primary" type="button">Enter</button>
 </p>
 
-<p>Let's flush the top-level mailbox:</p>
-
-<pre id="pengine-simple12">
-?- flush.
-</pre>
-
-<p>
-  <button onclick='enter("#pengine-simple12")' class="btn btn-xs btn-primary" type="button">Enter</button>
-</p>
 
 <h3>Pengines and I/O</h3>
 
@@ -2255,7 +2470,7 @@ wait_answer(Query, Pid) :-
 </p>
 
 <pre id="rpc-limit">
-?- rpc('{{host}}', between(1,12,N), [
+?- rpc('{{host}}', between(1, 12, N), [
        limit(5)
    ]).
 </pre>
@@ -2335,7 +2550,7 @@ wait_answer(Query, Pid) :-
 
 <p>
 	Note that if we would now request the remaining answers by re-running the call to <code>promise/4</code> with 
-	<code>offset</code> set to <code>3</code> this time, it is likely that the work that generated the three first solutions does not have to be repeated. A pengine running on the node serves as a form of cache.
+	<code>offset</code> set to <code>3</code> this time, it is likely (but not guaranteed) that the work that generated the three first solutions does not have to be repeated. A pengine running on the node serves as a form of cache.
 </p>
 
 <h3>What should we use?</h3>
@@ -2346,15 +2561,15 @@ wait_answer(Query, Pid) :-
 
 <ol>
     <li>
-        Use <code>spawn/3</code> with the <code>node</code> option set to a non-default URI value pointing to a remote node. This is the simplest approach to distribution and closely mirrors how one would use the related Erlang primitives. The communication with the remote actor is asynchronous. It also allows you to run several actors concurrently. This predicate uses the WebSocket transport in its communication with the remote node.
+        Use <code>spawn/3</code> with the <code>node</code> option set to a URI value pointing to a remote node. This is the simplest approach to distribution and closely mirrors how one would use the related Erlang primitives. The communication with the remote actor is asynchronous. It also allows you to run several actors concurrently. The WebSocket transport is used in the communication with the remote node.
     </li>
 
     <li>
-        Use <code>pengine_spawn/2</code> with the <code>node</code> option set to a non-default URI value. This gives us a first-class Prolog top-level running on the remote node. This is the obvious choice when dealing with queries with more than one solution. The communication with the remote pengine is asynchronous. It also allows you to run several pengines concurrently. The limit option allows you to implement pagination of solutions. This predicate uses the WebSocket transport in its communication with the remote node.
+        Use <code>pengine_spawn/2</code> with the <code>node</code> option set to a URI value pointing to a remote node. This gives us a first-class Prolog top-level running on the remote node and is the obvious choice when dealing with queries with more than one solution. The communication with the remote pengine is asynchronous. It also allows you to run several pengines concurrently. The <code>limit</code> option allows you to implement pagination of solutions. This predicate uses the WebSocket transport in its communication with the remote node.
     </li>
 
     <li>
-        Use <code>rpc/2-3</code>. This implements non-deterministic remote procedure calls. When the client is Prolog-based, this is by far the easiest way to make a remote call. It doesn't involve any concurrency, however, and it's a synchronous construct. You may choose transport &ndash; HTTP (default) or WebSocket &ndash; and the <code>limit</code> option allows you to limit the number of network roundtrips needed to run a query to completion.
+        Use <code>rpc/2-3</code>. This implements non-deterministic remote procedure calls. When the client is Prolog-based (i.e. when it is also a Web Prolog node), this is by far the easiest way to make a remote call. It doesn't involve any concurrency, however, and it's a synchronous construct. You may choose transport &ndash; HTTP (default) or WebSocket &ndash; and the <code>limit</code> option allows you to limit the number of network roundtrips needed to run a query to completion.
     </li>
 
     <li>
@@ -2369,7 +2584,7 @@ wait_answer(Query, Pid) :-
 <h2 id="web-apis">Web APIs</h2>
 
 <p>
-    A Web Prolog runtime system -- which we will refer to as a <em>node</em> -- is equipped with a comprehensive set of web APIs, using both WebSocket and HTTP as transport protocols, over which a client can run Web Prolog programs defined by the owner of the client, the owner of the node, or a combination of both.
+    A Web Prolog runtime system &ndash; which we will refer to as a <em>node</em> &ndash; is equipped with a comprehensive set of web APIs, using both WebSocket and HTTP as transport protocols, over which a client can run Web Prolog programs defined by the owner of the client, the owner of the node, or a combination of both.
 </p>
 
 <p>
@@ -2382,8 +2597,11 @@ wait_answer(Query, Pid) :-
 <h3>Using the WebSocket API</h3>
 
 <p>
-	Note that the pages will open in a new window or tab. To see any output from the program, 
-    open your browser's console there. Use "View Page Source" to inspect the source code.
+    For an example of the WebSocket API can be used, look no longer than towards end of the source of the shell. It is a bit to messy though. (The implementation relies a lot on a library called <a href="http://terminal.jcubic.pl">jQuery Terminal</a>. Without that, it would have been a lot messier.)
+</p>
+
+<p>
+	To make it easier, we have prepared two much simpler applications. Note that the pages will open in a new window or tab. To see any output from the program, open your browser's console there. Use "View Page Source" to inspect the source code.
 </p>
 
 <p>
@@ -2398,8 +2616,42 @@ wait_answer(Query, Pid) :-
     </a>
 </p>
 
+<div class="alert alert-info">
+  <strong>Tip!</strong> By selecting Toggle JSON trace from the Shell menu, it is possible to inspect the JSON traffic
+    between the shell and the node. This should provide you with yet another clue to how the WebSocket API can be used.
+</div>
+
 
 <h3>Using the HTTP ask API</h3>
+
+<div class="alert alert-danger">
+  <strong>BUG!</strong> To circumvent a problem with the semicolon (;) in the queries of the following two requests, we use | instead.
+</div>
+
+<p>
+	<a target="_blank" href="/ask?query=(sleep(3),X=a|X=b)&amp;offset=0&amp;template=X&amp;format=json">
+    	{{host}}/ask?query=(sleep(1),X=a|X=b)&amp;offset=0&amp;template=X&amp;format=json
+    </a>
+</p>
+
+<p>
+	Note that if we would now request the remaining answers by making the following request:
+</p>
+
+<p>
+	<a target="_blank" href="/ask?query=(sleep(3),X=a|X=b)&amp;offset=1&amp;template=X&amp;format=json">
+    	{{host}}/ask?query=(sleep(1),X=a|X=b)&amp;offset=1&amp;template=X&amp;format=json
+    </a>
+</p>
+
+<p>    
+    i.e. with 
+	<code>offset</code> set to <code>1</code> this time, it is likely (but not guaranteed) that the work that generated the first solution does not have to be repeated. An anonymous pengine running on the node serves as a form of cache. The cache can only be used once thouh, and there's a chance that another client grabbed it before you.
+</p>    
+
+<p>
+	Note that we, as a way to avoid making to many network roundtrips, can use the <code>limit</code> parameter in an HTTP request too:
+</p>
 
 <p>
 	<a target="_blank" href="/ask?query=member(X,[a,b,c,d])&amp;offset=1&amp;limit=2&amp;template=X&amp;format=json">
@@ -2407,9 +2659,46 @@ wait_answer(Query, Pid) :-
     </a>
 </p>
 
+
 <h3>Using the HTTP send API</h3>
 
-<p>Given a pid or a registred name, you are able to send a message to the "named" pengine (or other actor):</p>
+<p>
+    By means of this API, and given a pid or a registred name, you are able to send a message to the "named" pengine (or other actor). To demonstrate this, we ask you to once again subscribe to the publish-subscribe service:
+</p>
+
+<pre id="pubsub10">
+?- self(Self),
+   pubsub_service ! subscribe(Self),
+   repeat,
+   io:write("Waiting for a message..."),
+   receive({
+       msg(Message) ->
+           io:format("Received: ~p", [Message]),
+           fail
+   }).
+</pre>
+
+<p>
+  <button onclick='enter("#pubsub10")' class="btn btn-xs btn-primary" type="button">Enter</button>
+</p> 
+
+<p>
+    Here's an API request that will publish the message hello:
+</p>
+
+<p>
+	<a target="_blank" href="/send?name=pubsub_service&amp;term=publish(hello)">
+    	{{host}}/send?name=pubsub_service&amp;term=publish(hello)
+    </a>
+</p>
+
+<p>
+    Such a request can be made by any client that knows the name of the service.
+</p>
+
+<div class="alert alert-danger">
+  <strong>BUG!</strong> Not really a bug... but this needs to work with a POST request as well.
+</div>
 
 
 <h2 id="how-shell-works">How the shell works</h2>
@@ -2421,9 +2710,8 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-    In the future, we plan to integrate Web Prolog with <a target="_blank" href="https://swish.swi-prolog.org/">
-    SWISH</a>, a more mature web-based GUI to Prolog, featuring semantic source code colouring, Prolog notebooks,
-    tools for collaboration, etc.
+    Want to try a more sophisticated online GUI? Head over to <a target="_blank" href="https://swish.swi-prolog.org">SWISH</a>, a      more mature web-based GUI to Prolog, featuring semantic source code colouring, Prolog notebooks, tools for collaboration, etc.
+    Please understand, though, that the present version of SWISH doesn't implement Web Prolog, but something slightly different.       In the future, we plan to integrate Web Prolog with SWISH, and this tutorial will be rewritten as a Prolog notebook.
 </p>
 
 <p>
