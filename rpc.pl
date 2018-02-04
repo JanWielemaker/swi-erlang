@@ -45,9 +45,9 @@
 :- use_module(library(debug)).
 
 :- use_module(actors).
-:- use_module(pengines).
+:- use_module(pengines2).
 
-
+:- use_module(library(pengines), []).
 
          /*******************************
          *       Synchronous RPC        *
@@ -70,7 +70,11 @@
 
 rpc(URI, Query) :-
     rpc(URI, Query, []).
-    
+
+rpc('https://swish.swi-prolog.org', Query, Options0) :-
+    !,
+    maplist(map_option, Options0, Options),
+    pengines:pengine_rpc('https://swish.swi-prolog.org', Query, Options).
 rpc(URI, Query, Options) :-
     select_option(transport(Transport), Options, RestOptions, http),
     (   Transport == http
@@ -78,6 +82,11 @@ rpc(URI, Query, Options) :-
     ;   memberchk(Transport, [websocket, ws])
     ->  rpc_ws(URI, Query, RestOptions)
     ).
+
+map_option(limit(N), chunk(N)) :- !.
+map_option(Option, Option).
+
+
 
 
 %!  rpc_http(+URI, :Query, +Options) is nondet.

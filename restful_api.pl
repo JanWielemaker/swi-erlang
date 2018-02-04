@@ -46,7 +46,7 @@
 
 :- use_module(library(debug)).
 
-:- use_module(pengines).
+:- use_module(pengines2).
 :- use_module(format).
 
 
@@ -184,11 +184,11 @@ check :-
 http_pengine_send(Request) :-
     http_parameters(Request,
         [ name(Name, []),
-          term(TermAtom, [])
+          message(MessageAtom, [])
         ]),
-    read_term_from_atom(TermAtom, Term, []),
-    debug(rest, "Sending: ~p to ~p", [Term, Name]),
-    send(Name, Term),
+    read_term_from_atom(MessageAtom, Message, []),
+    debug(rest, "Sending: ~p to ~p", [Message, Name]),
+    send(Name, Message),
     reply_json(_{ok:true}).
 
     

@@ -90,7 +90,7 @@
 :- use_module(distribution).
 :- use_module(node).
 :- use_module(isolation).
-:- use_module(pengines).
+:- use_module(pengines2).
 :- use_module(restful_api).
 :- use_module(rpc).
 :- use_module(io).

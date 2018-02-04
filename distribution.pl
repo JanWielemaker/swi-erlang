@@ -47,7 +47,7 @@
 :- use_module(library(debug)).
 
 :- use_module(actors).
-:- use_module(pengines).
+:- use_module(pengines2).
 :- use_module(isolation).
 :- use_module(format).
 :- use_module(pengines_io).
