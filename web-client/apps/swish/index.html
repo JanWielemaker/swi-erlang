@@ -348,9 +348,6 @@ server's console.
     var state = 1;
     var currcommand = "";
 	var trace = false;
-    $('#tutorial-container').load('/apps/swish/tutorial.html', function() {
-            recursiveReplace(document.body, window.location.origin);
-    });
     function to_text(data) {
         var text = [];
         for (var key in data) {
@@ -370,7 +367,11 @@ server's console.
             return "true ";
         }
         return to_text(data[0]);
-    } 
+    }
+    function speak(string) {
+        var uu = new SpeechSynthesisUtterance(string);
+        speechSynthesis.speak(uu);    
+    }
     $(document).ready(function($) {
         var ws = new WebSocket('ws://localhost:3060/ws', 'pcp-0.2'); 
 		function mysend(json) {
@@ -402,6 +403,10 @@ server's console.
             if (msg.type == "spawned") {
                 pid = msg.pid;
             }
+            $('#tutorial-container').load('/apps/swish/tutorial.html', function() {
+                    recursiveReplaceHost(document.body, window.location.origin);
+                    recursiveReplacePengine(document.body, pid);
+            });
         }; 
         $('#shell').terminal(function(command, term) {
             ws.onmessage = function(message) {
@@ -457,6 +462,10 @@ server's console.
                 } else if (type == "output") {
                     trans("output", 2);
                     term.echo(msg.data);                    
+                    term.set_prompt("");
+                } else if (type == "speak") {
+                    trans("output", 2);
+                    speak(msg.data);                    
                     term.set_prompt("");
                 } else if (type == "echo") {
                     trans("output", 2);
