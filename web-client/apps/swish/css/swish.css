@@ -12,6 +12,15 @@ button.ace_replacebtn {
 
 }
 
+pre {
+    /*background-color: #f9f2f4;*/
+}
+
+code {
+    color: black;
+    background-color: #f5f5f5;
+}
+
 /* Application CSS
 -------------------------------------------------- */
 
