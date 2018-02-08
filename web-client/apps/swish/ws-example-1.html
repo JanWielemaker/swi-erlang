@@ -2,43 +2,38 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
+    <title>Example 1</title>
     <script>
-	  var ws = new WebSocket('ws://localhost:3060/ws','pcp-0.2');
-	  ws.onerror = function (message) {
-	    console.log(message);
-	  };
-	  ws.onopen = function (message) {
-	    ws.send(JSON.stringify({
-	      command: 'pengine_spawn'
-	    }));
-	  };
-	  ws.onmessage = function (message) {
-	    var event = JSON.parse(message.data);
-	    if (event.type == 'spawned') {
-	      ws.send(JSON.stringify({
-	        command: 'pengine_ask',
-	        pid: event.pid,
-	        query: 'member(X,[a,b,c])'
-	      }));
-	    } else if (event.type == 'success') {
-	      console.log(JSON.stringify(event.data));
-	      if (event.more) {
-	        ws.send(JSON.stringify({
-	          command: 'pengine_next',
-	          pid: event.pid
-	        }));
-	      }
-	    }
-	  }; 	
+      var ws = new WebSocket('ws://localhost:3060/ws','pcp-0.2');
+      ws.onopen = function (message) {
+        ws.send(JSON.stringify({
+          command: 'pengine_spawn'
+        }));
+      };
+      ws.onmessage = function (message) {
+        var event = JSON.parse(message.data);
+        if (event.type == 'spawned') {
+          ws.send(JSON.stringify({
+            command: 'pengine_ask',
+            pid: event.pid,
+            query: 'ancestor_decendant(mike, Who)',
+            options: '[limit(2)]'
+          }));
+        } else if (event.type == 'success') {
+          document.getElementById("output").innerHTML += 
+              JSON.stringify(event.data) + "<br/>";
+          if (event.more) {
+            ws.send(JSON.stringify({
+              command: 'pengine_next',
+              pid: event.pid
+            }));
+          }
+        }
+      };   
     </script>
   </head>
   <body>
-	<p>
-	   To inspect the program output, please open your browser's console. 
-    </p>
-	<p>
-	   Use "View Page Source" to view the source code.
-    </p>
+    <div id="output"></div>
   </body>
 </html>
 

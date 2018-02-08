@@ -2,19 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
+    <title>Example 2</title>
     <script>
       var ws = new WebSocket('ws://localhost:3060/ws','pcp-0.2');
       var program = 
          `echo :-
-              pengine_input('Input term!', Something),
+              pengine_input('Input a term!', Something),
               (   Something == null
               ->  pengine_output(done)
               ;   pengine_output(Something),
                   echo
               ).`;
-      ws.onerror = function (message) {
-        console.log(JSON.stringify(message));
-      };
       ws.onopen = function (message) {
         ws.send(JSON.stringify({
           command: 'pengine_spawn',
@@ -37,17 +35,13 @@
             term: response
           }));
         } else if (event.type == 'output') {
-          console.log(JSON.stringify(event.data));
+          document.getElementById("output").innerHTML += 
+              JSON.stringify(event.data) + "<br/>";
         }
       };
     </script>
   </head>
   <body>
-	<p>
-	   To inspect the program output, please open your browser's console. 
-    </p>
-	<p>
-	   Use "View Page Source" to view the source code.
-    </p>
+    <div id="output"></div>
   </body>
 </html>
