@@ -70,7 +70,7 @@ http_pengine_ask(Request) :-
           offset(Offset, [integer, default(0)]),
           limit(Limit, [integer, default(1)]),
           timeout(Timeout, [integer, default(10)]),
-          format(Format, [default(prolog)])
+          format(Format, [default(json)])
         ]),
     atomic_list_concat([GoalAtom,+,TemplateAtom], GTAtom),
     read_term_from_atom(GTAtom, Goal+Template, [variable_names(Bindings)]),

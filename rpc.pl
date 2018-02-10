@@ -110,7 +110,8 @@ rpc_http(Query, Offset, Limit, QueryAtom, Parts) :-
     parse_url(ExpandedURI, [ path('/ask'),
                              search([ query=QueryAtom,
                                       offset=Offset,
-                                      limit=Limit
+                                      limit=Limit,
+                                      format=prolog
                                     ])
                            | Parts]), 
     setup_call_cleanup(
@@ -211,7 +212,8 @@ promise(URI, Query, Template, Offset, Limit, Parent, Reference) :-
                              search([ query=QueryAtom,
                                       template=TemplateAtom,
                                       offset=Offset,
-                                      limit=Limit
+                                      limit=Limit,
+                                      format=prolog
                                     ])
                            | Parts]), 
     setup_call_cleanup(
