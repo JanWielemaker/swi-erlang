@@ -424,30 +424,25 @@ server's console.
                 if (type == "success") {
                     if (msg.more) {
                         state = 4;
-                        trans("success-true", 4);
                         term.set_prompt(report(msg.data))
                     } else {
                         state = 1;
-                        trans("success-false", 1);
                         term.echo(report(msg.data).trim() + ".");
                         term.set_prompt(myprompt);
                     }
                     term.scroll_to_bottom();
                 } else if (type == "failure") {
                     state = 1;
-                    trans("failure", 1);
                     term.echo("false.");
                     term.set_prompt(myprompt);
                     term.scroll_to_bottom();
                 } else if (type == "error") {
                     state = 1;
-                    trans("error", 1);
                     term.error(msg.data);
                     term.set_prompt(myprompt);
                     term.scroll_to_bottom();
                 } else if (type == "stop") {
                     state = 1;
-                    trans("stop", 1);
 					if (trace) {
 						term.update(-3, term.get_prompt().trim() + ".");
 					} else {
@@ -457,22 +452,17 @@ server's console.
                     term.scroll_to_bottom();
                 } else if (type == "prompt") {
                     state = 3;
-                    trans("prompt", 3);
                     term.set_prompt(msg.data + ": ");
                 } else if (type == "output") {
-                    trans("output", 2);
                     term.echo(msg.data);                    
                     term.set_prompt("");
                 } else if (type == "speak") {
-                    trans("output", 2);
                     speak(msg.data);                    
                     term.set_prompt("");
                 } else if (type == "echo") {
-                    trans("output", 2);
                     term.echo(msg.data);
                     term.set_prompt("");
                 } else if (type == "abort") {
-                    trans("abort", 1);
                     term.echo("Aborted");
                     term.scroll_to_bottom();
                 } else if (type == "exit") {
@@ -509,7 +499,6 @@ server's console.
 						pid:pid, 
 						query:currcommand
 					});
-                    trans("ask", 2);
                     currcommand = "";
                     term.pause();
                 } else {
@@ -523,7 +512,6 @@ server's console.
 						command:"pengine_next", 
 						pid:pid
 					});
-                    trans("next", 2);
                     term.pause();
                 } else if (command == "") {
                     mysend({
