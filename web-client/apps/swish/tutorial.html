@@ -7,7 +7,7 @@
     <meta name="author" content="Torbjörn Lager">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- CSS -->
-    <!--
+    
     <link rel="stylesheet" href="../../www/vendor/bootstrap/css/bootstrap.min.css">
     <style>
         #tutorial {
@@ -19,7 +19,7 @@
             display: block;
         }
     </style>
-    -->
+    
     <style>   
         .table-of-contents {
 
@@ -174,11 +174,12 @@
 </p>
 
 <p>
-    To be honest (again), the language isn't new either, but a hybrid of two rather old and mature languages &ndash; Prolog and Erlang &ndash; and of two programming paradigms &ndash; logic programming and actor-based programming.  When it comes to the <i>purpose</i> of Web Prolog, another inspiration has been JavaScript &ndash; a <i>scripting language</i> for the Web that is usually <i>embedded</i> in other programming systems and where processes must be <i>sandboxed</i> in order to allow the execution of untrusted code. Similar to JavaScript, Web Prolog is an embedded and sandboxed <i>web programming language</i>, but in contrast to JavaScript, Web Prolog is a web <i>logic</i> programming language &ndash; a language for scripting the Web with logic programs..
+    To be honest (again), the language isn't new either, but a hybrid of two rather old and mature languages &ndash; Prolog and Erlang &ndash; and of two programming models &ndash; logic programming and actor-based programming.  When it comes to the <i>purpose</i> of Web Prolog, another inspiration has been JavaScript &ndash; a <i>scripting language</i> for the Web that is usually <i>embedded</i> in other programming systems and where processes must be <i>sandboxed</i> in order to allow the execution of untrusted code. Similar to JavaScript, Web Prolog is an embedded and sandboxed <i>web programming language</i>, but in contrast to JavaScript, Web Prolog is a web <i>logic</i> programming language &ndash; a language for scripting the Web with logic programs.
 </p>
 
+
 <p>
-    The Web Prolog programming language may not be to everyone's liking, but we hope that by showing it first of all to a bunch of Prolog and Erlang programmers we can avoid (at this stage) largely irrelevant negative criticism such as "it's bad because..." followed by "...it has the same syntax as Erlang" or "...it's just as impure as Prolog" or "...it's not object oriented". We actually like the syntax since it's so close to both Prolog and Erlang (and to Prolog in particular), and we have since long come to peace with some of the Prolog impurities while others have found remedies through research in the field of logic programming. (In addition, Joe Armstrong (one of the inventors of Erlang) as well as Alan Kay (the inventor of Smalltalk) seem to suggest that Erlang is in fact object-oriented.) 
+    The Web Prolog programming language may not be to everyone's liking, but we hope that by showing it first of all to a bunch of Prolog and Erlang programmers we can avoid (at this stage) largely irrelevant negative criticism such as "it's bad because..." followed by "...it has the same syntax as Erlang" or "...it's just as impure as Prolog" or "...it's not object oriented". We actually like the syntax since it's so close to both Prolog and Erlang (and to Prolog in particular), and we have since long come to peace with some of the Prolog impurities while others have found remedies through research in the field of logic programming. And interestingly, Joe Armstrong (one of the inventors of Erlang) as well as Alan Kay (the inventor of Smalltalk) seem to have suggested that Erlang is in fact object-oriented.
 </p>
 
 <p>   
@@ -186,16 +187,37 @@
 </p>
 
 <p>
-    We believe that Prolog programmers will quickly realise that with Web Prolog they will be able to do things not easily done with ordinary Prolog, and that Erlang programmers will realise that Web Prolog offers capabilities that are not present in Erlang. 
+    We believe that Prolog programmers will quickly realise that with Web Prolog they will be able to do things not easily done with traditional Prolog, and that Erlang programmers will realise that Web Prolog offers capabilities that are not present in Erlang. 
 </p>
 
 <p>
-    We believe that Erlang technology might have something to contribute to Prolog, and, of course, that Prolog technology has something to contribute to Erlang (and by that we mean <i>more</i> than it has already contributed). Nowadays, there isn't much contact between the Prolog community and the Erlang community. In the best of worlds, the language of Web Prolog would serve to open a line of communication between (subsets of) the two communities.
+    We believe that Erlang technology might have something to contribute to Prolog, and, of course, that Prolog technology has something to contribute to Erlang (and by that we mean <i>more</i> than it has already contributed by having inspired Erlang). Nowadays, there isn't much contact between the Prolog community and the Erlang community. In the best of worlds, the language of Web Prolog would serve to open a line of communication between (subsets of) the two communities.
 </p>
 
 <p>
     Sooner or later, we ought to target also front-end programmers and JavaScript aficionados with no previous exposure to Prolog or Erlang. This requires a different kind of tutorial, however, one that starts from the basics of both logic programming à la Prolog and actor-based programming à la Erlang.
 </p>
+
+
+<h2>The mission</h2>
+
+<p>
+    Let's make an attempt to explain the language's mission. With Web Prolog we hope to be able to introduce a dialect of Prolog that:    
+</p>
+
+<ul>
+    <li>is simpler and less bloated than most existing Prolog systems,</li>
+    <li>provides some of the concurrent power of Erlang,</li>
+    <li>provides the distributed power of Erlang,</li>
+    <li>is suitable for scripting purposes on the Web,</li>
+    <li>supports interoperability between different Prolog systems,</li>
+    <li>supports interoperability with Erlang,</li>
+    <li>supports porting Erlang to Web Prolog,</li>
+    <li>provides a better support for interaction programming than traditional Prolog,</li>
+    <li>supports the Prolog Web,</li>
+    <li>can possibly be standardised.</li>
+</ul>
+
 
 <h2>Your shell, your pengine and your node</h2>
 
@@ -303,11 +325,15 @@
 </p>
 
 <p>
-    As those who have tried Prolog before know, this is how a Prolog shell usually works.
+    As those who have tried Prolog before will surely recognise, this is how a Prolog shell usually works.
 </p>
 
 <div class="alert alert-info">
-  <strong>Tip!</strong> Instead of the semicolon (;) you can also use the space bar. Ctrl-C can be used to abort a running computation.
+  <strong>Tip!</strong> Instead of the semicolon (;) you can also use the space bar.
+</div>
+
+<div class="alert alert-info">
+  <strong>Tip!</strong> Ctrl-C can be used to abort a running computation.
 </div>
 
 <div class="alert alert-danger">
@@ -379,7 +405,7 @@ father_child(mike, tom).
 
 
 <p>
-    ---
+    Sometimes <code>consult_text/1</code> is a better alternative. This is the counterpart of <code>consult/1</code> in traditional Prolog, which, since it loads clauses from a file, cannot be permitted in Web Prolog. 
 </p>
 
 <pre id="ancestor4">
@@ -556,7 +582,7 @@ p(p(with)) --&gt; [with].
 </div>
 
 <p>
-    The Web Prolog primitives for spawning and messaging are borrowed straight from Erlang. Thus, Web Prolog is an actor programming language, just like Erlang, while it <i>also</i> retains it's logic programming heritage.
+    The Web Prolog primitives for spawning and messaging are borrowed straight from Erlang. Thus, Web Prolog is an actor programming language, just like Erlang, while it <i>also</i> retains it's logic programming heritage. 
 </p>
 
 <p>
@@ -565,7 +591,7 @@ work also in a distributed setting. Processes (or "actors" as we prefer to call 
 </p>
 
 <p>
-    The Erlang distribution mechanism is implemented using raw TCP/IP sockets whereas Web Prolog distribution mechanism uses WebSockets. Not only does the use of WebSockets save us from having to implement our own message based protocol on top of TCP/IP, it also allows communication to pass through firewalls, and implements various security-related features such as methods for authentication, secure WebSockets over HTTPS and <a target="_blank" href="https://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS (Cross-Origin Request Sharing)</a>.
+    Here's a significant difference: The Erlang distribution mechanism is implemented using raw TCP/IP sockets whereas Web Prolog uses WebSockets. Not only does the use of WebSockets save us from having to implement our own message based protocol on top of TCP/IP, it also allows communication to pass through firewalls, and implements various security-related features such as methods for authentication, secure WebSockets over HTTPS and <a target="_blank" href="https://en.wikipedia.org/wiki/Cross-origin_resource_sharing">CORS (Cross-Origin Request Sharing)</a>.
 </p>
 
 <p>
@@ -748,7 +774,7 @@ normal() ->
 <h3>Some actors are servers</h3>
     
 <p>
-    A typical use of <code>spawn/1-3</code> is to call a locally or remotely defined Web Prolog procedure that specifies the (usually longtime) behaviour of the actor process thus created &ndash; the kind of messages it will listen for (using <code>receive/1-2</code>), and what kind of messages will be sent back (by means of <code>!/2</code>). In the Erlang community, such actors are usually referred to as <em>servers</em>. It's common to distinguish between two kinds of servers, those that are <i>stateless</i>, and those that are <i>stateful</i>.
+    A typical use of <code>spawn/1-3</code> is to call a locally or remotely defined Web Prolog procedure that specifies the (usually longtime) behaviour of the actor process thus created &ndash; the kind of messages it will listen for (using <code>receive/1-2</code>), and what kind of messages will be returned (by means of <code>!/2</code>). In the Erlang community, such actors are usually referred to as <em>servers</em>. It's common to distinguish between two kinds of servers, those that are <i>stateless</i>, and those that are <i>stateful</i>.
 </p>
 
 <p> 
@@ -872,20 +898,19 @@ repeat_fail_pong_server :-
 
 <div class="alert alert-success">
 <p>
-    <strong>Surprised?</strong> For an Erlang programmer the above use of <code>receive/1</code> may come as a surprise. After all, the Prolog notions of <i>failure</i>, <i>backtracking</i> and the use of failure to force backtracking are foreign to Erlang. Prolog programmers may recognise a behaviour due to the fact that <code>receive/1-2</code> is a <i>semi-deterministic</i> predicate, i.e. a predicate that either fails or succeeds exactly once. We may want to compare <code>receive/1</code> with <code>read/1</code> in traditional Prolog, which is also semi-deterministic, and also serves the purpose of receiving data from the environment. But while <code>read/1</code> fail if the pattern (consisting of any term) in the argument doesn't unify with the term that is read, the only way that <code>receive/1-2</code> will fail is if the goal in the <i>body</i> of one of its receive clauses fails. After all, what else could it possibly mean if the goal in the body of a receive clause fails? We would argue that letting the whole call fail gives us the only reasonable semantics of <code>receive/1-2</code>.
+    <strong>Surprised?</strong> For an Erlang programmer the above use of <code>receive/1</code> may indeed come as a surprise. After all, the Prolog notions of <i>failure</i>, <i>backtracking</i> and the use of failure to force backtracking are foreign to Erlang. Prolog programmers may recognise a behaviour due to the fact that <code>receive/1-2</code> is a <i>semi-deterministic</i> predicate, i.e. a predicate that either fails or succeeds exactly once. We may want to compare <code>receive/1</code> with <code>read/1</code> in traditional Prolog, which is also semi-deterministic, and also serves the purpose of receiving data from the environment. But whereas <code>read/1</code> fails if the pattern (consisting of any term) in the argument doesn't unify with the term that is read, the only way that <code>receive/1-2</code> will fail is if the goal in the <i>body</i> of one of its receive clauses fails. After all, what else could it possibly mean if the goal in the body of a receive clause fails? We would argue that letting the whole call fail gives us the only reasonable semantics of <code>receive/1-2</code>.
 </p>
 </div>
 
 <div class="alert alert-info">
-  <strong>Tip!</strong> The examples from the tutorial can also edited in an editor that will fill the space that this tutorial currently occupies. Select various examples from the Examples menu.
+  <strong>Tip!</strong> Most examples from the tutorial can be edited in an editor that will fill the space that this tutorial currently occupies. Select various examples from the Examples menu.
 </div>
 
 
 <h3>Node-resident actor processes</h3>
 
 <p>
-    As we saw in an earlier example, the owner of a node may install node-resident programs, i.e. source code for predicates 
-    that can be accessed by any client to this node, as if those predicates were built-in. In addition, the owner may install <em>node-resident actor processes</em> &ndash; long-lived processes that can be accessed by any client. We show an example below, installed for the purpose of this tutorial, that uses <code>register/2</code> to give the process a mnemonic name. 
+    As we saw in an earlier example, the owner of a node may install node-resident programs, i.e. source code for predicates that can be accessed by any client to this node, as if those predicates were built-in. In addition, the owner may install <em>node-resident actor processes</em> &ndash; long-lived processes that can be accessed by any client. We show an example below, installed for the purpose of this tutorial, that uses <code>register/2</code> to give the process a mnemonic name. 
 </p>
 
 <pre>
@@ -1073,11 +1098,11 @@ fridge(FoodList) ->
 
 <p>
     Note that in Web Prolog an unauthorised user cannot spawn a process which is <i>not</i> linked to the process that spawned it. This is to avoid
-leaving orphaned processes around. For the same reason, <code>unlink/1</code> isn't offered. 
+leaving orphaned processes around. For the same reason, <code>unlink/1</code> isn't supported. 
 </p>
 
 <p>
-    An obvious use of links is the following: when you leave (or reload) this application, your top-level pengine as well as any actors that you may have spawned from the top-level must be forced to terminate. 
+    An obvious use of links is the following: when you leave (or reload) this tutorial, your top-level pengine as well as any actors that you may have spawned from the top-level must be forced to terminate. 
 </p>
 
 <p>
@@ -1158,7 +1183,7 @@ leaving orphaned processes around. For the same reason, <code>unlink/1</code> is
 <h3>A publish-subscribe service</h3>
 
 <p>
-     For the purpose of the tutorial, a node-resident actor implementing a simple publish-subscribe service has been installed on this node. Here's the source code:
+     For the purpose of the tutorial, a node-resident actor implementing a simple publish-subscribe service has been installed on the node. Here's the source code:
 </p>
 
 <pre>
@@ -1551,6 +1576,8 @@ dining :-
 start(Pid) :-
     spawn(fridge, Pid, [
         src_text("
+        
+            :- dynamic food/1.
     
             fridge :-
                 receive({
@@ -1608,27 +1635,14 @@ start(Pid) :-
 </p>
 
 <p>
-   The dynamic database is a non-logical extension to Prolog and the use of it for managing state is usually frowned upon by Prolog programmers since changes to the database are not reverted on backtracking, and since clauses of dynamic predicates are like destructible global variables and therefore subject to all the common problems with such objects.
+    The <i>dynamic database</i> is a non-logical extension to Prolog and the use of it for managing state is usually frowned upon by Prolog programmers since changes to the database are not reverted on backtracking, and since clauses of dynamic predicates are like destructible global variables and therefore subject to all the common problems with such objects.
 </p>
 
 <p>
-    Keeping a state using the dynamic dB in between.
-
-Each process has a local store called the "Process Dictionary". The following BIFs are used to manipulate the process dictionary:
-get() returns the entire process dictionary.
-get(Key) returns the item associated with Key (Key is any Erlang data structure), or, returns the special atom undefined if no value is associated with Key.
-put(Key, Value) associate Value with Key. Returns the old value associated with Key, or, undefined if no such association exists.
-erase() erases the entire process dictionary. Returns the entire process diction before it was erased.
-erase(Key) erases the value associated with Key. Returns the old value associated with Key, or, undefined if no such association exists.
-get_keys(Value) returns a list of all keys whose associated value is Value.
-Note that using the Process Dictionary:
-Destroys referencial transparency
-Makes debugging difficult
-Survives Catch/Throw
-So:
-Use with care
-Do not over use - try the clean version first
+    In Erlang, each process has a local store called the <i>process dictionary</i> and Erlang support a handful of built-in functions for manipulating it. Erlang programmers are advised again using it since it destroys referential transparency and makes debugging difficult.
 </p>
+
+
 
 <h3>Controlling backtracking</h3>
 
@@ -3061,7 +3075,7 @@ wait_answer(Query, Pid) :-
 <h3>Using the WebSocket API</h3>
 
 <p>
-    A Web Prolog node supports an asynchronous and stateful web API that relies on the WebSocket transport.
+    A Web Prolog node supports a comprehensive asynchronous and stateful web API that relies on the WebSocket transport. Offering an almost unlimited control over a pengine it currently serves the shell (which despite its apparent simplicity is a fairly demanding web application) as well as the predicate API with its <code>node</code> option and network transparent send primitive <code>!/2</code>. (We write "almost" here since the owner of the node on which the actor is running always has the ultimate say when it comes to how much resources will be allocated to the running of an actor.)
 </p>
 
 <p>
@@ -3069,7 +3083,7 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-	To make it easier, we have prepared two much simpler (but useless) applications that you can try by selecting the links below. Here's the HTML and JavaScript source code for the first application:
+	To make it easier, we have prepared two much simpler (but useless) applications that you can try by selecting the links below. Upon page load, the first application will create a WebSocket connection to the tutorial node, spawn a pengine there, and (when having received a pid) ask the query <code>ancestor_decendant(mike, Who)</code>. For demonstration purposes, the <code>limit</code> option will be set to <code>2</code>. Here's the complete HTML and JavaScript source code for this application:
 </p>
 
 <pre>
@@ -3114,7 +3128,7 @@ wait_answer(Query, Pid) :-
 </pre>
 
 <p>
-	To see what it does, select the link below. A page will open in a new window or tab. (Note that you can also use "View Page Source" to inspect the source code.)
+	To see the example in action, select the link below. A page will open in a new window or tab and show the output in the upper left corner. (Note that you can also use "View Page Source" to inspect the source code.)
 </p>
 
 <p>
@@ -3124,7 +3138,7 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-	Here's the HTML and JavaScript source code for the second application:
+	Our second example will inject the source code for a simple echo program in the spawned pengine and invite you to input Prolog terms to be echoed to the page. Here's the HTML and JavaScript source code for the second application:
 </p>
 
 <pre>
@@ -3139,7 +3153,7 @@ wait_answer(Query, Pid) :-
          `echo :-
               pengine_input('Input a term!', Something),
               (   Something == null
-              -&gt;  pengine_output(done)
+              -&gt;  true
               ;   pengine_output(Something),
                   echo
               ).`;
@@ -3178,7 +3192,7 @@ wait_answer(Query, Pid) :-
 </pre>
 
 <p>
-	Again, to see what it does, select the link below, then enter Prolog terms in the widget that pops up and watch them being echoed in the page.
+	Again, to see what the example does, select the link below, then enter Prolog terms in the widget that pops up and watch them being echoed to the page.
 </p>
 
 <p>
@@ -3191,33 +3205,27 @@ wait_answer(Query, Pid) :-
 <h3>Using the HTTP ask API</h3>
 
 <p>
-    As a complement to the asynchronous and stateful API described above, a Web Prolog node also offers a synchronous and stateless web API.
+    As a complement to the asynchronous and stateful API described above, a Web Prolog node also offers a synchronous and stateless web API. Alternatively, although this isn't a term we like to use since it's so vague, it can be described as <a target="_blank" href="https://en.wikipedia.org/wiki/Representational_state_transfer">RESTful</a>. In any case, statelessness is definitely part of being RESTful.
 </p>
-
-<p><code>{{host}}/ask</code></p>
-
-<p>In addition to parameters such as <code>query</code>, <code>template</code>, <code>limit</code> and <code>format</code>, the API also supports an <code>offset</code> parameter. The challenge here has been to make this efficient in the presence of queries with more than one solution, i.e when backtracking over HTTP is called for.</p>
 
 <p>
     To be considered stateless, as soon a node has returned a response to a query, it should be able to (as it were) "forget" everything about the previous request, and the next request to the node should be formed as if the previous one never occurred.
 </p>
 
-<p>[Explain RESTful]</p>
-
-<p>[Logic server]</p>
-
-<div class="alert alert-danger">
-  <strong>BUG!</strong> To circumvent a problem with the semicolon (;) in the queries of the following two requests, we use | instead.
-</div>
-
 <p>
-	<a target="_blank" href="/ask?query=(sleep(3),X=a|X=b)&amp;offset=0&amp;template=X&amp;format=json">
-    	&nbsp;<code>{{host}}/ask?query=(sleep(1),X=a;X=b)&amp;offset=0&amp;template=X&amp;format=json</code>
-    </a>
+    [Explain RESTful] Eg. no cookies are involved.
 </p>
 
 <p>
-	Pengine are involved here too, but they are <i>anonymous</i>. (This can be seen in the JSON responses.)
+    <code>{{host}}/ask?query=ancestor_decendant(mike,Who)</code>
+</p>
+
+<p>In addition to parameters such as <code>query</code>, <code>template</code>, <code>limit</code> and <code>format</code>, the API also supports an <code>offset</code> parameter. The challenge here has been to make this efficient in the presence of queries with more than one solution, i.e when backtracking over HTTP is called for.</p>
+
+<p>
+	<a target="_blank" href="/ask?query=ancestor_decendant(mike, Who)">
+    	&nbsp;<code>{{host}}/ask?query=ancestor_decendant(mike, Who)</code>
+    </a>
 </p>
 
 <p>
@@ -3225,25 +3233,28 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-	<a target="_blank" href="/ask?query=(sleep(3),X=a|X=b)&amp;offset=1&amp;template=X&amp;format=json">
-    	&nbsp;<code>{{host}}/ask?query=(sleep(1),X=a;X=b)&amp;offset=1&amp;template=X&amp;format=json</code>
+	<a target="_blank" href="/ask?query=ancestor_decendant(mike, Who)&amp;offset=1&amp;limit=2">
+    	&nbsp;<code>{{host}}/ask?query=ancestor_decendant(mike, Who)&amp;offset=1&amp;limit=2</code>
     </a>
 </p>
 
 <p>    
     i.e. with 
-	<code>offset</code> set to <code>1</code> this time, then it's likely (but not guaranteed) that the work that generated the first solution does not have to be repeated. An anonymous pengine running on the node serves as a form of <i>Prolog state cache</i>. The cached state can only be used once though, and there's a possibility that another client made use of it before you had a chance to do so. If so, no real harm is done.
-</p>    
+	<code>offset</code> set to <code>1</code> this time, then it's likely (but not guaranteed) that the work that generated the first solution does not have to be repeated. Pengine are involved here too, but they are <i>anonymous</i>. An anonymous pengine running on the node serves as a form of <i>Prolog state cache</i>. The cached state can only be used once though, and there's a possibility that another client made use of it before you had a chance to do so. If so, no real harm is done.
+</p>   
 
 <p>
 	Note that we, as a way to avoid making too many network roundtrips, can use the <code>limit</code> parameter in an HTTP request too:
 </p>
 
 <p>
-	<a target="_blank" href="/ask?query=member(X,[a,b,c,d])&amp;offset=1&amp;limit=2&amp;template=X&amp;format=json">
-    	&nbsp;<code>{{host}}/ask?query=member(X,[a,b,c,d])&amp;offset=1&amp;limit=2&amp;template=X&amp;format=json</code>
-    </a>
+	In a real web browser application, <a target="_blank" href="https://en.wikipedia.org/wiki/XMLHttpRequest">XMLHttpRequest</a> would be used.
 </p>
+
+<p>
+    This API doesn't support I/O, and is therefore only suitable for applications in need of a "logic server". Nor does it support uses of assert and retract.
+</p>
+
 
 
 <h3>Using the HTTP send API</h3>
@@ -3328,6 +3339,24 @@ wait_answer(Query, Pid) :-
     Compare "Erlang cluster" with "Prolog Web".
 </p>
 
+
+<h2>An implementation in Erlang</h2>
+
+</p>
+    An implementation of a Web Prolog node in Erlang would be interesting since it would most probably have a performance profile different from the implementation in SWI-Prolog. The basic Prolog machinery (e.g. unification, backtracking and clause indexing) is likely to be slower in Erlang compared to (say) SWI-Prolog, whereas the super fast lightweight processes of Erlang have other advantages, making it scale better to very many simultaneous users on a network.  
+</p>
+
+</p>
+    Interestingly, there is <a target="_blank" href="https://github.com/rvirding/erlog"><em>Erlog</em></a> &ndash; an implementation of Prolog in Erlang, written by Robert Virding, which might serve as a nice point of departure. One approach might be to use Prolog in order to transpile Web Prolog source code into something that Erlang and Erlog can work with. 
+</p>
+
+</p>
+    For the networking part, we note that Erlang is particularly famous for extremely efficient implementations of web-related technologies such as web servers (e.g. Yaws and Cowboy). 
+</p>
+
+<p>
+    <a href="mailto:torbjorn.lager@gmail.com?subject=subject">Give feedback</a>
+</p>
 
 <h2>How the shell works</h2>
 

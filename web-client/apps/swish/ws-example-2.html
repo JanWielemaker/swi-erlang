@@ -9,7 +9,7 @@
          `echo :-
               pengine_input('Input a term!', Something),
               (   Something == null
-              ->  pengine_output(done)
+              ->  true
               ;   pengine_output(Something),
                   echo
               ).`;
