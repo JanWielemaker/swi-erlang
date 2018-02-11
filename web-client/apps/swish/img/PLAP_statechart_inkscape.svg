@@ -1,4 +1,11 @@
-
+    function trans(id, state) {
+        $('svg [id^=state]').attr('style','fill: white');
+        $('svg [id^=d]').attr('style','stroke: black');
+        $('svg #state-'+state).attr('style','fill: lightcoral');
+        $('svg #d-'+id).attr('style','stroke: red; stroke-width:2');
+    }
+	
+	
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"

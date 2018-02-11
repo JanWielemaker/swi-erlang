@@ -7,7 +7,7 @@
     <meta name="author" content="Torbjörn Lager">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- CSS -->
-    <!--
+    
     <link rel="stylesheet" href="../../www/vendor/bootstrap/css/bootstrap.min.css">
     <style>
         #tutorial {
@@ -19,7 +19,7 @@
             display: block;
         }
     </style>
-    -->
+    
     <style>   
         .table-of-contents {
 
@@ -208,8 +208,8 @@
 <ul>
     <li>allow web application developers to easily run Prolog on the server-side,</li>
     <li>is simpler and less bloated than most existing Prolog systems,</li>
-    <li>provides some of the concurrent power of Erlang,</li>
-    <li>provides the distributed power of Erlang,</li>
+    <li>provides some of the concurrent programming power of Erlang,</li>
+    <li>provides the distributed programming power of Erlang,</li>
     <li>is suitable for scripting purposes on the Web,</li>
     <li>supports interoperability between different Prolog systems,</li>
     <li>supports interoperability between Prolog systems and other logic programming systems,</li>
@@ -637,7 +637,7 @@ work also in a distributed setting. Processes (or "actors" as we prefer to call 
 
 <p>
   <button onclick='enter("#spawning1")' class="btn btn-xs btn-primary" type="button">Enter</button>
-  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#spawning2">&nbsp;Compare with Erlang</input>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#spawning2">&nbsp;Compare with Erlang
 </p>
 
 <p>
@@ -744,7 +744,7 @@ normal() ->
 
 <p>
   <button onclick='consult("#priority1")' class="btn btn-xs btn-primary" type="button">Consult</button>
-  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#priority4">&nbsp;Compare with Erlang</input>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#priority4">&nbsp;Compare with Erlang
 </p> 
 
 <p>
@@ -1014,7 +1014,7 @@ fridge(FoodList) ->
 
 <p>
   <button onclick='consult("#fridge1")' class="btn btn-xs btn-primary" type="button">Consult</button>
-  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#fridge2">&nbsp;Compare with Erlang</input>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#fridge2">&nbsp;Compare with Erlang
 </p> 
 
 <p>
@@ -1321,7 +1321,7 @@ start() ->
 
 <p>
   <button onclick='consult("#pingpong1")' class="btn btn-xs btn-primary" type="button">Consult</button>
-  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#pingpong3">&nbsp;Compare with Erlang</input>
+  &nbsp;&nbsp;<input type='checkbox' data-toggle="collapse" data-target="#pingpong3">&nbsp;Compare with Erlang
 </p>
 
 <p>We call <code>start/1</code> to start the processes:</p>
@@ -2050,7 +2050,7 @@ Here's how to spawn a local pengine:
             </p> 
         </div>
         <div class="col-xs-2">
-            <img src="img/no-mail.png">
+            <img src="img/no-mail.png" alt="">
         </div>
     </div>        
 
@@ -2548,8 +2548,8 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-	<a target="_blank" href="/ask?query=ancestor_decendant(mike, Who)">
-    	&nbsp;<code>{{host}}/ask?query=ancestor_decendant(mike, Who)</code>
+	<a target="_blank" href="/ask?query=ancestor_decendant(mike,Who)">
+    	&nbsp;<code>{{host}}/ask?query=ancestor_decendant(mike,Who)</code>
     </a>
 </p>
 
@@ -2558,8 +2558,8 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-	<a target="_blank" href="/ask?query=ancestor_decendant(mike, Who)&amp;offset=1&amp;limit=2">
-    	&nbsp;<code>{{host}}/ask?query=ancestor_decendant(mike, Who)&amp;offset=1&amp;limit=2</code>
+	<a target="_blank" href="/ask?query=ancestor_decendant(mike,Who)&amp;offset=1&amp;limit=2">
+    	&nbsp;<code>{{host}}/ask?query=ancestor_decendant(mike,Who)&amp;offset=1&amp;limit=2</code>
     </a>
 </p>
 
@@ -2625,6 +2625,66 @@ wait_answer(Query, Pid) :-
 </div>
 
 
+<h2>What does Web Prolog include:</h2>
+
+<p>
+We haven't said much about what should be included in Web Prolog. At this point in time, most libraries supported by SWI-Prolog are supported. I would  are more or less one and the same language. An ambition to support interoperability with other implementations of Web Prolog necessitates a tighter grip of the language.
+</p>
+
+<ol>
+    <li>
+        SWI-Prolog support dicts. Should Web Prolog do that too? Here out ambitions could be to include them, perhaps even enhanced with open dicts. Feature structures.
+    </li>
+        <li>
+        If the above is our choice, we could decide to use dicts in Web Prolog. So instead of using <code>success(Pid, Solutions, More)</code> we could use <code>success{pid:Pid, solutions:Solutions, more:More}</code>. As we forsee the need for at least one extra field here, possibly to be named 'info' this option becomes even more attractive.
+    </li>
+</ol>
+
+<p>
+    Here's how the implementation of wait_answer/2 would look like:
+</p>
+
+<pre>
+wait_answer(Query, Pid) :-
+    receive({
+        failure{pid:Pid} -> fail;            
+        error{pid:Pid, data:Exception} -> 
+            throw(Exception);                  
+        success{pid:Pid, solutions:Solutions, more:true} -> 
+            (   member(Query, Solutions)
+            ;   pengine_next(Pid), 
+                wait_answer(Query, Pid)
+            );
+        success{pid:Pid, solutions:Solutions, more:false} -> 
+            member(Query, Solutions)
+    }).
+</pre>
+
+<p>
+    But that's just one way of writing it, we could also, using SWI-related syntax, do:
+</p>
+
+<pre>
+wait_answer(Query, Pid) :-
+    receive({
+        failure{pid:Pid} -> fail;            
+        error{pid:Pid, data:Exception} -> 
+            throw(Exception);                  
+        success{pid:Pid, more:true} = Msg -> 
+            (   member(Query, Msg.solutions)
+            ;   pengine_next(Pid), 
+                wait_answer(Query, Pid)
+            );
+        success{pid:Pid,more:false} = Msg -> 
+            member(Query, Msg.solutions)
+    }).
+</pre>
+
+<p>
+    This would particularly helpful if optional info fields (say a field 'time') were to be included.
+</p>
+
+
 <h2>What should we use for distribution?</h2>
 
 <p>
@@ -2667,15 +2727,15 @@ wait_answer(Query, Pid) :-
 
 <h2>An implementation in Erlang</h2>
 
-</p>
+<p>
     An implementation of a Web Prolog node in Erlang would be interesting since it would most probably have a performance profile different from the implementation in SWI-Prolog. The basic Prolog machinery (e.g. unification, backtracking and clause indexing) is likely to be slower in Erlang compared to (say) SWI-Prolog, whereas the super fast lightweight processes of Erlang have other advantages, making it scale better to very many simultaneous users on a network.  
 </p>
 
-</p>
+<p>
     Interestingly, there is <a target="_blank" href="https://github.com/rvirding/erlog"><em>Erlog</em></a> &ndash; an implementation of Prolog in Erlang, written by Robert Virding, which might serve as a nice point of departure. One approach might be to use Prolog in order to transpile Web Prolog source code into something that Erlang and Erlog can work with. 
 </p>
 
-</p>
+<p>
     For the networking part, we note that Erlang is particularly famous for extremely efficient implementations of web-related technologies such as web servers (e.g. Yaws and Cowboy). 
 </p>
 
@@ -2738,6 +2798,60 @@ indication of the impact. (To be compared with Erlang's 6,374 stars and 1,708 fo
   </ol>
 </div>
 
+<h2>Sandboxing</h2>
+
+<p>
+SWISH cannot provide unrestricted access to Prolog because Prolog gives
+unrestricted access to the operating system.  Therefore, SWISH examines
+each goal on safety before execution.  This process unfolds the call-tree
+and verifies all called predicates against a whitelist.  It fails on three
+occasions:
+</p>
+
+  <ul>
+    <li>If insufficient information is available to decide what
+        will be called.  E.g., <code>?- read(X), call(X).</code>
+	Such errors are raised as <em>instantiation errors</em>.
+    <li>If a predicate is found that is not whitelisted.  Such
+        errors are raised as <em>permission errors</em>
+    <li>If a called predicate is not defined.  Such errors are
+        raised as <em>existence errors</em>
+  </ul>
+
+<p>
+If any of the above happens, the error is printed, along with
+a chain of intermediate goals that should help finding the culprit.
+Note that the whitelist is incomplete, i.e., there are many
+predicates that can be considered safe that are not on the list.
+Please report such omissions as bugs.
+</p>
+
+
+<h2>Input and output</h2>
+
+<p>
+Normal read and write do not work in the web environment.  A number
+of normal Prolog predicates are redefined to provide basic I/O.  Other
+I/O predicate are either not whitelisted or send their output to the
+server's console.
+</p>
+
+  <ul>
+    <li>read/1
+    <li>write/1, writeq/1, print/1, write_canonical/1, write_term/2
+    <li>format/1, format/2
+    <li>message_hook/3, redirecting all system messages.
+  </ul>
+  
+  
+
+<h2>Sharing</h2>
+
+<p>
+  
+</p>
+
+
 <h2>Questionnaire</h2>
 
 </div>
@@ -2783,15 +2897,6 @@ indication of the impact. (To be compared with Erlang's 6,374 stars and 1,708 fo
         gterm.exec(query);
         setTimeout(gterm.enable, 0);
     }
-
-    
-    function trans(id, state) {
-        $('svg [id^=state]').attr('style','fill: white');
-        $('svg [id^=d]').attr('style','stroke: black');
-        $('svg #state-'+state).attr('style','fill: lightcoral');
-        $('svg #d-'+id).attr('style','stroke: red; stroke-width:2');
-    }
-
 
 </script>
     <script id="dsq-count-scr" src="//web-prolog.disqus.com/count.js" async></script>
