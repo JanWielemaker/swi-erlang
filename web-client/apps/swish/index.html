@@ -324,7 +324,39 @@ server's console.
             <pre id="editor"></pre>
             <div id="tutorial-container"></div>
             <div id="shell"></div>
-        </div>
+            <div id="controls" onclick="return false">
+                <div>
+                    <div>
+                        <div>
+                            <button id="ask-btn" class="btn btn-xs btn-primary">Ask</button>
+                            <button id="next-btn" class="btn btn-xs btn-success" disabled>Next</button>
+                            <button id="stop-btn" class="btn btn-xs btn-warning" disabled>Stop</button>
+                            <button id="abort-btn" class="btn btn-xs btn-danger" disabled>Abort</button>
+                            <div class="btn-group dropup">
+                                <button id="examples-btn" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+                                Examples
+                                <span class="caret"></span>
+                                </button>
+                                <ul id="examples" class="dropdown-menu">
+                                </ul>
+                            </div>
+                            <div class="btn-group dropup">
+                                <button id="history-btn" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+                                History
+                                <span class="caret"></span>
+                                </button>
+                                <ul id="history" class="dropdown-menu"></ul>
+                            </div>
+                            <div class="btn-group">
+                                <button id="clear-btn-query" class="btn btn-default btn-xs">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                </div>
+            </div>
+        </div>            
         <header class="navbar navbar-default navbar-fixed-bottom bs-docs-nav">
             <div class="footer">
                 <p class="muted credit pull-left">
@@ -337,10 +369,10 @@ server's console.
         <!-- Placed at the end of the document so the pages load faster -->
         <script src="/vendor/jquery/jquery-2.0.3.min.js"></script>
         <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
-        <script src="/vendor/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-        <script src="/apps/swish/js/swish.js" type="text/javascript" charset="utf-8"></script>
+        <script src="/vendor/src-min-noconflict/ace.js" charset="utf-8"></script>
         <script src="/apps/swish/js/jquery.mousewheel-min.js"></script>
         <script src="/apps/swish/js/jquery.terminal.min.js"></script>
+        <script src="/apps/swish/js/swish.js" charset="utf-8"></script>
 <script>
     var pid;
     var gterm;
@@ -372,6 +404,7 @@ server's console.
         var uu = new SpeechSynthesisUtterance(string);
         speechSynthesis.speak(uu);    
     }
+
     $(document).ready(function($) {
         var ws = new WebSocket('ws://localhost:3060/ws', 'pcp-0.2'); 
 		function mysend(json) {
@@ -407,6 +440,8 @@ server's console.
                     recursiveReplaceHost(document.body, window.location.origin);
                     recursiveReplacePengine(document.body, pid);
             });
+            disableButtons(false, true, true, true);
+
         }; 
         $('#shell').terminal(function(command, term) {
             ws.onmessage = function(message) {
@@ -424,11 +459,13 @@ server's console.
                 if (type == "success") {
                     if (msg.more) {
                         state = 4;
-                        term.set_prompt(report(msg.data))
+                        term.set_prompt(report(msg.data));
+                        disableButtons(true, false, false, true);
                     } else {
                         state = 1;
                         term.echo(report(msg.data).trim() + ".");
                         term.set_prompt(myprompt);
+                        disableButtons(false, true, true, true);
                     }
                     term.scroll_to_bottom();
                 } else if (type == "failure") {
@@ -436,11 +473,13 @@ server's console.
                     term.echo("false.");
                     term.set_prompt(myprompt);
                     term.scroll_to_bottom();
+                    disableButtons(false, true, true, true);
                 } else if (type == "error") {
                     state = 1;
                     term.error(msg.data);
                     term.set_prompt(myprompt);
                     term.scroll_to_bottom();
+                    disableButtons(false, true, true, true);
                 } else if (type == "stop") {
                     state = 1;
 					if (trace) {
@@ -450,6 +489,7 @@ server's console.
 					}
                     term.set_prompt(myprompt);
                     term.scroll_to_bottom();
+                    disableButtons(false, true, true, true);
                 } else if (type == "prompt") {
                     state = 3;
                     term.set_prompt(msg.data + ": ");
@@ -465,6 +505,7 @@ server's console.
                 } else if (type == "abort") {
                     term.echo("Aborted");
                     term.scroll_to_bottom();
+                    disableButtons(false, true, true, true);
                 } else if (type == "exit") {
                     term.echo("Exiting");
                     term.pop();
@@ -491,6 +532,7 @@ server's console.
                 if (command.trim() == "") {
                     term.set_prompt(myprompt);
                     term.scroll_to_bottom();
+                    disableButtons(false, true, true, true);
                 } else if (command.trim().endsWith('.')) {
                     currcommand += command.trim().slice(0, -1);
                     state = 2;
@@ -501,6 +543,7 @@ server's console.
 					});
                     currcommand = "";
                     term.pause();
+                    disableButtons(true, true, true, false);
                 } else {
                     term.set_prompt("   ");
                     currcommand += command; 
@@ -513,12 +556,14 @@ server's console.
 						pid:pid
 					});
                     term.pause();
+                    disableButtons(true, true, true, false);
                 } else if (command == "") {
                     mysend({
 						command:"pengine_stop", 
 						pid:pid
 					});
                     term.pause();
+                    disableButtons(true, true, true, false);
                 }
             } else if (state == 3) {
                 state = 2;
@@ -529,6 +574,7 @@ server's console.
 						term:command
 					});
                 }
+                disableButtons(true, true, true, false);
             }
          }, {
              greetings:'Welcome to SWI Web Prolog!\n',
@@ -556,6 +602,7 @@ server's console.
 						 pid:pid
 					 });
                      gterm.pause();
+                     disableButtons(true, true, true, false);
                      return false;
                  }
              },

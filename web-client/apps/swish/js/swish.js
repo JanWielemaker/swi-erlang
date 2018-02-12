@@ -136,6 +136,85 @@ function updateProgram() {
 
 
 
+function extractExamples() {
+    var Search = ace.require("./search").Search;
+    var search = new Search();
+    search.setOptions({
+        needle: /\/\*\*\s*Examples/,
+        range: null,
+        caseSensitive: false,
+        regExp: true
+    });
+    var ranges = search.findAll(env.editor.session)
+    var doc = env.editor.session.getDocument();
+    var examples = []
+    for (var i in ranges) {
+        var examplegroup = [];
+        var row = ranges[i].start.row;
+        for (var j = row + 1; ; j++) {
+            var ex = doc.getLine(j).trim();
+            if (ex == "*/") {
+                break;
+            } else {
+                if (ex != "") {
+                    examplegroup.push(ex);
+                }
+            }
+        }
+        examples.push(examplegroup);
+    }
+    return examples;
+}
+
+
+function examplesToHTML(examples) {
+    var html = [];
+    for (var i in examples) {
+        var examplegroup = examples[i];
+        for (var j in examplegroup) {
+            var ex = examplegroup[j];
+            ex = "<li><a href='#' onclick='paste(\"" + ex + "\")'>?- " + ex + "</a></li>";
+            html.push(ex);
+        }
+        html.push("<li class='divider'></li>")
+    }
+    html.pop(); // get rid of the last divider
+    return html.join("");
+}
+
+
+function populateExampleMenu() {
+    var html = examplesToHTML(extractExamples());
+    $("#examples").html(html);
+}
+
+
+function updateHistory(query) {
+	var history = env.history;
+	var index = history.indexOf(query);
+	if (index != -1) history.splice(index, 1);
+	if (history.length >= env.maxHistoryLength) history.shift();
+	env.history.push(query);
+}
+
+function populateHistoryMenu() {
+	var html = "";
+	var history = env.history;
+	for (var i in history) {
+		html += "<li><a href='#' onclick='setGoal(\"?- " + history[i] + ".\")'>?- " + history[i] + ".</a></li>";
+	}
+    $("#history").html(html);}
+    
+    
+function disableButtons(ask, next, stop, abort) {
+    $("#ask-btn").prop("disabled", ask);
+    $("#next-btn").prop("disabled", next);
+    $("#stop-btn").prop("disabled", stop);
+    $("#abort-btn").prop("disabled", abort);
+    //if (!next) $("#more-btn").focus();
+}
+
+
 // Event handlers: Editor
 
 env.editor.getSession().on('change', function() {
@@ -328,11 +407,38 @@ $("#slider").on("input", function() {
     $("#editor").css("width", val+"%");
     $("#tutorial").css("width", val+"%");
     $("#shell").css("width", (100-val)+"%");
+    $("#controls").css("width", (100-val)+"%");
 });
 
 
-/*
+
 // Event handlers: Console
+
+
+$("#ask-btn").on("click", function() {
+    gterm.exec(gterm.before_cursor().trim());
+    gterm.set_command("");
+    setTimeout(gterm.enable, 0);
+});
+
+$("#next-btn").on("click", function() {
+    gterm.exec(";");
+    setTimeout(gterm.enable, 0);
+});
+
+$("#stop-btn").on("click", function() {
+    gterm.exec("");
+    setTimeout(gterm.enable, 0);
+});
+
+$("#abort-btn").on("click", function(evt) {
+    gterm.resume();
+    gmysend({
+	 command:"pengine_abort", 
+	 pid:pid
+    });
+    setTimeout(gterm.enable, 0);
+});
 
 $("#examples-btn").on("click", function() {
 	if (env.dirty) {
@@ -340,30 +446,14 @@ $("#examples-btn").on("click", function() {
 	}
 });
 
-
 $("#history-btn").on("click", populateHistoryMenu);
 
 $("#clear-btn-query").on("click", function() {
-	setGoal("?- ")
+	gterm.clear();
+    setTimeout(gterm.enable, 0);
 });
 
-$("#first-btn").on("click", first);
-$("#more-btn").on("click", more);
-$("#stop-btn").on("click", stop);
-$("#abort-btn").on("click", abort);
-$("#clear-btn").on("click", clear);
 
-$("#reader").on("keyup", function(evt) {
-	if (evt.keyCode == 13) {
-		read();
-	}
-});
-
-$("#reader").on("blur", function(evt) {
-	evt.target.focus();
-	return false;
-});
-*/
 
 function parseBoolean(value) {
 	return value == "true" ? true : false;
