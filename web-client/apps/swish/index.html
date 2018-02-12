@@ -541,6 +541,7 @@ server's console.
 						pid:pid, 
 						query:currcommand
 					});
+					updateHistory(currcommand);
                     currcommand = "";
                     term.pause();
                     disableButtons(true, true, true, false);

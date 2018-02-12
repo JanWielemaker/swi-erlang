@@ -1,5 +1,8 @@
 var env = {};
 
+env.dirty = false;
+env.history = [];
+env.maxHistoryLength = 15;
 
 env.editor = ace.edit("editor");
 env.editor.setTheme("ace/theme/brain");
@@ -201,7 +204,7 @@ function populateHistoryMenu() {
 	var html = "";
 	var history = env.history;
 	for (var i in history) {
-		html += "<li><a href='#' onclick='setGoal(\"?- " + history[i] + ".\")'>?- " + history[i] + ".</a></li>";
+		html += "<li><a href='#' onclick='paste(\"" + history[i] + ".\")'>?- " + history[i] + ".</a></li>";
 	}
     $("#history").html(html);}
     
@@ -211,7 +214,6 @@ function disableButtons(ask, next, stop, abort) {
     $("#next-btn").prop("disabled", next);
     $("#stop-btn").prop("disabled", stop);
     $("#abort-btn").prop("disabled", abort);
-    //if (!next) $("#more-btn").focus();
 }
 
 
