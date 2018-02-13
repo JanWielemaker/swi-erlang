@@ -160,6 +160,10 @@
 
 <h2>Introduction</h2>
 
+<p class="em">
+    Imagine Erlang with logical variables, backtracking search and a built-in database of facts and rules &ndash; all the means necessary for logic programming, knowledge representation and reasoning. Imagine Prolog with processes and mailboxes, send and receive &ndash; all the means necessary for powerful concurrent and distributed programming. This is <em>Web Prolog</em>.
+</p>
+
 <p>
     We intend this tutorial to be used online.
 </p>
@@ -334,11 +338,11 @@
 </p>
 
 <div class="alert alert-info">
-  <strong>Tip!</strong> Instead of the semicolon (;) you can also use the space bar.
+  <strong>Tip!</strong> Instead of the semicolon (;) you can also use the space bar. If you don't want to use your keyboard just click the Next button located in the console under the shell.
 </div>
 
 <div class="alert alert-info">
-  <strong>Tip!</strong> Ctrl-C can be used to abort a running computation.
+  <strong>Tip!</strong> Ctrl-C can be used to abort a running computation. Or just click the Abort button.
 </div>
 
 <div class="alert alert-danger">
@@ -595,7 +599,7 @@ p(p(with)) --&gt; [with].
 </div>
 
 <p>
-    The Web Prolog primitives for spawning and messaging are borrowed straight from Erlang. Thus, Web Prolog is an actor programming language, just like Erlang, while it <i>also</i> retains it's logic programming heritage. 
+    The Web Prolog primitives for spawning and messaging are borrowed straight from Erlang. Thus, Web Prolog is an actor programming language suitable for concurrent and distributive programming, just like Erlang, while it <i>also</i> retains it's logic programming heritage. 
 </p>
 
 <p>
@@ -1591,11 +1595,19 @@ dining :-
 <h2>Web Prolog is a hybrid of Prolog and Erlang</h2>
 
 <p>
+    Erlang is clearly already a hybrid language, and so is Prolog. From a purity point of view, both languages are in some sense "broken". It's the (clever) broken-ness that makes them good and practical languages. 
+</p>
+
+<p>
+    Web Prolog is Erlang with logical variables, Web Prolog is Prolog with processes and mailboxes, Web Prolog is Erlang with backtracking search built in, Web Prolog is Erlang with a relational syntax, ...
+</p>
+
+<p>
     We have shown that most Prolog programs can be ported to Web Prolog (that's easy) and we have demonstrated that many Erlang programs can be ported as well (although that's somewhat trickier). Is all well and dandy then? Can Web Prolog be considered a reasonably hybrid between Prolog and Erlang? (A linguist would perhaps use the term <a target="_blank" href="https://en.wikipedia.org/wiki/Creole_language">creole language</a> here.)
 </p>
 
 <p>
-    As we have seen, an actor is equipped with a <em>dynamic database</em> which is private to it. This isn't something that Erlang has, and we need to investigate whether this could lead to problems.
+    As we have seen, an actor is equipped with a <em>dynamic database</em> which is private to it. This isn't something that Erlang has, and we need to investigate if this could lead to problems.
 </p>
 
 <p>
@@ -1677,7 +1689,7 @@ start(Pid) :-
 </p>
 
 <p>
-    In Erlang, each process has a local store called the <i>process dictionary</i> and Erlang support a handful of built-in functions for manipulating it. Erlang programmers are advised again using it since it destroys referential transparency and makes debugging difficult.
+    In Erlang, each process has a local store called the <i>process dictionary</i> and Erlang support a handful of built-in functions for manipulating it. Process dictionaries are private and cannot be modified by any other process. Erlang programmers are advised again using it since it destroys referential transparency and makes debugging difficult.
 </p>
 
 
@@ -2426,7 +2438,7 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-    To get the behaviour when no answer is available, you may want to click Enter again ...
+    To get the behaviour when no answer is available, you may want to run the query again ...
 </p>
 
 <p>The above use of <code>promise/3-4</code> and <code>yield/3</code> only gave the first answer to the query. To produce other answers, we can pass an option <code>offset</code>. The <code>limit</code> option is also available, allowing us to ask for more than one answer at a time:</p>
@@ -2703,23 +2715,26 @@ wait_answer(Query, Pid) :-
 </div>
 
 
-<h2>What does Web Prolog include:</h2>
+<h2>What does Web Prolog include?</h2>
 
 <p>
-We haven't said much about what should be included in Web Prolog. At this point in time, most libraries supported by SWI-Prolog are supported. I would  are more or less one and the same language. An ambition to support interoperability with other implementations of Web Prolog necessitates a tighter grip of the language.
+    We haven't said much about what should be included in Web Prolog. It's only natural to take the syntax and semantics and the built-in predicates of SWI-Prolog as out point of departure. At this point in time, most built-in predicates and most libraries supported by SWI-Prolog are indeed supported also by Web Prolog &ndash; they are more or less one and the same language. This may not always remain the case. An ambition to support interoperability with other future implementations of Web Prolog necessitates a tighter grip on the language.
 </p>
 
 <ol>
     <li>
-        SWI-Prolog support dicts. Should Web Prolog do that too? Here out ambitions could be to include them, perhaps even enhanced with open dicts. Feature structures.
+        SWI-Prolog supports strings. Should Web Prolog do that too?
     </li>
-        <li>
+    <li>
+        SWI-Prolog supports dicts. Should Web Prolog do that too? Here out ambitions could be to include them, perhaps even enhanced with open dicts. Feature structures.
+    </li>
+    <li>
         If the above is our choice, we could decide to use dicts in Web Prolog. So instead of using <code>success(Pid, Solutions, More)</code> we could use <code>success{pid:Pid, solutions:Solutions, more:More}</code>. As we foresee the need for at least one extra field here, possibly to be named 'info' this option becomes even more attractive.
     </li>
 </ol>
 
 <p>
-    Here's how the implementation of wait_answer/2 would look like:
+    Here's how the implementation of <code>wait_answer/2</code> would look like:
 </p>
 
 <pre>
@@ -2739,7 +2754,7 @@ wait_answer(Query, Pid) :-
 </pre>
 
 <p>
-    But that's just one way of writing it, we could also, using SWI-related syntax, do:
+    But that's just one way of writing it. We could also, using SWI-related syntax, do:
 </p>
 
 <pre>
@@ -2753,7 +2768,7 @@ wait_answer(Query, Pid) :-
             ;   pengine_next(Pid), 
                 wait_answer(Query, Pid)
             );
-        success{pid:Pid,more:false} = Msg -> 
+        success{pid:Pid} = Msg -> 
             member(Query, Msg.solutions)
     }).
 </pre>
@@ -2806,15 +2821,15 @@ wait_answer(Query, Pid) :-
 <h2>An implementation in Erlang</h2>
 
 <p>
-    An implementation of a Web Prolog node in Erlang would be interesting since it would most probably have a performance profile different from the implementation in SWI-Prolog. The basic Prolog machinery (e.g. unification, backtracking and clause indexing) is likely to be slower in Erlang compared to (say) SWI-Prolog, whereas the super fast lightweight processes of Erlang have other advantages, making it scale better to very many simultaneous users on a network.  
+    An implementation of a Web Prolog node in Erlang would be interesting since it would most probably have a performance profile different from the implementation in SWI-Prolog. The basic Prolog machinery (e.g. unification, backtracking and clause indexing) is likely to be slower in Erlang compared to (say) SWI-Prolog, whereas the super fast lightweight processes of Erlang have other advantages, probably allowing it to scale better to very many simultaneous users on a network.  
 </p>
 
 <p>
-    Interestingly, there is <a target="_blank" href="https://github.com/rvirding/erlog"><em>Erlog</em></a> &ndash; an implementation of Prolog in Erlang, written by Robert Virding, which might serve as a nice point of departure. One approach might be to use Prolog in order to transpile Web Prolog source code into something that Erlang and Erlog can work with. 
+    Interestingly, there is <a target="_blank" href="https://github.com/rvirding/erlog"><em>Erlog</em></a> &ndash; an implementation of Prolog in Erlang, written by Robert Virding, which might serve as a nice point of departure. One approach might be to use Prolog in order to transpile Web Prolog source code into something that Erlang and Erlog can work with. Well, the Erlang bunch would know better.
 </p>
 
 <p>
-    For the networking part, we note that Erlang is particularly famous for extremely efficient implementations of web-related technologies such as web servers (e.g. Yaws and Cowboy). 
+    For the networking part, we note that Erlang is particularly famous for extremely efficient implementations of web-related technologies such as web servers (e.g. Yaws and Cowboy). When Web Prolog is used inside a LAN, Erlang's normal way communication between nodes would be more efficient.
 </p>
 
 <p>
@@ -2879,9 +2894,9 @@ indication of the impact. (To be compared with Erlang's 6,374 stars and 1,708 fo
 <h2>Sandboxing</h2>
 
 <p>
-SWISH cannot provide unrestricted access to Prolog because Prolog gives
-unrestricted access to the operating system.  Therefore, SWISH examines
-each goal on safety before execution.  This process unfolds the call-tree
+This Web Prolog tutorial cannot provide unrestricted access to Prolog because Prolog gives
+unrestricted access to the operating system.  Therefore,
+each goal is examined on safety before execution.  This process unfolds the call-tree
 and verifies all called predicates against a whitelist.  It fails on three
 occasions:
 </p>
@@ -2901,7 +2916,6 @@ If any of the above happens, the error is printed, along with
 a chain of intermediate goals that should help finding the culprit.
 Note that the whitelist is incomplete, i.e., there are many
 predicates that can be considered safe that are not on the list.
-Please report such omissions as bugs.
 </p>
 
 
