@@ -1,5 +1,5 @@
   
-/** A simple RPC implementation */
+/* A simple RPC implementation */
 
 my_rpc(URI, Query) :-
     self(Self),
@@ -24,31 +24,31 @@ query(Query, Self, Parent) :-
 
 wait_answers(Pid, Query) :-
     receive({
-    	success(_, Solution, true) ->
+    	success(Pid, Solution, true) ->
             (   Query = Solution
             ;   Pid ! next,
                 wait_answers(Pid, Query)
             );
-        success(_, Solution, false) ->
+        success(Pid, Solution, false) ->
             Query = Solution,
             receive({
             	down(_, exit) -> 
             		true
             });
-        down(_, fail) ->
+        down(Pid, fail) ->
             fail;
-        down(_, Exception) ->
+        down(Pid, Exception) ->
             throw(Exception)
     }).
 
 
 /** Examples
 
-?- my_rpc('http://localhost:3060', member(X,[a,b,c])).
+my_rpc('http://localhost:3060', member(X,[a,b,c])).
 
-?- my_rpc('http://localhost:3060', fail).
+my_rpc('http://localhost:3060', fail).
 
-?- my_rpc('http://localhost:3060', length(3,[])).
+my_rpc('http://localhost:3060', length(3,[])).
 
 */
   

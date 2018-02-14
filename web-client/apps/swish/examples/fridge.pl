@@ -1,32 +1,6 @@
-/* In Erlang:
-
-See: http://learnyousomeerlang.com/more-on-multiprocessing
-
-
-fridge(FoodList) ->
-    receive
-        {From, {store, Food}} ->
-            From ! {self(), ok},
-            fridge([Food|FoodList]);
-        {From, {take, Food}} ->
-            case lists:member(Food, FoodList) of
-                true ->
-                    From ! {self(), {ok, Food}},
-                    fridge(lists:delete(Food, FoodList));
-                false ->
-                    From ! {self(), not_found},
-                    fridge(FoodList)
-            end;
-        terminate ->
-            ok
-    end.
-
-*/
-
 
 start(Pid) :-
     spawn(fridge([]), Pid, [
-        node('http://localhost:3061'),
     	monitor(true),
         src_text("
     
@@ -51,18 +25,16 @@ start(Pid) :-
 
 /** Examples
 
-?- start(Pid).
+start(Pid).
     
-?- self(Self).
+self(Self).
     
-?- $Pid ! store($Self, meat).
+$Pid ! store($Self, meat).
     
-?- flush.
+flush.
     
-?- $Pid ! take($Self, meat).
-    
-?- flush.
-    
-?- $Pid ! terminate.
+$Pid ! take($Self, meat).
+        
+$Pid ! terminate.
 
 */

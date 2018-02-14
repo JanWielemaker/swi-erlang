@@ -85,6 +85,7 @@
                                 <li><a href="/apps/swish/examples/fridge.pl">Fridge</a></li>
                                 <li><a href="/apps/swish/examples/pingpong.pl">Ping-pong</a></li>
                                 <li><a href="/apps/swish/examples/process_ring.pl">Process ring</a></li>
+                                <li><a href="/apps/swish/examples/philosophers.pl">Dining philosophers</a></li>
                                 <li><a href="/apps/swish/examples/servers.pl">Servers</a></li>
                                 <li><a href="/apps/swish/examples/simple_pengine.pl">Simple pengine</a></li>
                                 <li><a href="/apps/swish/examples/simple_rpc.pl">Simple RPC</a></li>
@@ -334,7 +335,7 @@ server's console.
                             <button id="abort-btn" class="btn btn-xs btn-danger" disabled>Abort</button>
                             &nbsp;&nbsp;&nbsp;
                             <div class="btn-group dropup">
-                                <button id="examples-btn" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+                                <button id="examples-btn" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" disabled>
                                 Examples
                                 <span class="caret"></span>
                                 </button>
@@ -616,7 +617,8 @@ server's console.
              }
              
          }); 
-    });    
+    });
+    
 </script>
     </body>
 </html>

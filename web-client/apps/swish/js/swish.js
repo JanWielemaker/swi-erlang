@@ -170,12 +170,28 @@ function extractExamples() {
 }
 
 
+var entityMap = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': '&quot;',
+    "'": '&#39;',
+    "/": '&#x2F;'
+  };
+
+function escapeHtml(string) {
+    return String(string).replace(/[&<>"'\/]/g, function (s) {
+      return entityMap[s];
+    });
+  }
+  
 function examplesToHTML(examples) {
     var html = [];
     for (var i in examples) {
         var examplegroup = examples[i];
         for (var j in examplegroup) {
             var ex = examplegroup[j];
+            ex = escapeHtml(ex);
             ex = "<li><a href='#' onclick='paste(\"" + ex + "\")'>?- " + ex + "</a></li>";
             html.push(ex);
         }
@@ -204,7 +220,9 @@ function populateHistoryMenu() {
 	var html = "";
 	var history = env.history;
 	for (var i in history) {
-		html += "<li><a href='#' onclick='paste(\"" + history[i] + ".\")'>?- " + history[i] + ".</a></li>";
+    	var hist = history[i];
+        hist = escapeHtml(hist);
+		html += "<li><a href='#' onclick='paste(\"" + hist + ".\")'>?- " + hist + ".</a></li>";
 	}
     $("#history").html(html);}
     
@@ -330,13 +348,25 @@ $("#example-menu").on("click", "a", function(evt) {
     if (evt.target.id == "tut") {
         $("#editor").css("display","none");
         $("#tutorial").css("display","block");
+        $("#examples-btn").prop("disabled", true);
     } else {
         $("#editor").css("display","block");
         $("#tutorial").css("display","none");
-	    window.location.hash = "";
-	    loadSrc(evt.target.href);
+        $("#examples-btn").prop("disabled", false);
+        window.location.hash = "";
+        loadSrc(evt.target.href);  
     }
 });
+
+function load_example(url) {
+    $("#editor").css("display","block");
+    $("#tutorial").css("display","none");
+    $("#examples-btn").prop("disabled", false);
+    window.location.hash = "";
+	loadSrc(url);
+	env.dirty = true;     
+}
+
 
 // Event handlers: Preferences
 
