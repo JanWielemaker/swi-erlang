@@ -55,16 +55,6 @@
                             </ul>
                         </li>
                         <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Shell<b class="caret"></b></a>
-                            <ul id="shell-menu" class="dropdown-menu">
-                                <li><a id="clear">Clear (^L)</a></li>
-                                <li class="divider"></li>
-                                <li><a id="break">Break (^C)</a></li>
-                                <li class="divider"></li>
-                                <li><a id="json-trace">Toggle JSON trace</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Examples<b class="caret"></b></a>
                             <ul id="example-menu" class="dropdown-menu">
                                 <li><a id="tut">Tutorial</a></li>
@@ -349,6 +339,8 @@ server's console.
                                 </button>
                                 <ul id="history" class="dropdown-menu"></ul>
                             </div>
+                            &nbsp;&nbsp;
+                            <label class="checkbox-inline"><input id="json-trace-checkbox" type="checkbox"> Trace JSON</label>
                             <div class="btn-group pull-right">
                                 <button id="clear-btn-query" class="btn btn-default btn-xs">Clear shell</button>
                             </div>
@@ -381,7 +373,7 @@ server's console.
     var gmysend;
     var state = 1;
     var currcommand = "";
-	var trace = false;
+	var trace = !$("#json-trace-checkbox").is(':checked');
     function to_text(data) {
         var text = [];
         for (var key in data) {
@@ -411,7 +403,7 @@ server's console.
         var ws = new WebSocket('ws://localhost:3060/ws', 'pcp-0.2'); 
 		function mysend(json) {
 			var jsonstr = JSON.stringify(json, null, 1);
-			if (trace) {
+			if (!trace) {
 				gterm.echo(jsonstr, {
 					finalize: function(div) {
     					div.css("color", "blue");
@@ -450,7 +442,7 @@ server's console.
                 term.resume();
                 var msgstr = message.data;
                 msg = JSON.parse(msgstr);
-                if (trace) {
+                if (!trace) {
 					term.echo(JSON.stringify(msg, null, 1), {
     					finalize: function(div) {
         					div.css("color", "green");
@@ -484,7 +476,7 @@ server's console.
                     disableButtons(false, true, true, true);
                 } else if (type == "stop") {
                     state = 1;
-					if (trace) {
+					if (!trace) {
 						term.update(-3, term.get_prompt().trim() + ".");
 					} else {
 						term.update(-1, term.get_prompt().trim() + ".");

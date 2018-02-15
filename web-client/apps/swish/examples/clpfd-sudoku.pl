@@ -1,3 +1,4 @@
+
 :- use_module(library(clpfd)).
 
 sudoku(Rows) :-

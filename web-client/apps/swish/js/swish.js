@@ -317,31 +317,6 @@ $("#edit-menu").on("click", "a#find", function(evt) {
 	env.editor.commands.commands.replace.exec(env.editor, "left")
 });
 
-$("#shell-menu").on("click", "a#clear", function(evt) {
-	evt.preventDefault();
-    gterm.clear();
-    setTimeout(gterm.enable, 0);
-});
-
-$("#shell-menu").on("click", "a#break", function(evt) {
-	evt.preventDefault();
-    gterm.resume();
-    gmysend({
-	 command:"pengine_abort", 
-	 pid:pid
-    });
-    setTimeout(gterm.enable, 0);
-});
-
-$("#shell-menu").on("click", "a#json-trace", function(evt) {
-	evt.preventDefault();
-	if (trace) {
-	    trace = false;
-	} else {
-	    trace = true;
-	};
-    setTimeout(gterm.enable, 0);
-});
 
 $("#example-menu").on("click", "a", function(evt) {
 	evt.preventDefault();
@@ -479,6 +454,12 @@ $("#examples-btn").on("click", function() {
 });
 
 $("#history-btn").on("click", populateHistoryMenu);
+
+$("#json-trace-checkbox").on('click', function(e) {
+    e.stopImmediatePropagation();
+    trace = checked = (e.currentTarget.checked) ? false : true;
+    e.currentTarget.checked=(checked) ? false : checked.toString();
+});
 
 $("#clear-btn-query").on("click", function() {
 	gterm.clear();
