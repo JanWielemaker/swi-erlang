@@ -263,9 +263,7 @@ pengine_portray_clause(Term) :-
 user:message_hook(Term, Kind, Lines) :-
     Kind \== silent,
     engine_self(_),
-    atom_concat('msg-', Kind, Class),
-    phrase(html(pre(class(['prolog-message', Class]),
-                    \message_lines(Lines))), Tokens),
+    phrase(html(Lines), Tokens),
     with_output_to(string(HTMlString), print_html(Tokens)),
     (   source_location(File, Line)
     ->  Src = File:Line

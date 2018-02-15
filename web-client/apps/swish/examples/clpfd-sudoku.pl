@@ -30,6 +30,6 @@ problem(1, [[_,_,_,_,_,_,_,_,_],
 
 /** Examples
 
-problem(1, _Rows), sudoku(_Rows), maplist(io:writeln, _Rows).
+problem(1, _Rows), time(sudoku(_Rows)), maplist(io:writeln, _Rows).
 
 */

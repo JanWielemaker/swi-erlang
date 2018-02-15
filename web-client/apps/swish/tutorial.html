@@ -2637,13 +2637,10 @@ wait_answer(Query, Pid) :-
 
 <ol>
     <li>
-        SWI-Prolog supports <a target=“_blank” href=“http://www.swi-prolog.org/pldoc/man?section=strings”>strings</a>. Should Web Prolog include them too?
+        SWI-Prolog supports <a target="_blank" href="http://www.swi-prolog.org/pldoc/man?section=strings">strings</a>. Should Web Prolog include them too?
     </li>
     <li>
-        SWI-Prolog supports <a target=“_blank” href=“http://www.swi-prolog.org/pldoc/man?section=dicts”>dicts</a>. Should Web Prolog do that too? Here our ambitions could be to include them, perhaps even enhanced with open dicts. Feature structures.
-    </li>
-    <li>
-        If the above is our choice, we could decide to use dicts in Web Prolog. So instead of using <code>success(Pid, Solutions, More)</code> we could use <code>success{pid:Pid, solutions:Solutions, more:More}</code>. As we foresee the need for at least one extra field here, possibly to be named 'info' this option becomes even more attractive.
+        SWI-Prolog supports <a target="_blank”" href="http://www.swi-prolog.org/pldoc/man?section=dicts">dicts</a>. Should Web Prolog include them too? If we decide to use dicts in Web Prolog we could, instead of using a term such as <code>success(Pid, Solutions, More)</code>, use a dict such as <code>success{pid:Pid, solutions:Solutions, more:More}</code>. As we foresee the need for at least one extra field here for carrying e.g timing information, this option becomes even more attractive. 
     </li>
 </ol>
 
@@ -2657,7 +2654,7 @@ wait_answer(Query, Pid) :-
         failure{pid:Pid} -> fail;            
         error{pid:Pid, data:Exception} -> 
             throw(Exception);                  
-        success{pid:Pid, solutions:Solutions, more:true} -> 
+        success{pid:Pid, data:Solutions, more:true} -> 
             (   member(Query, Solutions)
             ;   pengine_next(Pid), 
                 wait_answer(Query, Pid)
@@ -2668,17 +2665,17 @@ wait_answer(Query, Pid) :-
 </pre>
 
 <p>
-    But that's just one way of writing it. We could also, using SWI-related syntax, do:
+    But that's just one way of writing it. We could also, by introducing a "shadow variable" (seen as <code>Msg</code> below) and by using SWI-Prolog's dot syntax, do:
 </p>
 
 <pre>
 wait_answer(Query, Pid) :-
     receive({
         failure{pid:Pid} -> fail;            
-        error{pid:Pid, data:Exception} -> 
-            throw(Exception);                  
+        error{pid:Pid} = Msg -> 
+            throw(Msg.data);                  
         success{pid:Pid, more:true} = Msg -> 
-            (   member(Query, Msg.solutions)
+            (   member(Query, Msg.data)
             ;   pengine_next(Pid), 
                 wait_answer(Query, Pid)
             );
@@ -2688,7 +2685,7 @@ wait_answer(Query, Pid) :-
 </pre>
 
 <p>
-    This would particularly helpful if optional info fields (say a field 'time') were to be included.
+  Also, JSON plays an important role in Web Prolog and dicts are ideal for representing JSON structures.
 </p>
 
 
@@ -2728,7 +2725,7 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-    Compare "Erlang cluster" with "Prolog Web".
+    The Prolog Web can perhaps be seen as a Web Prolog alternative to an Erlang cluster. 
 </p>
 
 
@@ -2746,14 +2743,11 @@ wait_answer(Query, Pid) :-
     For the networking part, we note that Erlang is particularly famous for extremely efficient implementations of web-related technologies such as web servers (e.g. Yaws and Cowboy). When Web Prolog is used inside a LAN, Erlang's normal way communication between nodes would be more efficient.
 </p>
 
-<p>
-    <a href="mailto:torbjorn.lager@gmail.com?subject=subject">Give feedback</a>
-</p>
 
 <h2>How the shell works</h2>
 
 <p>
-    By selecting Toggle JSON trace from the Shell menu, it's possible to inspect the JSON traffic
+    By selecting Trace JSON in the panel below the shell, it's possible to inspect the JSON traffic
     between the shell and the node. This should give you a good idea of how the shell works. (The
     implementation relies a lot on a library called <a href="http://terminal.jcubic.pl">jQuery Terminal</a>.)
 </p>
