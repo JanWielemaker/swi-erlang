@@ -61,7 +61,9 @@
             pengine_input/2,            % +Prompt, ?Answer
             pengine_respond/2,          % +Pid, +Answer
             pengine_output/1,           % +Term
-            
+            pengine_exit/1,             % +Reason
+            pengine_exit/2,             % +Pid, +Reason
+                        
             consult_text/1,             % +SourceCodeString
             
             rpc/2,                      % +URI, :Query
