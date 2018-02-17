@@ -84,17 +84,17 @@ pengine_spawn(Pid) :-
 pengine_spawn(Pid, Options) :-
     self(Self),
     option(reply_to(Target), Options, Self),
-    option(exit(Exit), Options, false),
+    option(exit(Exit), Options, true),
     spawn(session(Pid, Target, Exit), Pid, [
           application(pengines2)
         | Options
     ]).
 
 
-:- thread_local parent/1.
+:- thread_local '$parent'/1.
 
 session(Pid, Parent, Exit) :-
-    assertz(parent(Parent)),
+    assertz('$parent'(Parent)),
     session2(Pid, Parent, Exit).
 
 session2(Pid, Parent, Exit) :-
@@ -264,13 +264,13 @@ pengine_stop(Pid, Options) :-
 
 pengine_output(Term) :-
     engine_self(Self), 
-    parent(Parent),
+    '$parent'(Parent),
     Parent ! output(Self, Term).
 
 
 speak(Term) :-
     engine_self(Self), 
-    parent(Parent),
+    '$parent'(Parent),
     Parent ! speak(Self, Term).
 
 
@@ -283,7 +283,7 @@ speak(Term) :-
 
 pengine_input(Prompt, Input) :-
     engine_self(Self),
-    parent(Parent),
+    '$parent'(Parent),
     Parent ! prompt(Self, Prompt),
     receive({ 
         input(_Parent, Input) ->
