@@ -60,23 +60,23 @@
                                 <li><a id="tut">Tutorial</a></li>
                                 <li class="divider"></li>
                                 <li><a href="/apps/swish/examples/kb.pl">Knowledge bases</a></li>
-                                <li><a href="/apps/swish/examples/lists.pl">Lists</a></li>
+                                <li><a href="/apps/swish/examples/lists.pl">List processing</a></li>
                                 <li><a href="/apps/swish/examples/io.pl">Read and write</a></li>
                                 <li><a href="/apps/swish/examples/database.pl">Assert and retract</a></li>
-                                <li><a href="/apps/swish/examples/movies.pl">Movie DB</a></li>
+                                <li><a href="/apps/swish/examples/movies.pl">Movie database</a></li>
                                 <li><a href="/apps/swish/examples/grammar.pl">DCG grammar</a></li>
-                                <li><a href="/apps/swish/examples/eliza.pl">Eliza</a></li>
+                                <!--<li><a href="/apps/swish/examples/eliza.pl">Eliza</a></li>-->
                                 <li><a href="/apps/swish/examples/expert-system.pl">Expert system</a></li>
-                                <li><a href="/apps/swish/examples/queens.pl">Queens</a></li>
+                                <!--<li><a href="/apps/swish/examples/queens.pl">Queens</a></li>-->
                                 <li><a href="/apps/swish/examples/clpfd-sudoku.pl">Sudoku (clp(fd))</a></li>
                                 <li><a href="/apps/swish/examples/japanese.pl">Japanese source</a></li>
                                 <li class="divider"></li>
-                                <li><a href="/apps/swish/examples/priority_queue.pl">Prio queue</a></li>
-                                <li><a href="/apps/swish/examples/fridge.pl">Fridge</a></li>
-                                <li><a href="/apps/swish/examples/pingpong.pl">Ping-pong</a></li>
+                                <li><a href="/apps/swish/examples/priority_queue.pl">Priority queue</a></li>
+                                <li><a href="/apps/swish/examples/fridge.pl">Fridge simulation</a></li>
+                                <li><a href="/apps/swish/examples/pingpong.pl">Playing ping-pong</a></li>
                                 <li><a href="/apps/swish/examples/process_ring.pl">Process ring</a></li>
                                 <li><a href="/apps/swish/examples/philosophers.pl">Dining philosophers</a></li>
-                                <li><a href="/apps/swish/examples/servers.pl">Servers</a></li>
+                                <li><a href="/apps/swish/examples/hotswapping.pl">Hotswapping code</a></li>
                                 <li><a href="/apps/swish/examples/simple_pengine.pl">Simple pengine</a></li>
                                 <li><a href="/apps/swish/examples/simple_rpc.pl">Simple RPC</a></li>
                             </ul>
@@ -416,7 +416,7 @@ server's console.
         ws.onopen = function(message) {
             mysend({
 				command:"pengine_spawn", 
-				options:"[format('json-s')]"
+				options:"[exit(false), format('json-s')]"
 			});
         };
         ws.onerror = function(e) {

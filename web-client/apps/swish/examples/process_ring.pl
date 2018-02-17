@@ -26,4 +26,16 @@ loop(NextProcess) :-
             NextProcess ! Msg
     }).
 
+/** Examples
 
+start(10, hello).
+    
+start(100, hello).
+    
+start(1000, hello).
+    
+start(10000, hello).
+
+start(100000, hello).
+
+*/

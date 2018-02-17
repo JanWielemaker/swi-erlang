@@ -466,6 +466,15 @@ $("#clear-btn-query").on("click", function() {
     setTimeout(gterm.enable, 0);
 });
 
+function presentation_mode(bool) {
+    if (bool) {
+        $("p:not(.ask-buttons)").css('display','none');
+        $(".alert").css('display','none');
+    } else {
+        $("p:not(.ask-buttons)").css('display','inline');
+        $(".alert").css('display','block');        
+    }
+}
 
 
 function parseBoolean(value) {
