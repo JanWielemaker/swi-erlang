@@ -420,7 +420,7 @@ p(p(with)) --&gt; [with].
 </div>
 
 <p>
-    A DCG can be used for generation too. Here's a way to generate all sentences no longer than 8 words that are covered by the grammar. (The language covered by the grammar is infinite, and that's why we need to restrict the length of the sentences that we want to generate):
+    A DCG can be used for generation too. Here's a way to generate all sentences no longer than 8 words that are covered by the grammar. (This language is infinite, and that's why we need to restrict the length of the sentences that we want to generate):
 </p>
 
 <pre id="dcg3">
@@ -2535,7 +2535,7 @@ wait_answer(Query, Pid) :-
 <h3>Using the HTTP ask API</h3>
 
 <p>
-    In addition to the asynchronous and stateful API described above, a Web Prolog node offers a synchronous and stateless web API using HTTP as a transport. Alternatively, although this isn't a term we like to use since it's so vague, it can be described as <a target="_blank" href="https://en.wikipedia.org/wiki/Representational_state_transfer">RESTful</a>. In any case, statelessness is definitely part of being RESTful.
+    In addition to the asynchronous and stateful API described above, a Web Prolog node offers a synchronous and stateless web API using HTTP as a transport. Alternatively, although this isn't a term we like to use since it's so vague, this API can be described as <a target="_blank" href="https://en.wikipedia.org/wiki/Representational_state_transfer">RESTful</a>. In any case, statelessness is definitely part of being RESTful.
 </p>
 
 <p>
@@ -2543,12 +2543,12 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p
-    >In addition to a mandatory <code>query</code> parameter, the API also supports <code>template</code> and <code>limit</code> with semantics identical to the corresponding predicate API options. In addition, the API supports an <code>offset</code> parameter. Using a combination of <code>offset</code> and <code>limit</code>, a client can ask for a "slice" of solutions starting at the offset indicated, and with a length not greater than the value of the limit parameter. Finally, the <code>format</code> parameter determines the format of messages returned to the client. Currently <code>prolog</code>, <code>json</code> (default) and <code>json-s</code> are recognised values. 
+    >In addition to a mandatory <code>query</code> parameter, the API also supports <code>template</code> and <code>limit</code> with semantics identical to the corresponding predicate API options. In addition, the API supports an <code>offset</code> parameter. Using a combination of <code>offset</code> and <code>limit</code>, a client can ask for a "slice" of solutions starting at the offset indicated, and with a length no greater than the value of the limit parameter. Finally, the <code>format</code> parameter determines the format of messages returned to the client. Currently <code>prolog</code>, <code>json</code> (default) and <code>json-s</code> are recognised values. 
 </p>
 
 
 <p>
-    When the link below is selected, a request to find a descendant of Mike is made:
+    Let's look at an example. When the link below is selected, a request to find a descendant of Mike is made:
 </p>
 
 <p>
@@ -2586,7 +2586,7 @@ wait_answer(Query, Pid) :-
 <p><code>{{host}}/send</code></p>
 
 <p>
-    By means of this API, and given a pid or a registered name, you are able to send a message to the "named" actor. To demonstrate this, we ask you to once again subscribe to the publish-subscribe service:
+    By means of this API, and given a pid or a registered name of an actor, you are able to send a message to it. To demonstrate how this works, we ask you to once again subscribe to the publish-subscribe service:
 </p>
 
 <pre id="pubsub10">
@@ -2617,7 +2617,7 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-    Such a request can be made by any client that knows the name of the service.
+    You should now have received the message "hello". Such a request can be made by any client that knows the name of the service.
 </p>
 
 <div class="alert alert-danger">
@@ -2645,7 +2645,7 @@ wait_answer(Query, Pid) :-
 </ol>
 
 <p>
-    Here's how the implementation of <code>wait_answer/2</code> would look like:
+    Here's how the implementation of <code>wait_answer/2</code> (part of the implementation of <code>rdf/2-3</code> described above) would look like if dicts rather than ordinary terms were used to represent pengine messages:
 </p>
 
 <pre>
@@ -2685,7 +2685,7 @@ wait_answer(Query, Pid) :-
 </pre>
 
 <p>
-  Also, JSON plays an important role in Web Prolog and dicts are ideal for representing JSON structures.
+  Another argument for allowing the use of dicts is that JSON plays an important role in Web Prolog and dicts are ideal for representing JSON structures.
 </p>
 
 
