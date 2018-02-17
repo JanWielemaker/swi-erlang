@@ -7,8 +7,8 @@
 
 :- use_module(web_prolog).
 
-ancestor_decendant(X, Y) :- parent_child(X, Y).
-ancestor_decendant(X, Z) :- parent_child(X, Y), ancestor_decendant(Y, Z).
+ancestor_descendant(X, Y) :- parent_child(X, Y).
+ancestor_descendant(X, Z) :- parent_child(X, Y), ancestor_descendant(Y, Z).
 
 parent_child(X, Y) :- mother_child(X, Y).
 parent_child(X, Y) :- father_child(X, Y).
