@@ -27,7 +27,7 @@ count_server(Count0) :-
     Count is Count0 + 1,
     receive({
         count(From) ->
-            From ! Count,
+            From ! c(Count),
             count_server(Count)
     }).
     
