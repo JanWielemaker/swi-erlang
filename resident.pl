@@ -201,3 +201,16 @@ broadcast(Guests, Message) :-
    register(chatserver, Pid).
 
 
+/*
+use_remote_module(URI, ImportList, Options) :-
+    maplist(import(URI, Options), ImportList).
+
+import(URI, Options, Functor1/Arity as Functor2) :- !,
+    functor(Head1, Functor1, Arity),
+    Head1 =.. [Functor1|Args],
+    Head2 =.. [Functor2|Args],   
+    assertz((Head2 :- rpc(URI, Head1, Options))).    
+import(URI, Options, Functor/Arity) :-
+    functor(Head, Functor, Arity),    
+    assertz((Head :- rpc(URI, Head, Options))).
+*/

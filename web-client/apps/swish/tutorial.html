@@ -117,7 +117,7 @@
 
 <div class="alert alert-info">
   <p>
-      <strong>Tip!</strong> We are writing a book about Web Prolog with the provisional title <i>Web Prolog and the programmable Prolog Web</i> and the not-so-modest subtitle <i>An attempt to make Prolog great again</i>. In addition to a presentation of the language of Web Prolog, it discusses the notion of a Prolog Web, compares it with the Semantic Web, and suggests that Web Prolog has properties making it a good candidate for a semantic web programming language. It furthermore discusses the future of Prolog and the standardisation of Web Prolog in the W3C as one possible way forward. A concept of Web Prolog <i>profiles</i> is also introduced.
+      <strong>Tip!</strong> We are writing a book about Web Prolog with the provisional title <i>Web Prolog and the programmable Prolog Web</i> and the not-so-modest subtitle <i>An attempt to make Prolog great again</i>. In addition to a presentation of the language of Web Prolog and a description of our approach to web logic programming, it discusses the notion of a Prolog Web, compares it with the Semantic Web, and suggests that Web Prolog has properties that makes it a good candidate for a semantic web programming language. It furthermore discusses the future of Prolog and the standardisation of Web Prolog in the W3C as one possible way forward. A concept of Web Prolog <i>profiles</i> is also introduced.
   </p>
   <p>
       A draft manuscript can be downloaded from <a target="_blank" href="">here</a> [but not just yet].
@@ -504,6 +504,10 @@ problem(1, [[_,_,_,_,_,_,_,_,_],
     Alternatively, and this is arguably easier, we can describe Web Prolog as a dialect of Prolog <i>extended</i> with constructs such as spawn, send and receive. We keep everything that core Prolog has to offer, and extend it with a number of those primitives that make Erlang such a great language for programming message-based concurrency. 
 </p>
 
+<p>
+    Seen as an Erlang dialect, Web Prolog has many features not found in standard Erlang, features that it inherits from traditional Prolog: built-in backtracking depth-first search, unification, logic-based knowledge representation and reasoning, meta-programming, user defined operators, a term expansion mechanism and definite clause grammars. Furthermore, Web Prolog tries to be more open than Erlang &ndash; open in the sense that the Web is open. Indeed, if it was not for the fact that Web Prolog resembles Prolog a lot more than it resembles Erlang, we might have named it "Web Erlang".
+</p>
+
 <p>    
     The choice between extending Prolog with Erlang-ish constructs and extending Erlang with Prolog-ish constructs is easy to make, and a lot has to do with syntax. Provided we can accept using a syntax which is relational rather than functional (and thus doesn't allow nesting calls), the surface syntax of Prolog can easily be adapted to express the needed Erlang-ish primitives. It would be a lot harder to express Prolog rules and other constructs using the syntax of Erlang, and we suspect that the final result wouldn't look very Erlang-ish at all.
 </p>
@@ -563,8 +567,8 @@ work also in a distributed setting. Processes (or "actors" as we prefer to call 
 </p>
 
 <pre id="spawning1">
-?- self(Self), 
-   spawn((length([a,b,c],_N), Self ! _N)), 
+?- self(_Self), 
+   spawn((length([a,b,c],_N), _Self ! _N)), 
    receive({_M -> io:write(_M)}).
 </pre>
 
@@ -1831,7 +1835,7 @@ query(Query, Self, Parent) :-
 </p>
 
 <p>
-    Whereas encapsulated search (as implemented above) allows only one query per process created, a pengine allows a full <i>session</i> per process, possibly involving many queries. Indeed, we may want to refer to a pengine as an <i>encapsulated Prolog session</i> or as a stateful compute server for Prolog tasks. That's an abstraction that ought to be able to make Prolog programmers feel right at home. (If you're a Prolog programmer, you do feel reasonably at home with the shell, don't you?)
+    Whereas encapsulated search (as implemented above) allows only one query per process created, a pengine optionally allows a full <i>session</i> per process, possibly involving many queries. Indeed, we may want to refer to a pengine as an <i>encapsulated Prolog session</i> or as a stateful compute server for Prolog tasks. That's an abstraction that ought to be able to make Prolog programmers feel right at home. (If you're a Prolog programmer, you do feel reasonably at home with the shell, don't you?)
 </p>
 
 <p>
@@ -1858,7 +1862,7 @@ query(Query, Self, Parent) :-
 </p>
 
 <p>
-    The value <code>false</code> of option <code>exit</code> (default is <code>true</code>) tells the pengine to run a full session, i.e. to <i>not</i> terminate once the first query that we are going to ask it has run to completion. In other words, this is an option that allows us to switch from running a one-shot encapsulated search task into running a full encapsulated Prolog session.
+    The value <code>false</code> of option <code>exit</code> (default is <code>true</code>) tells the pengine to run a full session, i.e. to <i>not</i> terminate once the first query that we are going to ask it has run to completion. In other words, this is the option that allows us to switch from running a one-shot encapsulated search task into running a full encapsulated Prolog session.
 </p>
 
 <p>
@@ -2282,7 +2286,7 @@ Web Prolog supports two kinds of predicate APIs for making remote procedure call
 </p>
 
 <p>
-    As the above example tries to convey, although the call only makes three network roundtrips 
+    As this example tries to convey, although the call only makes three network roundtrips 
 	in order to generate all twelve solutions, the behaviour of the call, as seen from the point 
     of view of the client, doesn't change. Indeed, the <code>limit</code> option serves as a
     performance optimisation only, and has nothing to do with logic and the declarative reading
@@ -2322,7 +2326,15 @@ wait_answer(Query, Pid) :-
 </pre>
 
 <p>
-    The most interesting parts of this implementation are the use of the disjunction in the body of the third receive clause and the use of <code>member/2</code> in the third and fourth clauses. They are responsible for turning the deterministic calls made by <code>pengine_ask/3</code> and <code>pengine_next/1</code> into the non-deterministic behaviour that we want <code>rpc/2-3</code> to exhibit.
+    The first and second clause of the implementation show clearly how the inheritance of options from <code>pengine_spawn/2</code> and <code>pengine_ask/3</code> to <code>rpc/2-3</code> works. The options passed explicitly overrides the options given in the third argument of <code>rpc/3</code>.
+</p>
+
+<p>
+    The most interesting parts of this implementation are the use of the disjunction in the body of the third receive clause and the use of <code>member/2</code> in the third and fourth clauses. They are responsible for turning the deterministic calls made by <code>pengine_ask/3</code> and <code>pengine_next/1</code> into the non-deterministic behaviour that we want <code>rpc/2-3</code> to show.
+</p>
+
+<p>
+    This implementation should be clean enough to nail down the semantics of <code>rpc/2-3</code>. It should be noted though, that there are other ways to implement <code>rpc/2-3</code>, ways that don't depend on <code>pengine_spawn/2</code> and friends, and therefore not on WebSockets. 
 </p>
 
 <h3>Promises (asynchronous RPC)</h3>
@@ -2806,6 +2818,10 @@ indication of the impact. (To be compared with Erlang's 6,374 stars and 1,708 fo
 
 
 <h2>Sandboxing</h2>
+
+<p>
+    Just like JavaScript, in support of openness and in contrast to traditional Prolog and Erlang, Web Prolog is a sandboxed language, open to the execution of untested or untrusted source code, possibly from unverified or untrusted clients without risking harm to the host machine or operating system. Therefore, Web Prolog does not include any predicates for file I/O, networking or persistent storage, relying for these upon the host environment in which it is embedded. Access to the host environment can only be granted by the owner of a node and can be implemented by defining new predicates in the host language and import them into the program space of the node, i.e. making them . The author of such code must take responsibility for any security issues that may arise as a consequence of such imports.
+</p>
 
 <p>
 This Web Prolog tutorial cannot provide unrestricted access to Prolog because Prolog gives
