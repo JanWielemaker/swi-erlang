@@ -930,15 +930,16 @@ start(Pid) :-
         src_text("
     
             fridge(FoodList0) :-
+                self(Self),
                 receive({
                     store(From, Food) ->
-                        From ! ok,
+                        From ! ok(Self),
                         fridge([Food|FoodList0]);
                     take(From, Food) ->
                         (   select(Food, FoodList0, FoodList)
-                        ->  From ! ok(Food),
+                        ->  From ! ok(Self, Food),
                             fridge(FoodList)
-                        ;   From ! not_found,
+                        ;   From ! not_found(Self),
                             fridge(FoodList0)
                         );
                     terminate ->
@@ -1544,16 +1545,17 @@ start(Pid) :-
             :- dynamic food/1.
     
             fridge :-
+                self(Self),
                 receive({
                     store(From, Food) ->
                         assert(food(Food)),
-                        From ! ok,
+                        From ! ok(Self),
                         fridge;
                     take(From, Food) ->
                         (   retract(food(Food))
-                        ->  From ! ok(Food),
+                        ->  From ! ok(Self, Food),
                             fridge
-                        ;   From ! not_found,
+                        ;   From ! not_found(Self),
                             fridge
                         );
                     terminate ->
