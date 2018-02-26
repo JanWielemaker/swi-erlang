@@ -930,12 +930,13 @@ start(Pid) :-
         src_text("
     
             fridge(FoodList0) :-
-                self(Self),
                 receive({
                     store(From, Food) ->
+                        self(Self),
                         From ! ok(Self),
                         fridge([Food|FoodList0]);
                     take(From, Food) ->
+                        self(Self),
                         (   select(Food, FoodList0, FoodList)
                         ->  From ! ok(Self, Food),
                             fridge(FoodList)
@@ -1088,7 +1089,7 @@ fridge(FoodList) ->
         current process stop its execution. 
     </li>
     <li>
-        <i>External exits</i> are called with <code>exit/2</code> and can be used to terminate any process. But only if you know its pid or its registered name (but only if you own it).
+        <i>External exits</i> are called with <code>exit/2</code> and can be used to terminate any process. But only if you know its pid or its registered name (and only if you own it).
     </li>
 </ul>
 
@@ -1545,13 +1546,14 @@ start(Pid) :-
             :- dynamic food/1.
     
             fridge :-
-                self(Self),
                 receive({
                     store(From, Food) ->
                         assert(food(Food)),
+                        self(Self),
                         From ! ok(Self),
                         fridge;
                     take(From, Food) ->
+                        self(Self),
                         (   retract(food(Food))
                         ->  From ! ok(Self, Food),
                             fridge
@@ -2644,7 +2646,7 @@ wait_answer(Query, Pid) :-
 <h2>What does Web Prolog include?</h2>
 
 <p>
-    Except for the spawning and messaging primitives, we haven't said much about what should be included in Web Prolog. It's only natural to take the syntax and semantics and the built-in predicates of SWI-Prolog as out point of departure. At this point in time, most built-in predicates and most libraries supported by SWI-Prolog are indeed supported also by Web Prolog &ndash; they are more or less one and the same language. This may not always remain the case. An ambition to support interoperability with other future implementations of Web Prolog necessitates a tighter grip on the language.
+    Except for the spawning and messaging primitives, we haven't said much about what should be included in Web Prolog. It's of course only natural and very convenient to take the syntax and semantics and the built-in predicates of our implementation language SWI-Prolog as our point of departure. At this point in time, most built-in predicates and most libraries supported by SWI-Prolog are indeed supported also by Web Prolog &ndash; they are more or less one and the same language. This may not always remain the case. An ambition to support interoperability with other future implementations of Web Prolog necessitates a tighter grip on the language.
 </p>
 
 <p>
