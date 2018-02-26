@@ -86,6 +86,27 @@ node_loop(Socket) :-
         node_loop(Socket)
     ).
 
+
+
+node_action(self, Data, Socket) :-
+%    _{options:OptionString} :< Data,
+    !,
+%    term_string(Options, OptionString),
+	uuid(Pid),
+%    select_option(format(Format), Options, _RestOptions, 'json-s'),
+    assertz(pid_stdout_socket_format(Pid, Pid, Socket, json)),
+    send(Pid, self(Pid)).
+
+node_action(!, Data, _Socket) :-
+    (	_{name:TargetString, message:MessageString} :< Data
+	;	_{pid:TargetString, message:MessageString} :< Data
+	),
+    !,
+    term_string(Target, TargetString),
+    term_string(Message, MessageString),
+    send(Target, Message).
+
+
 % clauses for pengines running from a shell    
 
 node_action(pengine_spawn, Data, Socket) :-
@@ -109,7 +130,7 @@ node_action(pengine_spawn, _Data, Socket) :-
 node_action(pengine_ask, Data, Socket) :-
     _{pid:PidString, query:GoalString, options:OptionString} :< Data,
     !,
-    read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]),    
+    read_term_from_atom(GoalString, Goal, [variable_names(Bindings)]), 
     term_string(Options, OptionString),
     term_string(Pid, PidString),
     pid_stdout_socket_format(Pid, _Target, Socket, Format),

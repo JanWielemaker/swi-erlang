@@ -36,12 +36,13 @@ count_server(Count0) :-
    
 
 
-% Th core of a publish and subscribe service:
+% The core of a publish and subscribe service:
 
 pubsub_service(Subscribers0) :-
     receive({
         publish(Message) ->
-            forall(member(Pid, Subscribers0), Pid ! msg(Message)),
+            forall(member(Pid, Subscribers0), Pid ! msg{text:Message}),
+%            forall(member(Pid, Subscribers0), Pid ! msg(Message)),
             pubsub_service(Subscribers0);
         subscribe(Pid) ->
             pubsub_service([Pid|Subscribers0]);
@@ -54,8 +55,6 @@ pubsub_service(Subscribers0) :-
 
 :- spawn(pubsub_service([]), Pid),
    register(pubsub_service, Pid).
-   
-   
    
  
   

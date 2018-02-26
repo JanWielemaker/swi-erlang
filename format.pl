@@ -234,7 +234,11 @@ disable_client_cache :-
 
 message_to_json_data(Message, JSON, Lang) :-
     event_to_json(Message, JSON, Lang),
-    !. 
+    !.
+message_to_json_data(DictIn, DictOut, json) :-
+	is_dict(DictIn, Tag),
+	!,
+	DictOut = DictIn.put('$type', Tag).
 message_to_json_data(success(Pid, Bindings0, More),
                         json{type:success, pid:PidString,
                              data:Bindings, more:More},
