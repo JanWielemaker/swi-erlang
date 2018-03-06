@@ -191,7 +191,8 @@ output_result(Lang, Event, _) :-
     json_lang(Lang),
     !,
     (   message_to_json_data(Event, JSON, Lang)
-    ->  cors_enable,
+    ->  % cors_enable, TODO: fix this!
+	    format('Access-Control-Allow-Origin: ~p~n', [*]),
         disable_client_cache,
         reply_json(JSON)
     ;   assertion(message_to_json_data(Event, _, Lang))
@@ -235,10 +236,12 @@ disable_client_cache :-
 message_to_json_data(Message, JSON, Lang) :-
     event_to_json(Message, JSON, Lang),
     !.
+/* Experimental
 message_to_json_data(DictIn, DictOut, json) :-
 	is_dict(DictIn, Tag),
 	!,
 	DictOut = DictIn.put('$type', Tag).
+*/
 message_to_json_data(success(Pid, Bindings0, More),
                         json{type:success, pid:PidString,
                              data:Bindings, more:More},

@@ -19,6 +19,22 @@ father_child(tom, sally).
 father_child(tom, erica).
 father_child(mike, tom).
 
+% Expermental for the Genealogist demo:
+
+:- dynamic mother_child/2, father_child/2.
+
+assert_mother_child(Mother, Child) :-
+      assert(mother_child(Mother, Child)).
+
+assert_father_child(Father, Child) :-
+      assert(father_child(Father, Child)).
+      
+retract_mother_child(Mother, Child) :-
+      retractall(mother_child(Mother, Child)).
+
+retract_father_child(Father, Child) :-
+      retractall(father_child(Father, Child)).
+
 
 
 % Node-resident counting server:
@@ -41,8 +57,8 @@ count_server(Count0) :-
 pubsub_service(Subscribers0) :-
     receive({
         publish(Message) ->
-            forall(member(Pid, Subscribers0), Pid ! msg{text:Message}),
-%            forall(member(Pid, Subscribers0), Pid ! msg(Message)),
+%            forall(member(Pid, Subscribers0), Pid ! msg{text:Message}), % Experimental - see also format.pl
+            forall(member(Pid, Subscribers0), Pid ! msg(Message)),
             pubsub_service(Subscribers0);
         subscribe(Pid) ->
             pubsub_service([Pid|Subscribers0]);
