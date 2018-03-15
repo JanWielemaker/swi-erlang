@@ -484,14 +484,15 @@ function parseBoolean(value) {
 // Initialisation
 
 $(document).ready(function() {
+    env.editor.setTheme("ace/theme/brain");
 	if (localStorage && localStorage.length > 0) {
-		setTheme(localStorage['swish-theme']);
+		//setTheme(localStorage['swish-theme']);
 		setFontFamily(localStorage['swish-font-family']);
 		setFontSize(localStorage['swish-font-size']);
 		setTabSize(parseInt(localStorage['swish-tab-size'], 10));
 		setLineWrap(parseBoolean(localStorage['swish-line-wrap']));
 		setLineHighlight(parseBoolean(localStorage['swish-line-highlight']));
-		setShowGutter(parseBoolean(localStorage['swish-line-numbering']));
+		setShowGutter(parseBoolean(localStorage['swish-line-numbering']) || true);
 		setUseSoftTabs(parseBoolean(localStorage['swish-tab-soft']));
 	}
     maybeLoadSrc();
