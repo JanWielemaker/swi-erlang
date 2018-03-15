@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    
     <title>Web Prolog Tutorial</title>
     <meta name="description" content="">
     <meta name="author" content="Torbjörn Lager">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- CSS -->
-    
+    <!--
     <link rel="stylesheet" href="../../www/vendor/bootstrap/css/bootstrap.min.css">
     <style>
         #tutorial {
@@ -19,7 +20,7 @@
             display: block;
         }
     </style>
-
+    -->
     <style>   
 
         h1 {font-size: 36px; color:black;}
@@ -55,7 +56,7 @@
 <h2>Introduction</h2>
 
 <p class="lead">
-    Imagine a dialect of <em>Prolog</em> with processes and mailboxes and send and receive &ndash; all the means necessary for powerful concurrent and distributed programming. Also, think of it as a dialect of <em>Erlang</em> with logic variables, backtracking search and a built-in database of facts and rules &ndash; the means for logic programming, knowledge representation and reasoning. This is what <em>Web Prolog</em> is all about.
+    Imagine a dialect of <em>Prolog</em> with processes and mailboxes and send and receive &ndash; all the means necessary for powerful concurrent and distributed programming. Alternatively, think of it as a dialect of <em>Erlang</em> with logic variables, backtracking search and a built-in database of facts and rules &ndash; the means for logic programming, knowledge representation and reasoning. This is what <em>Web Prolog</em> is all about.
 </p>
 
 <p>
@@ -63,7 +64,7 @@
 </p>
 
 <p>
-    To be honest, the language isn't really new either, but a hybrid of two rather old and mature languages &ndash; Prolog and Erlang &ndash; and of two programming models &ndash; <i>logic programming</i> and <i>actor-based programming</i>.  When it comes to the <i>purpose</i> of Web Prolog, another inspiration has been JavaScript &ndash; a <i>scripting language</i> for the Web that is usually <i>embedded</i> in other programming systems and where processes must be <i>sandboxed</i> in order to allow the execution of untrusted code. Similar to JavaScript, Web Prolog is an embedded and sandboxed <i>web programming language</i>, but in contrast to JavaScript, Web Prolog wants to become a web <i>logic</i> programming language &ndash; a language for scripting the Web with logic programs.
+    To be honest, the language isn't exactly new either, but a hybrid of two rather old and mature languages &ndash; Prolog and Erlang &ndash; and of two programming models &ndash; <i>logic programming</i> and <i>actor-based programming</i>.  When it comes to the <i>purpose</i> of Web Prolog, another inspiration has been JavaScript &ndash; a <i>scripting language</i> for the Web that is usually <i>embedded</i> in other programming systems and where processes must be <i>sandboxed</i> in order to allow the execution of untrusted code. Similar to JavaScript, Web Prolog is an embedded and sandboxed <i>web programming language</i>, but in contrast to JavaScript, Web Prolog wants to become a web <i>logic</i> programming language &ndash; a language for scripting the Web with logic programs.
 </p>
 
 <p>
@@ -71,11 +72,11 @@
 </p>
 
 <p>
-    We think that most people who like Erlang will also like Prolog, and vice versa. We believe that Prolog programmers will quickly realise that with Web Prolog they will be able to do things not easily done with traditional Prolog, and that Erlang programmers will find that Web Prolog offers interesting and useful capabilities that are not present in Erlang. More generally, we believe that Erlang technology might have something to contribute to Prolog, and, of course, that Prolog technology has something to contribute to Erlang (and by that we mean <i>more</i> than it has already contributed by once upon a time having inspired Erlang). Nowadays, there isn't much contact between the Prolog community and the Erlang community. In the best of worlds, the language of Web Prolog would serve to open a line of communication between (subsets of) the two communities.
+    We believe that Prolog programmers will quickly realise that with Web Prolog they will be able to do things not easily done with traditional Prolog, and that Erlang programmers will find that Web Prolog offers interesting and useful capabilities that are not present in Erlang. More generally, we believe that Erlang technology might have something to contribute to Prolog, and, of course, that Prolog technology has something to contribute to Erlang (and by that we mean <i>more</i> than it has already contributed by once upon a time having inspired Erlang). Nowadays, there isn't much contact between the Prolog community and the Erlang community. In the best of worlds, the language of Web Prolog would serve to open a line of communication between (subsets of) the two communities.
 </p>
 
 <p>
-    A suitable (and probably necessary) background for people taking the tutorial is familarity with either Prolog or Erlang. We want lots of users writing lots of applications, so sooner or later we ought to ride on the popularity of JavaScript and target also front-end programmers and JavaScript aficionados with no previous exposure to Prolog or Erlang. This requires a different kind of tutorial, however, one that starts from the basics of both logic programming à la Prolog and actor-based programming à la Erlang.
+    A suitable (and probably necessary) background for people taking the tutorial is familiarity with either Prolog or Erlang, and preferably with both. In the long run, we want lots of users writing lots of applications, so sooner or later we ought to ride on the popularity of JavaScript and target also front-end programmers and JavaScript aficionados with no previous exposure to Prolog or Erlang. This requires a different kind of tutorial, however, one that starts from the basics of both logic programming à la Prolog and actor-based programming à la Erlang.
 </p>
 
 
@@ -110,23 +111,20 @@
     Your pengine is running on a <em>node</em> running on a computer somewhere. The purpose of a node is to host pengines and other actors. The node running your pengine is identified by the URI <code>'{{host}}'</code>. This means that your pengine also has a long name, namely <code>{{pengine}}@'{{host}}'</code>.</p>
 
 <p>
-    The node has an <i>owner</i>. We wrote "almost unlimited control" above since the owner of the node on which the pengine is running always has the ultimate say when it comes to how much resources it will be allowed to allocate.
+    The node has an <i>owner</i>. When we wrote "<i>almost</i> total control" above we just meant that the owner of the node on which the pengine is running always has the ultimate say when it comes to how much resources it will be allowed to allocate.
 </p>
 
 <p>
-    This node isn't only yours. Other programmers may be talking to other pengines running on the same node. They are completely shielded from each other, unless of course the programs they are running have been written to allow them to communicate. In any case, pengines don't share memory, so to share information they must exchange messages.
+    The node isn't only yours. Other programmers may be talking to other pengines running on the same node. They are completely shielded from each other, unless of course the programs they are running have been written to allow them to communicate. In any case, pengines don't share memory, so to share information they must exchange messages.
 </p>
 
 <p>
-    At this point in time this node may well be the only one running. But we ask you to imagine a future when there are many such nodes around. In other words, we ask you to imagine a <em>Prolog Web</em> &ndash; an open and decentralised network of nodes populated by pengines and other actors running Web Prolog. The Prolog Web can perhaps be seen as a Web Prolog alternative to an Erlang cluster. 
+    At this point in time this node may well be the only one running. But we ask you to imagine a future when there are many such nodes around. In other words, we ask you to imagine a <em>Prolog Web</em> &ndash; an open and decentralised network of nodes populated by pengines and other actors running Web Prolog. (The Prolog Web can perhaps be seen as a Web Prolog alternative to an Erlang cluster.) 
 </p>
 
 <div class="alert alert-info">
   <p>
-      <strong>Tip!</strong> We are writing a book about Web Prolog with the provisional title <i>Web Prolog and the programmable Prolog Web</i> and the not-so-modest subtitle <i>An attempt to make Prolog great again</i>. In addition to a presentation of the language of Web Prolog and a description of our approach to web logic programming, it discusses the notion of a Prolog Web, compares it with the Semantic Web, and suggests that Web Prolog has properties that makes it a good candidate for a semantic web programming language. It furthermore discusses the future of Prolog and the standardisation of Web Prolog in the W3C as one possible way forward. A concept of Web Prolog <i>profiles</i> is also introduced.
-  </p>
-  <p>
-      A draft manuscript can be downloaded from <a target="_blank" href="">here</a> [but not just yet].
+      <strong>Tip!</strong> We are writing a book about Web Prolog with the provisional title <i>Web Prolog and the programmable Prolog Web</i> and the not-so-modest subtitle <i>An attempt to make Prolog great again</i>. In addition to a presentation of the language of Web Prolog and a description of our approach to web logic programming, it discusses the notion of a Prolog Web, compares it with the Semantic Web, and suggests that Web Prolog has properties that makes it a good candidate for a semantic web programming language. It furthermore discusses the future of Prolog and the standardisation of Web Prolog in the W3C as one possible way forward. A concept of Web Prolog <i>profiles</i> is also introduced. A draft manuscript can be downloaded from <a target="_blank" href="">here</a> [but not just yet].
   </p>
 </div>
 
@@ -141,7 +139,7 @@
 </div>
 
 <p>
-    Now, let's make your hands dirty and illustrate important Web Prolog concepts by way of tutorial exercises. They are divided into five main parts, one part showing that Web Prolog is a dialect of Prolog, one proposing that it can just as well be seen as a dialect of Erlang, and one suggesting that it's a hybrid language. Furthermore, we present the web APIs which every node is equipped with, and finally we introduce a small set of high-level predicates for making remote procedure calls.
+    Now, let's make your hands dirty and illustrate some important Web Prolog concepts by way of tutorial exercises. They are divided into five main parts, one part showing that Web Prolog is a dialect of Prolog, one proposing that it can just as well be seen as a dialect of Erlang, and one suggesting that it's a hybrid language. Furthermore, we present the web APIs which every node is equipped with, and finally we introduce a small set of high-level predicates for making remote procedure calls.
 </p>
 
 <h2>Web Prolog is a dialect of Prolog</h2>
@@ -217,7 +215,7 @@
 <h3>Reasoning with a node-resident program</h3>
 
 <p>
-    Crucially, a node may host a Web Prolog <i>program</i> &ndash; a database, an expert system, a game engine, a digital assistant, a home control system, or what have you. If it does, a pengine running on the node has access to the predicates defined by this program. The program is typically maintained by the owner of the node. As the owners of this node and for the purpose of the tutorial we have installed a small number of such <em>node-resident programs</em>. Here's the first one, an instance of the well-known <i>ancestor database</i> example:</p>
+    Crucially, a node may host a Web Prolog <i>program</i> &ndash; a database, an expert system, a game engine, a digital assistant, a home control system, or what have you. If it does, a pengine running on the node has access to the predicates defined by this program. The program is typically maintained by the owner of the node. From the point of view of a client, the predicates exported by the program are as accessible as if they were built-in. As the owners of this node and for the purpose of the tutorial we have installed a small number of such <em>node-resident programs</em>. Here's the first one, an instance of the well-known <i>ancestor database</i> example:</p>
                                                                 
 <pre id="a">
 ancestor_descendant(X, Y) :- parent_child(X, Y).
@@ -562,17 +560,15 @@ problem(1, [[_,_,_,_,_,_,_,_,_],
       <li>The assign-once variables of Prolog are also logic variables.</li>
       <li>In Erlang pattern matching is one-way, whereas Prolog uses full unification (except in receive clauses)</li>
       <li> Prolog features built-in backtracking depth-first search, unification, logic-based knowledge representation and reasoning, a dynamic database, meta-programming, user defined operators, a term expansion mechanism and definite clause grammars, Erlang does not.</li>
-      <li>Prolog is a logic programming language, whereas Erlang is an actor programming language.</li>
+      <li>Prolog is homoiconic language, Erlang is not.</li>
+      <li>Prolog is a logic programming language, Erlang is not.</li>
+      <li>Erlang is an actor programming language, Prolog is not.</li>
       <li>Prolog and Erlang have different foci.</li>
   </ul>
 </div>
 
 <p>
     The Web Prolog primitives for spawning and messaging are borrowed straight from Erlang. Thus, Web Prolog is an actor programming language suitable for concurrent and distributive programming, just like Erlang, while it <i>also</i> retains it's logic programming heritage. 
-</p>
-
-<p>
-    The spawning and self-identification primitives are naturally functional (well, more or less), the primitives for sending and receiving less so, although they have been construed as functional in the Erlang framework by giving them a "dummy" return value. This is why Erlang's <code>!/2</code> returns the value of the expression being sent (which allows a bit of chaining), and why Erlang's <code>receive/1</code> returns the value of the last call made by the body of the receive clause that was selected. Some functions return an even "dummier" value in the form of a simple atom <code>ok</code>. When translating something that is naturally functional into Prolog we typically add an extra argument to hold the "return value". This makes sense in the case of <code>spawn/2-3</code> and <code>self/1</code>, but not in the case of <code>!/2</code> and <code>receive/1</code>, so there we just don't do it.
 </p>
 
 <p>
@@ -594,7 +590,7 @@ work also in a distributed setting. Processes (or "actors" as we prefer to call 
 </p>
 
 <p>
-  	In the following example <code>spawn/1</code> is used to spawn a new actor process running a goal 
+  	In the following example, <code>spawn/1</code> is used to create a new actor process running a goal 
 	that will solve the query <code>?-length([a,b,c],_N)</code> and send the value of <code>_N</code>
 	back to the calling process identified as <code>Self</code> where it will be received by 
 	<code>receive/1</code>:
@@ -768,7 +764,7 @@ normal() ->
 <h3>Some actors are servers</h3>
     
 <p>
-    A typical use of <code>spawn/1-3</code> is to call a locally or remotely defined Web Prolog procedure that specifies the (usually longtime) behaviour of the actor process thus created &ndash; the kind of messages it will listen for (using <code>receive/1-2</code>), and what kind of messages will be returned to the caller (by means of <code>!/2</code>). In Erlang textbooks, such actors are usually referred to as <em>servers</em>. It's common to distinguish between two kinds of servers, those that are <i>stateless</i>, and those that are <i>stateful</i>.
+    A typical use of <code>spawn/1-3</code> is to call a locally or remotely defined Web Prolog procedure that specifies the (usually longtime) behaviour of the actor process thus created &ndash; the kind of messages it will listen for (using <code>receive/1-2</code>), and the kind of messages will be returned to the caller (by means of <code>!/2</code>). In Erlang textbooks, such actors are usually referred to as <em>servers</em>. It's common to distinguish between two kinds of servers, those that are <i>stateless</i>, and those that are <i>stateful</i>.
 </p>
 
 <p> 
@@ -804,8 +800,8 @@ pong_server :-
 </p>
 
 <p>
-    The option <code>src_predicates</code> is one of several options that can be used to inject 
-    source code into the actor process to be created.  As shown above, it takes a list of predicate indicators. (Other options that can be used for the purpose of injecting code are <code>src_text</code>, <code>src_list</code> and <code>src_uri</code>. Their uses will be demonstrated further down in the text.)
+    The <code>src_predicates</code> option is one of several options that can be used to inject 
+    source code into the workspace of the actor process to be created.  As shown above, it takes a list of predicate indicators. (Other options that can be used for the purpose of injecting code are <code>src_text</code>, <code>src_list</code> and <code>src_uri</code>. Their uses will be demonstrated further down in the text.)
 </p>
 
 <p>
@@ -895,8 +891,9 @@ repeat_fail_pong_server :-
 </p>
 
 <div class="alert alert-success">
+<h4>Surprised?</h4>
 <p>
-    <strong>Surprised?</strong> For an Erlang programmer the above use of <code>receive/1</code> may indeed come as a surprise. After all, the Prolog notions of <i>failure</i>, <i>backtracking</i> and the use of failure to force backtracking are foreign to Erlang. Prolog programmers may recognise a behaviour due to the fact that <code>receive/1-2</code> is a <i>semi-deterministic</i> predicate, i.e. a predicate that either fails or succeeds exactly once. We may want to compare <code>receive/1</code> with <code>read/1</code> in traditional Prolog, which is also semi-deterministic, and also serves the purpose of receiving data from the environment. But whereas <code>read/1</code> fails if the pattern (consisting of any term) in the argument doesn't unify with the term that is read, the only way that <code>receive/1-2</code> will fail is if the goal in the <i>body</i> of one of its receive clauses fails. After all, what else could it possibly mean if the goal in the body of a receive clause fails? We would argue that letting the whole call fail gives us the only reasonable semantics for <code>receive/1-2</code>.
+    For an Erlang programmer the above use of <code>receive/1</code> may indeed come as a surprise. After all, the Prolog notions of <i>failure</i>, <i>backtracking</i> and the use of failure to force backtracking are foreign to Erlang. Prolog programmers may recognise a behaviour due to the fact that <code>receive/1-2</code> is a <i>semi-deterministic</i> predicate, i.e. a predicate that either fails or succeeds exactly once. We may want to compare <code>receive/1</code> with <code>read/1</code> in traditional Prolog, which is also semi-deterministic, and also serves the purpose of receiving data from the environment. But whereas <code>read/1</code> fails if the pattern (consisting of any term) in the argument doesn't unify with the term that is read, the only way that <code>receive/1-2</code> will fail is if the goal in the <i>body</i> of one of its receive clauses fails. After all, what else could it possibly mean if the goal in the body of a receive clause fails? We would argue that letting the whole call fail gives us the only reasonable semantics for <code>receive/1-2</code>.
 </p>
 </div>
 
@@ -1096,11 +1093,7 @@ fridge(FoodList) ->
 <h3>Links, monitors and two kinds of exits</h3>
 
 <p>
-    In Erlang there are basically two ways to follow up what is going on with a process: <i>links</i> and <i>monitors</i>. Links causes linked processes to be shutdown together if one of them terminates abruptly. Monitors only notifies what happened to the other process.
-</p>
-
-<p>
-    Links in Web Prolog are somewhat simpler than links in Erlang. In contrast to Erlang's bi-directional links, they are uni-directional. As argued <a target="_blank" href="http://happy-testing.com/hans/papers/EW2010-UnifiedSemantics.pdf">here</a>, uni-directional links simplify things and don't harm expressivity. The only kind of link currently supported in Web Prolog comes in the form of an option <code>link</code> to <code>spawn/3</code>. Its value is <code>true</code> by default, which causes a child process to terminate if its parent does. Only authorised clients can set it to <code>false</code> and thus an unauthorised client cannot spawn a process which is <i>not</i> linked to the process that spawned it. This is to avoid leaving orphaned processes around on a node. For the same reason, <code>unlink/1</code> isn't available to unauthorised clients.
+    Links in Web Prolog are somewhat simpler than links in Erlang, and in contrast to Erlang's bi-directional links, they are uni-directional. As argued <a target="_blank" href="http://happy-testing.com/hans/papers/EW2010-UnifiedSemantics.pdf">here</a>, uni-directional links simplify things and don't harm expressivity. The only kind of link currently supported in Web Prolog comes in the form of an option <code>link</code> to <code>spawn/3</code>. Its value is <code>true</code> by default, which causes a child process to terminate if its parent does. Only authorised clients can set it to <code>false</code> and thus an unauthorised client cannot spawn a process which is <i>not</i> linked to the process that spawned it. This is to avoid leaving orphaned processes around on a node. For the same reason, <code>unlink/1</code> isn't available to unauthorised clients.
 </p>
 
 <p>
@@ -1115,7 +1108,7 @@ fridge(FoodList) ->
 
 
 <div class="alert alert-danger">
-  <strong>Warning!</strong> These may change in the future since we are not yet sure this is the right design. Here we would appreciate advice from the Erlang community &ndash; what would you do? Comments are welcome!
+  <strong>Heads up!</strong> These may change in the future since we are not yet sure this is the right design. Here we would appreciate advice from the Erlang community &ndash; what would you do? Comments are welcome!
 </div>
     
 <p>
@@ -1398,11 +1391,13 @@ start :-
    actors that 1) live on the same node as the top-level pengine to which the shell is attached, and 2) are descendants of this top-level pengine. If we figure out a way to do it, this restriction may be lifted in the future.
 </p>
 
+<!--
 <p>   
    You should also note that <code>pengine_input/2</code>
    <code>pengine_output/1</code> and <code>send/2</code> are the principal I/O predicates in Web Prolog
    (along with <code>io:read/1</code>). <code>io:write/1</code> should be considered a debugging tool).
 </p>
+-->
 
 <div class="alert alert-warning">
   <strong>Heads up!</strong> Note that we lie a little when we write that we moved the "ponger" process to another node. We are actually using the same node as the pinger is running on. The reason is that we simply don't want to run more than one node for the purpose of this tutorial.
@@ -1547,31 +1542,32 @@ dining :-
 <p>
     Due to the many similarities between Erlang and Web Prolog, porting the code was fairly straightforward. We could even take advantage of the fact that an Erlang tuple such as <code>{grabforks,{Left,Right}}</code> is valid syntax in Prolog too, where it's not a tuple but a complex term of the form <code>{}((grabforks,{}((Left,Right))))</code>.  In general, however, we recommend that (in a second pass of a porting effort) such terms are replaced by less complex ones. In this case, <code>grabforks(Left-Right)</code> would probably work just fine.
 </p>    
+
+<!--
     
 <div class="alert alert-success">
-  <strong>Conclusion!</strong> One conclusion that we are tempted to draw is that whereas translation works well in the direction from Erlang to Prolog, translation in the other direction will in general be much harder.
+  <h4>More about translation</h4>
+  <p>
+      Whereas translation from Erlang to Prolog is fairly easy, translation in the other direction will in general be much harder.
+  </p>
 </div>
-
+-->
 
 <h2>Web Prolog is a hybrid of Prolog and Erlang</h2>
-
-<p>
-    Erlang is clearly already a hybrid language, and so is Prolog. From a purity point of view, both languages are in some sense "broken", but it's the (clever) brokenness that makes them practical and immensely useful languages. 
-</p>
 
 <p>
     We have shown that most Prolog programs can be ported to Web Prolog (that's easy) and we have demonstrated that many Erlang programs can be ported as well (even though that's somewhat trickier). Is all well and dandy then? Does it really work? Can Web Prolog be considered a reasonably hybrid between Prolog and Erlang? 
 </p>
 
 <p>
-    It's probably wise to be suspicious of unexpected interactions between language features and possible impedance mismatches between the two paradigms &ndash; between Prolog's relational, non-deterministic programming model and Erlang's functional and message passing model. How well do the Erlang-ish constructs mix with Prolog, with the dynamic database and with backtracking for example? As long as we don't end up with a language <i>more</i> broken than Erlang or Prolog, we are fine. 
+    It's probably wise to be suspicious of unexpected interactions between language features and possible impedance mismatches between the two paradigms &ndash; between Prolog's relational, non-deterministic programming model and Erlang's functional and message passing model. How well do the Erlang-ish constructs mix with Prolog, with the dynamic database and with backtracking for example? 
 </p>
 
 
 <h3>A dynamic database fridge</h3>
 
 <p>
-    As hinted at in the introduction, in Web Prolog every actor is equipped with its own private <i>dynamic database</i>. This database cannot be updated from the outside, and when updates are performed from the inside, they are not accessible from the outside. Thus, the dynamic database gives us an alternative way to maintain the state of an actor. Here's how the fridge simulation may be written using assert and retract:
+    As hinted at in the introduction, in Web Prolog every actor is equipped with its own private <i>dynamic database</i>. This gives us an alternative way to maintain the state of an actor. Here's how the fridge simulation may be written using assert and retract:
 </p>
 
 <pre id="dynamic1">
@@ -1641,7 +1637,7 @@ start(Pid) :-
 </p>
 
 <p>
-    The dynamic database is a non-logical extension to Prolog and the use of it for managing state is usually frowned upon by Prolog programmers since changes to the database are not reverted on backtracking. Also, clauses of dynamic predicates are like destructible global variables and therefore subject to all the common problems with such objects. (See <a target="_blank" href="http://www.swi-prolog.org/howto/database.txt">here</a> for good advice when dealing with the dynamic database in SWI-Prolog.) For storing really, really large quantities of food this might be the best solution.
+    The dynamic database is a non-logical extension to Prolog and the use of it for managing state is usually frowned upon by Prolog programmers since changes to the database are not reverted on backtracking. Also, clauses of dynamic predicates are like destructible global variables and therefore subject to all the common problems with such objects. (See <a target="_blank" href="http://www.swi-prolog.org/howto/database.txt">here</a> for good advice when dealing with the dynamic database in SWI-Prolog.) For storing really, really large quantities of food this might still be the best solution.
 </p>
 
 <p>
@@ -1657,7 +1653,7 @@ start(Pid) :-
 </p>
 
 <p>
-    The question if Web Prolog should allow for some kind of memory over and above what can be passed around in the arguments of predicates or asserted in the dynamic database private to an actor is interesting. Here, Erlang supports a built-in term storage known as <i>ETS</i> and the distributed Database <i>Mnesia</i>. In line with the focus of Web Prolog on the web domain, a solution based on RDF might be appropriate and easily implemented in SWI-Prolog.
+    The question if Web Prolog should allow for some kind of memory over and above what can be passed around in the arguments of predicates or asserted in the private dynamic database is interesting. Here, Erlang supports a built-in term storage known as <i>ETS</i> and the distributed database <i>Mnesia</i>. In line with the focus of Web Prolog on the web domain, a solution based on RDF might be appropriate and easily implemented in SWI-Prolog.
 </p>
 
 
@@ -1859,7 +1855,7 @@ query(Query, Self, Parent) :-
     This section offered some insight into how encapsulated search works when understood as an actor that adheres to a particular protocol. Seemed tricky? Here's the good news: you don't need to build your own implementations of encapsulated search, but can rely on the built-in pengine abstraction &ndash; the special kind of actor introduced in the beginning of the tutorial. 
 </p>
 
-<h3>The pengine behaviour</h3>
+<h2>The pengine behaviour</h2>
 
 <p>
     A pengine is like a first-class interactive Prolog top-level, accessible from Web Prolog as well as from other programming languages. For example, recall that the shell running in the area to the right is an application written in HTML, CSS and JavaScript that is talking to a pengine &ndash; <i>your</i> pengine. In this section we'll show how to spawn other pengines, and how to use your shell to talk to them via your top-level pengine.
@@ -1901,7 +1897,7 @@ query(Query, Self, Parent) :-
 </p>
 
 <p>
-    The value of the <code>exit</code> option is either <code>true</code> (default) or <code>false</code>). If <code>false</code>, it tells the pengine to run a full session, i.e. to <i>not</i> terminate once the first query that we are going to ask it has run to completion. In other words, this is the option that allows us to switch from running a one-shot encapsulated search task into running a full encapsulated Prolog session.
+    The value of the <code>exit</code> option is either <code>true</code> (default) or <code>false</code>). If <code>false</code>, it tells the pengine to run a full session, i.e. to <i>not</i> terminate once the first query that we are going to ask it has run to completion. In other words, this is an option that allows us to switch from running a one-shot encapsulated search task into running a full encapsulated Prolog session.
 </p>
 
 <p>
@@ -2053,7 +2049,7 @@ query(Query, Self, Parent) :-
 <h3>Pengines deferring messages</h3>
 
 <p>
-    One consequence of the message deferring behaviour of <code>receive/1-2</code> described earlier is that messages, to some extent, are allowed to arrive to the mailbox of a pengine in the "wrong" order. Let's look at an example where we first spawn a new pengine:
+    One consequence of the message-deferring behaviour of <code>receive/1-2</code> described earlier is that messages, to some extent, are allowed to arrive to the mailbox of a pengine in the "wrong" order. Let's look at an example where we first spawn a new pengine:
 </p>
 
 <pre id="pengine-deferred1">
@@ -2217,7 +2213,7 @@ query(Query, Self, Parent) :-
 </p>
 
 
-
+<!--
 <h3>Pengines and input/output</h3>
 
 <p>
@@ -2245,7 +2241,7 @@ query(Query, Self, Parent) :-
   <button onclick='pasteAndAskExample("#pengines-io2")' class="btn btn-xs btn-primary" type="button">Ask
 </button>
 </p>
-
+-->
 
 <h2>Using the Web APIs</h2>
 
@@ -2259,7 +2255,7 @@ query(Query, Self, Parent) :-
 <h3>Using the WebSocket API</h3>
 
 <p>
-    A Web Prolog node supports an asynchronous and stateful web API that relies on the WebSocket transport. Offering an almost unlimited control over a pengine it currently serves the shell (which despite its apparent simplicity is a fairly demanding web application) as well as the predicate API with its <code>node</code> option to <code>spawn/2-3</code>and its network transparent send primitive <code>!/2</code>. 
+    A Web Prolog node supports an asynchronous and stateful web API that relies on the WebSocket transport. Offering an almost total control over a pengine it currently serves the shell (which despite its apparent simplicity is a fairly demanding web application) as well as the predicate API with its <code>node</code> option to <code>spawn/2-3</code>and its network transparent send primitive <code>!/2</code>. 
 </p>
 
 <p>
@@ -2387,7 +2383,7 @@ query(Query, Self, Parent) :-
 
 <div class="alert alert-info">
   <p>
-      <strong>Tip!</strong> Please don't let all this JavaScript scare you. Know that there are other languages that work in the browser, such as TypeScript, Dart, ClojureScript and Elm. And if you don't need to run your app in a browser, it is good to know that most major programming languages of today support the WebSocket standard. 
+      <strong>Tip!</strong> Please don't let all this JavaScript scare you. For those inclined there are other languages that work in the browser, such as <a target="_blank" href="https://www.typescriptlang.org">TypeScript</a>, <a target="_blank" href="https://www.dartlang.org">Dart</a>, <a target="_blank" href="https://clojurescript.org">ClojureScript</a> and <a target="_blank" href="http://elm-lang.org/">Elm</a>. They can all be used instead of JavaScript. And if you don't need to run your app in a browser, it's good to know that most major programming languages of today support the WebSocket standard. 
   </p>
 </div>
 
@@ -2402,7 +2398,7 @@ query(Query, Self, Parent) :-
 </p>
 
 <p
-    >In addition to a mandatory <code>query</code> parameter, the API also supports <code>template</code> and <code>limit</code> with semantics identical to the corresponding predicate API options. Moreover, the API supports an <code>offset</code> parameter which is of great important. Using a combination of <code>offset</code> and <code>limit</code>, a client can ask for a "slice" of solutions starting at the offset indicated, and with a length no greater than the value of the limit parameter. Finally, the <code>format</code> parameter determines the format of messages returned to the client. Currently <code>prolog</code>, <code>json</code> (default) and <code>json-s</code> are recognised values. 
+    >In addition to a mandatory <code>query</code> parameter, the API also supports <code>template</code> and <code>limit</code> with semantics identical to the corresponding predicate API options. Moreover, the API supports an <code>offset</code> parameter which is of great importance. Using a combination of <code>offset</code> and <code>limit</code>, a client can ask for a "slice" of solutions starting at the offset indicated, and with a length no greater than the value of the limit parameter. Finally, the <code>format</code> parameter determines the format of messages returned to the client. Currently <code>prolog</code>, <code>json</code> (default) and <code>json-s</code> are recognised values. 
 </p>
 
 
@@ -2427,13 +2423,14 @@ query(Query, Self, Parent) :-
 </p>
 
 <p>
-    The challenge here has been to make this efficient when queries have more than one solution (and in particular if there are very many), i.e when backtracking over HTTP is called for. Using our approach, it's likely (but not guaranteed) that the work that generated the first solution doesn't have to be repeated. Pengines are involved here too, but they are <i>anonymous</i>. An anonymous pengine running on the node serves as a form of <i>Prolog state cache</i>. The cached state can only be used once though, and there's a possibility that another client made use of it before you had a chance to do so. If so, no real harm is done.
+    The challenge here has been to make this efficient when queries have more than one solution (and in particular if there are very many), i.e in cases when backtracking over HTTP is called for. Using our approach, it's likely (but not guaranteed) that the work that generated the first solution doesn't have to be repeated. Pengines are involved here too, but they are <i>anonymous</i>. An anonymous pengine running on the node serves as a form of <i>Prolog state cache</i>. The cached state can only be used once though, and there's a possibility that another client made use of it before you had a chance to do so. If so, no real harm is done.
 </p>   
 
-
+<!--
 <p>
 	In a real web browser application, <a target="_blank" href="https://en.wikipedia.org/wiki/XMLHttpRequest">XMLHttpRequest</a> would be used. 
 </p>
+-->
 
 <p>
     This API doesn't support I/O, and is therefore only suitable for applications in need of a "logic server". Nor does it support uses of assert and retract or is capable of supporting sessions.
@@ -2442,10 +2439,8 @@ query(Query, Self, Parent) :-
 
 <h3>Using the HTTP send API</h3>
 
-<p><code>{{host}}/send</code></p>
-
 <p>
-    By means of this API, and given a pid or a registered name, you are able to send a message to an actor with that pid or name. To demonstrate how this works, we ask you to once again subscribe to the publish-subscribe service:
+    By means of the HTTP send API, and given a pid or a registered name, you are able to send a message to an actor with that pid or name. To demonstrate how this works, we ask you to once again subscribe to the publish-subscribe service:
 </p>
 
 <pre id="pubsub10">
@@ -2507,49 +2502,7 @@ query(Query, Self, Parent) :-
 </p>
 
 <p>
-    By default, <code>rpc/2-3</code> uses the RESTful HTTP API to communicate with the remote node. The mapping from an RPC call to an HTTP request is the almost trivial <code>rpc(&lt;URI&gt;,&lt;Query&gt;)</code> => <code>&lt;URI&gt;/ask?query=&lt;Query&gt;</code>. But then, of course, we have to handle the necessary options as well as the responses too. A somewhat sketchy implementation may look as follows:
-</p>
-
-<pre>
-rpc(URI, Query, Options) :-
-    option(limit(Limit), Options, 1),
-    rpc(URI, Query, 0, Limit).
-    
-rpc(URI, Query, Offset, Limit) :-
-    parse_url(URI, Parts),
-    format(atom(QueryAtom), "(~p)", [Query]),
-    rpc(Query, Offset, Limit, QueryAtom, Parts).
-    
-rpc(Query, Offset, Limit, QueryAtom, Parts) :-    
-    parse_url(ExpandedURI, [ path('/ask'),
-                             search([ query=QueryAtom,
-                                      offset=Offset,
-                                      limit=Limit,
-                                      format=prolog
-                                    ])
-                           | Parts]), 
-    setup_call_cleanup(
-        http_open(ExpandedURI, Stream, []),
-        read(Stream, Answer), 
-        close(Stream)),
-    wait_answer(Answer, Query, Offset, Limit, QueryAtom, Parts).
-
-wait_answer(error(anonymous, Error), _, _, _, _, _):-
-    throw(Error).
-wait_answer(failure(anonymous), _, _, _, _, _):-
-    fail.
-wait_answer(success(anonymous, Solutions, false), Query, _, _, _, _) :- 
-    !,
-    member(Query, Solutions).
-wait_answer(success(anonymous, Solutions, true), 
-            Query, Offset0, Limit, QueryAtom, Parts) :-
-    (   member(Query, Solutions)
-    ;   Offset is Offset0 + Limit,
-        rpc(Query, Offset, Limit, QueryAtom, Parts)
-    ).
-</pre>
-
-
+    By default, <code>rpc/2-3</code> uses the RESTful HTTP API to communicate with the remote node. 
 <p>
     The following example shows that thanks to the Prolog state cache the first (slow) solution isn't recomputed when we ask for the second one:
 </p>
@@ -2580,7 +2533,7 @@ wait_answer(success(anonymous, Solutions, true),
 </p>
 
 <p>
-    As this example tries to convey, although the call only makes three network roundtrips 
+    What this example tries to convey is that although the call only makes three network roundtrips 
 	in order to generate all twelve solutions, the behaviour of the call, as seen from the point 
     of view of the client, doesn't change. Indeed, the <code>limit</code> option serves as a
     performance optimisation only, and has nothing to do with logic and the declarative reading
@@ -2607,7 +2560,7 @@ wait_answer(success(anonymous, Solutions, true),
 <h3>Bringing data to the code</h3>
 
 <p>
-    The special purpose URI <code>localnode</code> serves as the default value of the <code>node</code> option for both <code>spawn/3</code> and <code>pengine_spawn/2</code>. Thus it follows, perhaps a bit counter-intuitively, that in combination with the <code>src_uri</code> option <code>rpc/3</code> can also be used to "bring data to the code":
+    The special purpose URI <code>localnode</code> serves as the default value of the <code>node</code> option for both <code>spawn/3</code> and <code>pengine_spawn/2</code>. Thus it follows, perhaps a bit counter-intuitively, that <code>rpc/3</code> in combination with the <code>src_uri</code> option can also be used to "bring data to the code":
 </p>
 
 <pre id="rpc-localnode">
@@ -2621,20 +2574,66 @@ wait_answer(success(anonymous, Solutions, true),
 </button>
 </p>
 
-
+<!--
 <h3>A note about the implementation of non-deterministic RPC</h3>
 
 <p>
-    Simplifying somewhat, <code>rpc/2-3</code> is implemented like so:
+    The <code>rpc/3</code> predicate has two implementations, one using the HTTP transport and the other using the WebSocket transport. Here's the implementation being executed when <code>transport(http)</code> is passed (which is the default):
 </p>
 
 <pre>
-rpc(URI, Query) :-
-    rpc(URI, Query, []).
-	
-rpc(URI, Query, Options) :-
+rpc_http(URI, Query, Options) :-
+    option(limit(Limit), Options, 1),
+    rpc_http(URI, Query, 0, Limit).
+    
+rpc_http(URI, Query, Offset, Limit) :-
+    parse_url(URI, Parts),
+    format(atom(QueryAtom), "(~p)", [Query]),
+    rpc_http(Query, Offset, Limit, QueryAtom, Parts).
+    
+rpc_http(Query, Offset, Limit, QueryAtom, Parts) :-    
+    parse_url(ExpandedURI, [ path('/ask'),
+                             search([ query=QueryAtom,
+                                      offset=Offset,
+                                      limit=Limit,
+                                      format=prolog
+                                    ])
+                           | Parts]), 
+    setup_call_cleanup(
+        http_open(ExpandedURI, Stream, []),
+        read(Stream, Answer), 
+        close(Stream)),
+    wait_answer(Answer, Query, Offset, Limit, QueryAtom, Parts).
+
+wait_answer(error(anonymous, Error), _, _, _, _, _):-
+    throw(Error).
+wait_answer(failure(anonymous), _, _, _, _, _):-
+    fail.
+wait_answer(success(anonymous, Solutions, false), Query, _, _, _, _) :- 
+    !,
+    member(Query, Solutions).
+wait_answer(success(anonymous, Solutions, true), 
+            Query, Offset0, Limit, QueryAtom, Parts) :-
+    (   member(Query, Solutions)
+    ;   Offset is Offset0 + Limit,
+        rpc_http(Query, Offset, Limit, QueryAtom, Parts)
+    ).
+</pre>
+
+
+<p>
+    This (admittedly somewhat hairy) implementation uses the SWI-Prolog specific libraries &ndash; <code>library(url)</code> and the HTTP client implemented by <code>library(http/http_open)</code> &ndash; to interact with the HTTP API of a node.
+</p>
+
+<p>
+    When the <code>transport(ws)</code> is passed, an alternative and arguably more elegant implementation based on <code>pengine_spawn/2</code> and <code>pengine_ask/3</code> (and therefore indirectly on the WebSocket protocol) is selected. The predicate <code>rpc_ws/3</code> is implemented like so:
+</p>
+
+<pre>
+rpc_ws(URI, Query, Options) :-
     pengine_spawn(Pid, [
          node(URI),
+         exit(true),
          monitor(false)
        | Options
     ]),
@@ -2657,16 +2656,17 @@ wait_answer(Query, Pid) :-
 </pre>
 
 <p>
-    The first and second clause of the implementation show clearly how the inheritance of options from <code>pengine_spawn/2</code> and <code>pengine_ask/3</code> to <code>rpc/2-3</code> works. The options passed explicitly overrides the options given in the third argument of <code>rpc/3</code>.
+    The first clause of the implementation shows clearly how the inheritance of options from <code>pengine_spawn/2</code> and <code>pengine_ask/3</code> to <code>rpc/2-3</code> works. Note that the value of an option passed explicitly to <code>pengine_spawn/2</code> takes precedence over the value of the same option if it's given in the third argument of <code>rpc/3</code>. Thus, the only options that can have an effect in a call to <code>rpc/3</code> are the <code>timeout</code> and the <code>src_*</code> options.
 </p>
 
 <p>
-    The most interesting parts of this implementation are the use of the disjunction in the body of the third receive clause and the use of <code>member/2</code> in the third and fourth clauses. They are responsible for turning the deterministic calls made by <code>pengine_ask/3</code> and <code>pengine_next/1</code> into the non-deterministic behaviour that we want <code>rpc/2-3</code> to show.
+    Probably the most interesting parts of this implementation are the use of the disjunction in the body of the third receive clause and the use of <code>member/2</code> in the third and fourth clauses. They are responsible for turning the deterministic calls made by <code>pengine_ask/3</code> and <code>pengine_next/1</code> into the non-deterministic behaviour that we want <code>rpc/2-3</code> to show.
 </p>
 
 <p>
-    This implementation should be clean enough to nail down the semantics of <code>rpc/2-3</code>. It should be noted though, that there are other ways to implement <code>rpc/2-3</code>, ways that don't depend on <code>pengine_spawn/2</code> and friends, and therefore not on WebSockets. 
+    This implementation should be clean enough to help us nail down the semantics of <code>rpc/2-3</code>. It must be noted though, that there are other ways to implement <code>rpc/2-3</code>, ways that don't depend on <code>pengine_spawn/2</code> and friends, and therefore not on WebSockets. 
 </p>
+-->
 
 <h3>Promises (asynchronous RPC)</h3>
             
@@ -2703,7 +2703,7 @@ wait_answer(Query, Pid) :-
 </p>
 
 <p>
-    To get the behaviour when no answer is available, you may want to run the query again ...
+    To get a glimpse of the behaviour when no answer is available, you may want to run the query again ...
 </p>
 
 <p>The above use of <code>promise/3-4</code> and <code>yield/3</code> only gave the first answer to the query. To produce other answers, we can pass the option <code>offset</code>. The <code>limit</code> option is also available, allowing us to ask for more than one answer at a time:</p>
@@ -2741,7 +2741,7 @@ wait_answer(Query, Pid) :-
 	Note that <code>promise/4</code> operates over HTTP only, which is useful if a WebSocket connection is not available.
 </p>
 
-
+<!--
 <h2>What does Web Prolog include?</h2>
 
 <p>
@@ -2792,7 +2792,7 @@ wait_answer(Query, Pid) :-
 <p>
     For the networking part, we note that Erlang is particularly famous for extremely efficient implementations of web-related technologies such as web servers (e.g. Yaws and Cowboy). When Web Prolog is used inside a LAN, Erlang's normal way communication between nodes would probably be more efficient.
 </p>
-
+-->
 
 <h2>SWISH</h2>
 
@@ -2817,7 +2817,7 @@ indication of the impact. (To be compared with Erlang's 6,374 stars and 1,708 fo
   </p>
 </div>
 
-
+<!--
 <h2>The mission</h2>
 
 <p>
@@ -2839,477 +2839,10 @@ indication of the impact. (To be compared with Erlang's 6,374 stars and 1,708 fo
     <li>serve as a semantic web programming language,</li>
     <li>can possibly be standardised.</li>
 </ul>
-  
-
-<h2>First real application: The Genealogist</h2>
-
-A <i>genealogist</i> is a person who traces or studies the descent of persons or families. Since a logic program capable of reasoning about family relations happens to be the "Hello World" of Prolog, we thought it would be appropriate to stick to this domain when building our first Pengines application. A typical example of such a program would be a file with the following content:</p>
-
-<pre>
-ancestor_descendant(X, Y) :- parent_child(X, Y).
-ancestor_descendant(X, Z) :- parent_child(X, Y), ancestor_descendant(Y, Z).
-
-siblings(X, Y) :- parent_child(Z, X), parent_child(Z, Y), X @&lt; Y.
-
-parent_child(X, Y) :- mother_child(X, Y).
-parent_child(X, Y) :- father_child(X, Y).
-
-mother_child(trude, sally).
-
-father_child(tom, sally).
-father_child(tom, erica).
-father_child(mike, tom).</pre>
-
-<p>
-    The first thing we need to do is to make this into an SWI-Prolog <i>module</i>. We do this by sticking a <a href="http://www.swi-prolog.org/pldoc/man?predicate=module/2">module declaration</a> on top of it, like so:
-</p>
-
-<pre class="code" ext="">:- module(genealogist,
-      [  ancestor_descendant/2,
-         siblings/2,
-         parent_child/2,
-         father_child/2,
-         mother_child/2
-      ]).
-
-ancestor_descendant(X, Y) :- parent_child(X, Y).
-ancestor_descendant(X, Z) :- parent_child(X, Y), ancestor_descendant(Y, Z).
-
-siblings(X, Y) :- parent_child(Z, X), parent_child(Z, Y), X @&lt; Y.
-
-parent_child(X, Y) :- mother_child(X, Y).
-parent_child(X, Y) :- father_child(X, Y).
-
-mother_child(trude, sally).
-
-father_child(tom, sally).
-father_child(tom, erica).
-father_child(mike, tom).</pre>
-
-<p>
-    We then save our file as <code>genealogist.pl</code>, create a new directory <code>genealogist</code> under <code>./apps</code>, and place the module file in it. Our directory structure under <code>./apps</code> should now be the following:
-</p>
-
-<pre class="code" ext="">apps/
-   genealogist/
-      genealogist.pl
-   swish\
-   scratchpad\</pre>
-
-<p>
-    But we are not done yet. We must also insert the following declarations in the file <code>./load.pl</code>:
-</p>
-
-<pre>
-:- pengine_application(genealogist).
-:- use_module(genealogist:'/apps/genealogist/genealogist.pl').
-</pre>
-
-<p>
-    [Note: Where we put such declarations may change in a future version of Pengines.]
-</p>
-
-<p>
-    The first declaration merely names your application. (There is no need to give the application the same name as the directory, but it makes some sense to do so.) The second declaration imports the predicates exported by the module <code>genealogist</code> into the application module (which happens to have the same name here too, but nor is this required).
-</p>
-
-<p>
-    At last, we may (re)start our Pengines server and test our application. We can for example use an ordinary SWI-Prolog shell, perhaps running on another machine:
-</p>
-
-<pre>
-?- use_module(library(pengines)).
-true.
-
-?- pengine_rpc('http://localhost:3030', ancestor_descendant(X, Y), [
-       application(genealogist)
-   ]).
-X = trude,
-Y = sally ;
-X = tom,
-Y = sally ;
-X = tom,
-Y = erica ;
-X = mike,
-Y = tom ;
-X = mike,
-Y = sally ;
-X = mike,
-Y = erica ;
-false.
-
-?-
-</pre>
-
-<p>
-    In <a href="http://www.swi-prolog.org/pengines/GenealogistGUI.txt">Part 2 of this tutorial</a> we are going to add a simple web-based GUI to our application.
-</p>
-
-<p>
-    In <a href="http://www.swi-prolog.org/pengines/Genealogist.html">part 1 of this tutorial</a> we built a Pengines based web-service capable of serving up solutions to queries about family relations over HTTP. In this part we shall create a simple web GUI for our Genealogist application.
-</p>
-
-<p>
-    Here is the HTML we shall work with:
-</p>
-
-<pre>
-&lt;html lang="en"&gt;
-  &lt;head&gt;
-      &lt;script src="/vendor/jquery/jquery-2.0.3.min.js"&gt;&lt;/script&gt;
-      &lt;script src="/pengine/pengines.js"&gt;&lt;/script&gt;
-      &lt;style&gt;
-          body, input, textarea {
-              font-family: monospace;
-              font-size: 14px;
-          }
-          textarea, input {
-              width: 300px;
-              padding: 4px;
-          }
-      &lt;/style&gt;
-      &lt;script type="text/javascript"&gt;
-          var pengine;
-          function query() {
-              pengine = new Pengine({
-                  application: 'genealogist',
-                  ask: $("#query").val(),
-                  onsuccess: handleSuccess,
-                  onfailure: handleFailure,
-                  onerror:   handleError
-              });
-          }
-          function handleSuccess() {
-              var solution = JSON.stringify(this.data);
-              writeln(solution);
-              if (!this.more) {
-                  writeln("No more solutions");
-              }
-          }
-          function handleFailure() {
-              writeln("No more solutions");
-          }
-          function handleError() {
-              writeln(this.data);
-          }
-          function writeln(string) {
-              $('#output').append(string + "&lt;br /&gt;")
-          }
-      &lt;/script&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-      &lt;h1&gt;The Genealogist&lt;/h1&gt;
-      &lt;h3&gt;Query&lt;/h3&gt;
-      &lt;input type="text" id="query" value="ancestor_descendant(X,Y)"&gt;
-      &lt;button onclick="query()"&gt;Ask&lt;/button&gt;
-      &lt;button onclick="pengine.next()"&gt;Next&lt;/button&gt;
-      &lt;button onclick="pengine.stop()"&gt;Stop&lt;/button&gt;
-      &lt;h3&gt;Output&lt;/h3&gt;
-      &lt;div id="output"&gt;&lt;/div&gt;
-  &lt;/body&gt;
-&lt;/html&gt;
-</pre>
-
-<p>
-    We then need to make this HTML file available to the server. It can be placed anywhere from where it can be retrieved and served to an external browser, but we think that it sits most comfortably in the <code>./apps/genealogist</code> directory, along with the Prolog file.
-</p>
-
-<pre>
-apps/
-   genealogist/
-      genealogist.pl
-      index.html
-   swish\
-   scratchpad\
-</pre>
-
-<p>
-    The application can now be tested. We don't even have to restart the server. All we need need to know is the URL pointing to the application. If you are running your Pengines installation as the default <code>localhost:3030</code> that would be:
-</p>
-
-<pre>
-http://localhost:3030/apps/genealogist/index.html
-</pre>
-
-<p>
-    In <a href="http://www.swi-prolog.org/pengines/GenealogistUpdate.html">the next part of the tutorial</a> we are going to implement support for updating the database of parent-child relationships.
-</p>
-
-<p>
-In this part of our tutorial we are going to add update capabilities to our application. It is in general not wise to allow a client to use <a class="builtin" href="/pldoc/man?predicate=assert/1">assert/1</a> and <a class="builtin" href="/pldoc/man?predicate=retract/1">retract/1</a> directly on the application's database. It is better to wrap <a class="builtin" href="/pldoc/man?predicate=assert/1">assert/1</a> and <a class="builtin" href="/pldoc/man?predicate=retractall/1">retractall/1</a> in predicates that are then exported by (one of) the application modules. This is exactly what we are doing below.
-</p>
-
-<pre>
-:- module(genealogist,
-      [  ancestor_descendant/2,
-         siblings/2,
-         parent_child/2,
-         father_child/2,
-         mother_child/2,
-         assert_father_child/2,
-         assert_mother_child/2,
-         retract_father_child/2,
-         retract_mother_child/2
-      ]).
-
-
-ancestor_descendant(X, Y) :- parent_child(X, Y).
-ancestor_descendant(X, Z) :- parent_child(X, Y), ancestor_descendant(Y, Z).
-
-siblings(X, Y) :- parent_child(Z, X), parent_child(Z, Y), X @&lt; Y.
-
-parent_child(X, Y) :- mother_child(X, Y).
-parent_child(X, Y) :- father_child(X, Y).
-
-
-:- dynamic mother_child/2, father_child/2.
-
-assert_mother_child(Mother, Child) :-
-      assert(mother_child(Mother, Child)).
-
-assert_father_child(Father, Child) :-
-      assert(father_child(Father, Child)).
-      
-retract_mother_child(Mother, Child) :-
-      retractall(mother_child(Mother, Child)).
-
-retract_father_child(Father, Child) :-
-      retractall(father_child(Father, Child)).
-</pre>
-
-<p>
-    Note that we have deleted the facts for <span class="undef">mother_child/2</span> and <span class="undef">father_child/2</span> from the file. The clients will now have to assert such facts before any genealogist queries can succeed. Like this for example:
-</p>
-
-<pre>
-?- use_module(library(pengines)).
-true.
-
-?- pengine_rpc('http://localhost:3030', assert_mother_child(trude, sally), [
-     application(genealogist)
- ]).
-true.
-
-?- pengine_rpc('http://localhost:3030', ancestor_decendant(X, Y), [
-     application(genealogist)
- ]).
-X = trude,
-Y = sally ;
-false.
-
-?-
-</pre>
-
-<p>
-    In <a href="http://www.swi-prolog.org/pengines/GenealogistMoreGUI.html">part 4 of this tutorial</a> we are going to revise our HTML in order to build the necessary GUI parts for supporting updating. In fact, we are are going to revise the whole Genealogist application quite substantially, by for example splitting it up into separate files for HTML, CSS and JavaScript, in the way that is usually recommended for doing web development.
-</p>
-
-<p>
-    In this part of the tutorial we will add GUI parts for the db updating functionality that we added in <a href="http://www.swi-prolog.org/pengines/GenealogistUpdate.html">part 3</a>. From now on we are also going to try to adhere to the so called <a href="http://en.wikipedia.org/wiki/Separation_of_concerns">principle of separation of concerns</a> and split our HTML, CSS and JavaScript up into separate files. Here is how the apps directory looks like in the final version of our web application:
-</p>
-
-<pre>
-apps/
-   genealogist/
-      genealogist.pl
-      index.html
-      js/
-         genealogist.js
-      css/
-         genealogist.css
-   swish\
-   scratchpad\
-</pre>
-
-<p>
-The file <code>genealogist.pl</code> has not changed since part 3, so we will not say more about it here. The CSS in <code>genealogist.css</code> is fairly uninteresting so we keep silent abot that too. Let us begin by looking at the HTML:
-</p>
-
-<pre>
-&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-  &lt;head&gt;
-      &lt;title&gt;Genealogist&lt;/title&gt;
-      &lt;meta name="author" content="Torbjörn Lager"&gt;
-      &lt;link rel="stylesheet" href="css/genealogist.css"&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-      &lt;h1&gt;The Genealogist&lt;/h1&gt;
-      &lt;!-- Here starts the part of the GUI that was already in part 2 --&gt;
-      &lt;h3&gt;Query&lt;/h3&gt;
-      &lt;div&gt;
-          &lt;select id="sample-queries"&gt;
-              &lt;option selected disabled&gt;Sample queries&lt;/option&gt;
-              &lt;option&gt;ancestor_descendant(X, Y)&lt;/option&gt;
-              &lt;option&gt;siblings(X, Y)&lt;/option&gt;
-              &lt;option&gt;parent_child(X, Y)&lt;/option&gt;
-              &lt;option&gt;father_child(X, Y)&lt;/option&gt;
-              &lt;option&gt;mother_child(X, Y)&lt;/option&gt;
-          &lt;/select&gt;
-      &lt;/div&gt;
-      &lt;div&gt;
-          &lt;input id="query" type="text" placeholder="Query"&gt;
-      &lt;/div&gt;
-      &lt;div&gt;
-          &lt;button id="ask-btn"&gt;Ask&lt;/button&gt;
-          &lt;button id="next-btn" disabled&gt;Next&lt;/button&gt;
-          &lt;button id="stop-btn" disabled&gt;Stop&lt;/button&gt;
-          &lt;button id="abort-btn" disabled&gt;Abort&lt;/button&gt;
-          &lt;button id="clear-btn"&gt;Clear&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;!-- Here start the new part for updating the application db --&gt;
-      &lt;h3&gt;Update&lt;/h3&gt;
-      &lt;div&gt;
-          &lt;input id="X" class="arg" type="text" placeholder="Parent"&gt;
-          &lt;input id="Y" class="arg" type="text" placeholder="Child"&gt;
-      &lt;/div&gt;
-      &lt;div&gt;
-          Parent is:
-          &lt;input class="radio" type="radio" name="sex" value="father_child" checked&gt;Male
-          &lt;input class="radio" type="radio" name="sex" value="mother_child"&gt;Female
-      &lt;/div&gt;
-      &lt;div&gt;
-          &lt;button id="assert-btn"&gt;Assert&lt;/button&gt;
-          &lt;button id="retract-btn"&gt;Retract&lt;/button&gt;
-      &lt;/div&gt;
-      &lt;h3&gt;Output&lt;/h3&gt;
-      &lt;div id="output"&gt;&lt;/div&gt;
-      &lt;!-- Placed at the end of the document so that page loads faster --&gt;
-      &lt;script src="/vendor/jquery/jquery-2.0.3.min.js"&gt;&lt;/script&gt;
-      &lt;script src="/pengine/pengines.js"&gt;&lt;/script&gt;
-      &lt;script src="js/genealogist.js"&gt;&lt;/script&gt;
-  &lt;/body&gt;
-&lt;/html&gt;
-</pre>
-
-<p>
-    Stripped from JavaScript and styling information it does a pretty good job at describing the structure of our GUI.
-</p>
-
-<p>
-    Here is the JavaScript file:
-</p>
-
-<pre>
-/* JavaScript for the Genealogist application */
-
-var pengine;
-
-function ask() {
-  var query = $("#query").val();
-  if (query) {
-      pengine = new Pengine({
-          application: 'genealogist',
-          ask: query,
-          onsuccess: function() {
-              writeln(JSON.stringify(this.data));
-              if (this.more) {
-                  disableButtons(true, false, false, false);
-              } else {
-                  writeln("No more solutions");
-                  disableButtons(false, true, true, true);
-              }
-          },
-          onfailure: function() {
-              writeln("Failure");
-              disableButtons(false, true, true, true);
-          },
-          onstop: function() {
-              writeln("Stopped");
-              disableButtons(false, true, true, true);
-          },
-          onabort: function() {
-              writeln("Aborted");
-              disableButtons(false, true, true, true);
-          },
-          onerror: function() {
-              writeln("Error: " + this.data);
-              disableButtons(false, true, true, true);
-          }
-      });
-  }
-}
-
-function next() {
-  pengine.next();
-}
-
-function stop() {
-  pengine.stop();
-}
-
-function abort() {
-  pengine.abort();
-}
-
-
-function update(op) {
-  var pred = op + $("input[name=sex]:checked").val(),
-      X = $("#X").val().toLowerCase() || '_',
-      Y = $("#Y").val().toLowerCase() || '_',
-      command = pred + '(' + X + ',' + Y + ')';
-  Pengine({
-      application: 'genealogist',
-      ask: command,
-      onsuccess: function() {
-          writeln(command);
-          $("#X,#Y").val("");
-      },
-      onerror: function() {
-          writeln("Error: " + this.data);
-      }
-  });
-}
-
-
-function writeln(string) {
-  $('#output').append(string + "&lt;br /&gt;");
-}
-
-function disableButtons(ask, next, stop, abort) {
-  $("#ask-btn").prop("disabled", ask);
-  $("#next-btn").prop("disabled", next);
-  $("#stop-btn").prop("disabled", stop);
-  $("#abort-btn").prop("disabled", abort);
-}
-
-
-$(document).ready(function() {
-  $("#sample-queries").on("change", function() {
-      $("#query").val($("#sample-queries option:selected").text());
-  });
-  $("#ask-btn").on("click", ask);
-  $("#next-btn").on("click", next);
-  $("#stop-btn").on("click", stop);
-  $("#abort-btn").on("click", abort);
-  $("#assert-btn").on("click", function() {
-      update('assert_');
-  });
-  $("#retract-btn").on("click", function() {
-      update('retract_');
-  });
-  $("#clear-btn").on("click", function() {
-      $('#output').html('');
-  });
-});
-</pre>
-
-<p>
-    So, where are we? Well, the Genealogist should now allow us to:
-</p>
-
-<ul>
-    <li>Query the database from more than one client at a time.</li>
-    <li>Update the database of parent-child relationships incrementally and from more that one client at a time.</li>
-    <li>All this without compromising the safety of the pengine server</li>
-</ul>
-
-<p>
-    There are still some problems left to be solved. For example, if you shut down the server and start it again, the database will turn out to be empty. Here, we will only point you to <a class="file" href="/pldoc/doc/_SWI_/library/persistency.pl">library(persistency)</a> which may be able to help.
-</p>
-
 
 <h2>Questionnaire</h2>
+
+-->
 
 </div>
 

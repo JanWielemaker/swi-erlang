@@ -71,6 +71,7 @@
 rpc(URI, Query) :-
     rpc(URI, Query, []).
 
+% This clause is experiment mapping rpc/2-3 to pengine_rpc/2-3 in library(pengines).
 rpc('https://swish.swi-prolog.org', Query, Options0) :-
     !,
     maplist(map_option, Options0, Options),
