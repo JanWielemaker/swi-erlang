@@ -46,6 +46,8 @@
             pengine_input/2,                    % +Prompt, ?Answer
             pengine_respond/2,                  % +Pid, +Answer
             pengine_output/1,                   % +Term
+            pengine_exit/1,                     % +Reason
+            pengine_exit/2,                     % +Pid, +Reason
             
             speak/1,                            % +Term
 %            pengine_listing/0,
@@ -82,17 +84,17 @@ pengine_spawn(Pid) :-
 pengine_spawn(Pid, Options) :-
     self(Self),
     option(reply_to(Target), Options, Self),
-    option(exit(Exit), Options, false),
+    option(exit(Exit), Options, true),
     spawn(session(Pid, Target, Exit), Pid, [
           application(pengines2)
         | Options
     ]).
 
 
-:- thread_local parent/1.
+:- thread_local '$parent'/1.
 
 session(Pid, Parent, Exit) :-
-    assertz(parent(Parent)),
+    assertz('$parent'(Parent)),
     session2(Pid, Parent, Exit).
 
 session2(Pid, Parent, Exit) :-
@@ -262,13 +264,13 @@ pengine_stop(Pid, Options) :-
 
 pengine_output(Term) :-
     engine_self(Self), 
-    parent(Parent),
+    '$parent'(Parent),
     Parent ! output(Self, Term).
 
 
 speak(Term) :-
     engine_self(Self), 
-    parent(Parent),
+    '$parent'(Parent),
     Parent ! speak(Self, Term).
 
 
@@ -281,7 +283,7 @@ speak(Term) :-
 
 pengine_input(Prompt, Input) :-
     engine_self(Self),
-    parent(Parent),
+    '$parent'(Parent),
     Parent ! prompt(Self, Prompt),
     receive({ 
         input(_Parent, Input) ->
@@ -309,7 +311,18 @@ pengine_abort(Pid) :-
     catch(thread_signal(Pid, throw(exit_query)), _, true).
 
 
+%!  pengine_exit(+Reason) is det.
+%!  pengine_exit(+Pid, +Reason) is det.
+%
+%   These just copies the functionality of exit/1 and exit/2.
 
+pengine_exit(Reason) :-
+    exit(Reason).
+    
+pengine_exit(Pid, Reason) :-
+    exit(Pid, Reason).
+
+              
 %!  pengine_listing is det.
 %!  pengine_listing(+Spec) is det.
 %

@@ -16,7 +16,7 @@
           ws.send(JSON.stringify({
             command: 'pengine_ask',
             pid: event.pid,
-            query: 'ancestor_decendant(mike, Who)',
+            query: 'ancestor_descendant(mike, Who)',
             options: '[limit(2)]'
           }));
         } else if (event.type == 'success') {

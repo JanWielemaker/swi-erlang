@@ -1,6 +1,5 @@
-:- use_module(library(clpfd)).
 
-% Example by Markus Triska, taken from the SWI-Prolog manual.
+:- use_module(library(clpfd)).
 
 sudoku(Rows) :-
         length(Rows, 9), maplist(length_(9), Rows),
@@ -31,5 +30,6 @@ problem(1, [[_,_,_,_,_,_,_,_,_],
 
 /** Examples
 
-problem(1, Rows), time(sudoku(Rows)), maplist(io:writeln, Rows).
+problem(1, _Rows), time(sudoku(_Rows)), maplist(io:writeln, _Rows).
+
 */
