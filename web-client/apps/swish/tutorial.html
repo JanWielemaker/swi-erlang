@@ -1540,7 +1540,7 @@ dining :-
 </p>
 
 <p>
-    Due to the many similarities between Erlang and Web Prolog, porting the code was fairly straightforward. We could even take advantage of the fact that an Erlang tuple such as <code>{grabforks,{Left,Right}}</code> is valid syntax in Prolog too, where it's not a tuple but a complex term of the form <code>{}((grabforks,{}((Left,Right))))</code>.  In general, however, we recommend that (in a second pass of a porting effort) such terms are replaced by less complex ones. In this case, <code>grabforks(Left-Right)</code> would probably work just fine.
+    Due to the many similarities between Erlang and Web Prolog, porting the code was fairly straightforward. We could even take advantage of the fact that an Erlang tuple such as <code>{grabforks,{Left,Right}}</code> is valid syntax in Prolog too, where it's not a tuple but a complex term of the form <code>{}((grabforks,{}((Left,Right))))</code>.  In general, however, we recommend that (in a second pass of a porting effort) such terms are replaced by less complex ones. In this case, <code>grabforks(Left,Right)</code> would probably work just fine.
 </p>    
 
 <!--
@@ -1548,7 +1548,7 @@ dining :-
 <div class="alert alert-success">
   <h4>More about translation</h4>
   <p>
-      Whereas translation from Erlang to Prolog is fairly easy, translation in the other direction will in general be much harder.
+      Whereas translation from Erlang to Web Prolog is fairly easy, translation in the other direction will in general be much harder. This should tell us something about the difference in expressivity between the two languages.
   </p>
 </div>
 -->
@@ -1696,7 +1696,7 @@ start(Pid) :-
 </p>
 
 <p>
-    At this point, the receive call is blocking while waiting for messages to show up in the mailbox. To check if there are more solutions to our query we send a message <code>next</code> to the actor. This will cause the receive to fail and thus force the backtracking that will lead to the successful search for the next solution:
+    At this point, the receive call is blocking while waiting for messages to show up in the mailbox. To check if there are more solutions to our query we send a message <code>next</code> to the actor. This will cause the receive to fail and thus force the backtracking that will trigger the search for the next solution:
 </p>
 
 <pre id="pre-pengine3">
@@ -1709,7 +1709,7 @@ start(Pid) :-
 </p>
 
 <p>
-    Did we get the next solution?:
+    Did we get more solutions?:
 </p>
 
 <pre id="pre-pengine4">
