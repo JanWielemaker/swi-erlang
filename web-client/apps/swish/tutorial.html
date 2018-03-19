@@ -76,7 +76,7 @@
 </p>
 
 <p>
-    A suitable (and probably necessary) background for people taking the tutorial is familiarity with either Prolog or Erlang, and preferably with both. In the long run, we want lots of users writing lots of applications, so sooner or later we ought to ride on the popularity of JavaScript and target also front-end programmers and JavaScript aficionados with no previous exposure to Prolog or Erlang. This requires a different kind of tutorial, however, one that starts from the basics of both logic programming à la Prolog and actor-based programming à la Erlang.
+    A suitable (and probably necessary) background for people taking the tutorial is familiarity with either Prolog or Erlang, and preferably with both. In the long run, we want lots of users writing lots of applications, so sooner or later we ought to ride on the popularity of JavaScript and target also front-end programmers and JavaScript aficionados with no previous exposure to Prolog or Erlang. This requires a different kind of tutorial, however, one that starts from the basics of both logic programming in the manner of Prolog and actor-based programming in the manner of Erlang.
 </p>
 
 
@@ -1637,7 +1637,7 @@ start(Pid) :-
 </p>
 
 <p>
-    The dynamic database is a non-logical extension to Prolog and the use of it for managing state is usually frowned upon by Prolog programmers since changes to the database are not reverted on backtracking. Also, clauses of dynamic predicates are like destructible global variables and therefore subject to all the common problems with such objects. (See <a target="_blank" href="http://www.swi-prolog.org/howto/database.txt">here</a> for good advice when dealing with the dynamic database in SWI-Prolog.) For storing really, really large quantities of food this might still be the best solution.
+    The dynamic database is a non-logical extension to Prolog and the use of it for managing state is usually frowned upon by Prolog programmers since changes to the database are not reverted on backtracking. Also, clauses of dynamic predicates are like destructible global variables and therefore subject to all the common problems with such objects. (See <a target="_blank" href="http://www.swi-prolog.org/howto/database.txt">here</a> for good advice when dealing with the dynamic database in SWI-Prolog.) However, for storing really, really large quantities of food in our fridge this might still be the best solution.
 </p>
 
 <p>
@@ -1722,7 +1722,7 @@ start(Pid) :-
 </p>
 
 <p>
-    Here's how to stop asking for more solutions to the query. This time we wait for the expected <code>stop</code> message using receive instead of flushing the mailbox:
+    Below we show how to stop asking for more solutions to the query. This time we wait for the expected <code>stop</code> message using receive instead of flushing the mailbox:
 </p>
 
 <pre id="pre-pengine5">
@@ -1736,8 +1736,8 @@ start(Pid) :-
 </p>        
 
 <p>
-    This suggests that Prolog's backtracking mechanism is perfectly compatible with, and in fact 
-    complements, the proposed Erlang-like mechanism for spawning actors and handling the communication
+    This suggests that Prolog's backtracking mechanism is perfectly compatible with and also 
+    complements the proposed Erlang-like mechanism for spawning actors and handling the communication
     between them. We need to observe, however, that the goal to be solved in the above example is
     hard-coded into the program, and that the program handles neither failure of the spawned goal, nor
     exceptions thrown by it. 
@@ -2504,7 +2504,7 @@ query(Query, Self, Parent) :-
 <p>
     By default, <code>rpc/2-3</code> uses the RESTful HTTP API to communicate with the remote node. 
 <p>
-    The following example shows that thanks to the Prolog state cache the first (slow) solution isn't recomputed when we ask for the second one:
+    The following example shows that thanks to the Prolog state cache the first (slow) solution isn't recomputed when we ask for the second one, despite the fact that <code>rpc/2</code> makes two totally separate HTTP requests:
 </p>
 
 <pre id="rpc-http2">
