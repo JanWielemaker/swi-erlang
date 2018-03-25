@@ -376,22 +376,27 @@ server's console.
 	var trace = !$("#json-trace-checkbox").is(':checked');
     function to_text(data) {
         var text = [];
+        var hasBindings = false;
         for (var key in data) {
             var value = data[key];
             if (Array.isArray(value)) {
                 value = "[" + value + "]";
             }
-            text.push(key + " = " + value);
-            text.push(", \n")
+            if (value.charAt(0) != "_") {
+                text.push(key + " = " + value);
+                text.push(", \n");
+                hasBindings = true;
+            }
         }
         text.pop(); // get rid of the last comma
         text.push(" ");
-        return text.join("");
-    }
-    function report(data) {
-        if ($.isEmptyObject(data[0])) {
+        if (hasBindings) {
+            return text.join("");
+        } else {
             return "true ";
         }
+    }
+    function report(data) {
         return to_text(data[0]);
     }
     function speak(string) {

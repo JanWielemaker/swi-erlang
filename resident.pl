@@ -1,4 +1,20 @@
 /*
+    This is the node-resident code available for the 
+    philosophy section.
+*/
+
+p(X) :- q(X), r(X).
+
+q(a).
+q(b).
+q(c).
+
+r(b).
+r(c).
+
+
+
+/*
     This is the node-resident code available in this node. It is loaded
     in the module `web_prolog' using the following code:
 
