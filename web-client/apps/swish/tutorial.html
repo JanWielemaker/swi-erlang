@@ -2222,6 +2222,20 @@ query(Query, Self, Parent) :-
 </p>
 
 
+<div class="alert alert-success">
+  <h4>SWISH</h4>
+  <p>
+    How about a short break to take a look at a more sophisticated online Prolog IDE? Head over to <a target="_blank" href="https://swish.swi-prolog.org">SWISH</a>, which is a mature web-based IDE to Prolog, featuring semantic source code colouring, Prolog notebooks, tools for collaboration, and other niceties.  
+  </p>
+  <p>
+    In September 2017, SWISH had been online for three years. It is extensively being used for Prolog education. At the time of writing this, the main server now has 35,420 programs stored with 68,806 revisions. Usage is strongly correlated with academic holidays, ranging from 36,415 queries per week
+(July 31 - August 6, 2017) to 125,946 (May 7-14, 2017). The popularity of the Github repository, 198 stars and 48 forks compared to the main SWI-Prolog repository with 223 stars and 53 forks is another indication of the impact. (To be compared with Erlang's 6,374 stars and 1,708 forks.)
+  </p>
+  <p>
+    Please understand, though, that the present version of SWISH doesn't implement Web Prolog, but something slightly different. In the future, we plan to integrate Web Prolog with SWISH. The traditional shell will be one of the tools on offer, selectable from a tool bar along with the present one. This tutorial will be rewritten as a Prolog notebook. However, since SWISH has a large number of users already, it wouldn't make sense to change the underlying language until all problems have been sorted out.
+  </p>
+</div>
+
 <!--
 <h3>Pengines and input/output</h3>
 
@@ -2713,7 +2727,10 @@ wait_answer(Query, Pid) :-
     The predicate <code>yield/2-3</code> returns the promised answer from a previous call to <code>promise/3-4</code>. If the answer is available, it's returned immediately. Otherwise, the calling process is suspended until the answer arrives from the node that was called.</p>
 
 <pre id="yield-timeout">
-?- yield($Reference, Answer, [timeout(3)]).
+?- yield($Reference, Answer, [
+       timeout(3),
+       on_timeout(Answer=timeout)
+   ]).
 </pre>
 
 <p class="ask-buttons">
@@ -2743,7 +2760,10 @@ wait_answer(Query, Pid) :-
 <p>Let's call <code>yield/3</code> again:</p>
 
 <pre id="promise-offset2">
-?- yield($Reference, Answer, [timeout(0.5)]).
+?- yield($Reference, Answer, [
+       timeout(0.5),
+       on_timeout(fail)
+   ]).
 </pre>
 
 <p class="ask-buttons">
@@ -2758,21 +2778,6 @@ wait_answer(Query, Pid) :-
 <p>
 	Note that <code>promise/4</code> only operates over HTTP, which is useful if a WebSocket connection is not available.
 </p>
-
-
-<div class="alert alert-success">
-  <h4>SWISH</h4>
-  <p>
-    Want to try a more sophisticated online Prolog IDE? Head over to <a target="_blank" href="https://swish.swi-prolog.org">SWISH</a>, which is a mature web-based IDE to Prolog, featuring semantic source code colouring, Prolog notebooks, tools for collaboration, and other niceties.  
-  </p>
-  <p>
-    In September 2017, SWISH had been online for three years. It is extensively being used for Prolog education. At the time of writing this, the main server now has 35,420 programs stored with 68,806 revisions. Usage is strongly correlated with academic holidays, ranging from 36,415 queries per week
-(July 31 - August 6, 2017) to 125,946 (May 7-14, 2017). The popularity of the Github repository, 198 stars and 48 forks compared to the main SWI-Prolog repository with 223 stars and 53 forks is another indication of the impact. (To be compared with Erlang's 6,374 stars and 1,708 forks.)
-  </p>
-  <p>
-    Please understand, though, that the present version of SWISH doesn't implement Web Prolog, but something slightly different. In the future, we plan to integrate Web Prolog with SWISH. The traditional shell will be one of the tools on offer, selectable from a tool bar along with the present one. This tutorial will be rewritten as a Prolog notebook. However, since SWISH has a large number of users already, it wouldn't make sense to change the underlying language until all problems have been sorted out.
-  </p>
-</div>
 
 
 <h2>Documentation</h2>
@@ -3121,7 +3126,7 @@ yield(+Reference, ?Message, +Options) is det.
     Returns the promised answer from a previous call to <code>promise/3-4</code>. 
 If the answer is available, it is returned immediately. Otherwise,
 the calling process is suspended until the answer arrives from the
-node that was called. The only valid option is <code>timeout</code>.
+node that was called. Valid options are <code>timeout(Integer)</code> (default is <code>inf</code>) and <code>on_timeout(Goal)</code> (default is <code>fail</code>).
 </p>
 
 <p>
@@ -3190,37 +3195,117 @@ not return.
 <h2>The mission</h2>
 
 <p>
-    Let's make an attempt to explain the language's mission. With Web Prolog we hope to be able to introduce a dialect of Prolog that:    
+    Claims [reference to claims: https://ecs.victoria.ac.nz/foswiki/pub/Events/PLATEAU/2010Program/plateau10-markstrum.pdf]. Observations.
 </p>
+
 
 <ul>
-    <li>allow web application developers to easily run and communicate with Prolog running on the server-side,</li>
-    <li>is simpler and less bloated than most existing Prolog systems, and in particular simpler for web programming</li>
-    <li>provides a better support for programming interaction than traditional Prolog,</li>
-    <li>spawn, send and receive has been implemented in a style that provides some of the concurrent programming power of Erlang,</li>
-    <li>provides some of the network-transparent distributed programming power of Erlang, but where distribution relies on the WebSocket protocol rather than TCP/IP which promises to make it open</li>
-    <li>is suitable &ndash; through code injection &ndash; for scripting purposes on the Web,</li>
-    <li>supports the programmable Prolog Web,</li>
-    <li>Web Prolog provides an interoperability layer that enables simpler interoperability between disparate information systems</li>
-    <li>supports interoperability between different Prolog systems,</li>
-    <li>supports interoperability between Prolog systems and other logic programming systems,</li>
-    <li>supports interoperability with Erlang,</li>
-    <li>supports porting Erlang programs to Web Prolog,</li>
-    <li>serve as a semantic web programming language,</li>
-    <li>can possibly be standardised,</li>
-    <li>can possibly serve to defragment the Prolog community,</li>
-    <li>the language of Web Prolog would serve to open a line of communication between (subsets of) the two communities,</li>
-    <li>can possibly serve to make Prolog popular again.</li>
+
+<li><p>
+    We have presented a proposal for a programming language that we think is a nice mixture of Prolog and Erlang. We call it "Web Prolog" &ndash; "Web" because it's all about the Web, "Prolog" because it's more about Prolog than Erlang. Web Prolog stays really close to traditional Prolog, indeed so close that the vast majority of example programs in Prolog text books would run without modification.
+</p>
+
+<li><p>
+    Extending traditional Prolog with primitives inspired by Erlang seems to work quite well. Syntactically, the language is ordinary Prolog with <code>!/2</code>, <code>when/2</code> and <code>@/2</code> declared as infix operators. Semantically, the primitives for spawning, sending and receiving have been designed to align as close as possible with what these primitives mean and how they work in Erlang. These primitives are the key to Erlang-style concurrent and distributed programming in Web Prolog. Pragmatically, many programming patterns as well as the thinking in terms of protocols are also common to both languages.
+</p>
+
+<li><p>
+    We have presented three programming abstractions: the <i>actor</i>, the <i>pengine</i> (built on top of the actor abstraction), and the <i>non-deterministic remote procedure call</i> (built on top of the pengine abstraction). The steps of deriving <code>pengine_spawn/1-2</code> from <code>spawn/2-3</code>, and <code>rpc/2-3</code> from <code>pengine_spawn/1-2</code> are taken in a clear and semantically transparent way that shows how many of the options are inherited, lending a credible semantics to the three abstractions.
+</p>
+
+<li><p>
+    A pengine is a special <i>kind</i> of actor characterised by a particular communication protocol &ndash; the Pengine Communication Protocol (PCP). This protocol is basically what makes a pengine into a first-class Prolog top-level. We can send it queries, and be sent answers in return, answers that follow logically from the "beliefs" that the pengine holds. In this sense, a pengine is an interactive reasoning engine. Similar to a normal Prolog top-level, a pengine is "lazy" in the sense that it will not produce all the answers to a query at once, unless we explicitly ask it to do so.
+</p>
+
+<li><p>
+    Equipped with <code>!/2</code> and <code>receive/1-2</code>, Web Prolog provides a much better support for programming interaction than traditional Prolog &ndash; and this is true of GUI-actor interaction as well as actor-actor interaction. Dialogue systems. State machines, protocols.
+</p>
+
+<li><p>
+    If you're a Prolog programmer, the language is very easy to learn, and you don't need to deal with explicit concurrency and distribution until you really need it (implicitly, a lot concurrency is of course going on in a node). If you're an Erlang programmer with no previous exposure to Prolog, your experience with recursion and recursive data structures in Erlang, as well as with assign-once variables and pattern matching, will be valuable.
+</p>
+
+<li><p>
+    We also propose that the Prolog community should take it upon itself to develop a standardised infrastructure for a <em>Prolog Web</em>, a web more firmly based on logic than the traditional Web of Documents. The Prolog Web, as we envision it, will share traits such as distribution, decentralisation and openness with the traditional Web.
+</p>
+
+<li><p>
+    Somewhat separate from its role as an extension of Prolog, we have touted Web Prolog as a web logic programming language. Regardless of which notion of <a target="_blank" href="https://www.w3.org/2005/rules/wg/wiki/Pure_Prolog">pure Prolog</a> we accept (there is more than one!) it seems reasonable to describe <code>rdf/2-3</code> as a predicate that is pure, at least as long as the goal that gets called in the second argument is pure. Thus, by means of <code>rdf/2-3</code>, a <i>Pure Prolog Web</i> that completely abstracts away from the underlying machinery may be built.
+</p>
+
+<li><p>
+    As we have shown, a network of nodes running Web Prolog is <i>programmable</i> in two different ways. It's programmable by the client, which may inject Web Prolog source code into the workspaces of pengines or other kinds of actors that are spawned from it. Since injected source code tends to be short snippets rather than large programs, this form is perhaps what most resembles the use of a language for scripting purposes. The Prolog Web is also programmable by node owners, who may install node-resident Web Prolog programs and run node-resident actor processes and in this way offer services to other nodes in the network. The concept of a <a target="_blank" href="https://en.wikipedia.org/wiki/Mashup_(web_application_hybrid)">mashup</a> also strikes us as relevant here.
+</p>
+
+<li><p>
+    While we do not aim for the kind of <i>massive</i> concurrency that Erlang is known for, we certainly do our best not to introduce features in the Web Prolog language that would preclude this.
+</p>
+
+<li><p>
+    Moreover, we have demonstrated that a traditional Prolog shell is still up to the task of providing a useable way for a programmer to talk to a Prolog process. The combination of the <code>$Var</code> notation and the <code>flush/0</code> predicate have been found to be valuable additions when doing interactive concurrent programming at the shell. A shell written i HTML, CSS and JavaScript furthermore has a great potential for enhancements in the form of graphical HTML elements for rendering tables and charts of various kinds and embed them in the flow of the conversation. SWISH implements <a target="_blank" href="https://swish.swi-prolog.org/example/rendering.swinb">many nice examples</a> of this.
+</p>
+
+<li><p>
+    We have also shown that with the proposed extensions, porting Erlang programs to Web Prolog is fairly straightforward. The difference between functional and relational notation is not difficult to handle (and support for transpiling the former to the latter is easy to build). Porting some of Erlang's <a target="_blank" href="http://erlang.org/doc/design_principles/des_princ.html">OTP behaviours</a> to Web Prolog would most likely be possible and probably worthwhile. 
+</p>
+
+<li><p>
+    Web Prolog provides an interoperability layer that enables simpler interoperability between disparate information systems. Provided that other Prolog systems besides SWI-Prolog are willing and able to implement the Web Prolog layer, we would have a way to allow those systems to talk to each other. Interoperability between Prolog systems and other logic programming systems such as deductive databases and (more research-oriented) systems such as <a target="_blank" href="https://dtai.cs.kuleuven.be/problog">ProbLog</a> would be possible. 
+</p>
+
+<li><p>
+    A certain level of interoperability with Erlang would also be possible. Building a Web Prolog node in Erlang would be one possibility, but if this is seen as a too big a project, the authoring of libraries that uses a WebSocket client or an HTTP client to talk to a Web Prolog node and to translate Prolog terms into Erlang tuples would be less of a job.
+</p>
+
+<li><p>    
+    At least one leading engineer at Google thinks <a target="_blank" href="https://www.pcworld.com/article/2362500/google-engineer-we-need-more-web-programming-languages.html">we need more web programming languages</a>. With languages such as Elm and ClojureScript, functional programming is moving in this direction. When it comes to web logic programming languages, there isn't much competition. It does seem to be necessary to create a version of Web Prolog that runs in web browsers though.
+</p>
+
+<li><p>
+    We define several different profiles of Web Prolog (four at the moment), with different language capabilities and different capabilities for communication and other forms of interaction. Some nodes, depending on their profile, can only be queried, others allow a client to hand over a Web Prolog program to be run by the node on behalf of the client. The most advanced profile allows concurrent programming as well as unrestricted two-way communication between a client and a node.
+</p>
+
+<li><p>
+    On the Web, standards are not only "nice to have," but necessary. The Web just wouldn't work without them. In the case of Web Prolog and the Prolog Web a standard must cover not only computation, i.e. the syntax and semantics of programming primitives, but also the pragmatics of communication, i.e. the protocols and the APIs for using them. Fortunately, the committee behind the ISO Prolog standard has done a great job specifying the syntax of Prolog and the semantics of built-in predicates, which means that most of a standardisation effort could be directed towards the pragmatics of client-actor and actor-actor communication.
+</p>
+
+<li><p>
+    Web APIs play a central role on the Prolog Web. Not only do they allow a non-Prolog client &ndash; typically implemented in JavaScript and built to be run in a web browser &ndash; to create and communicate with a pengine running on a remote node, but they also allow this pengine to talk to <i>other</i> pengines on the Prolog Web, thus forming a multi-pengine system capable of utilising local as well as remote resources for satisfying the information and/or control needs of the user running the client.
+</p>
+
+<li><p>
+    Various people both inside and outside the Prolog community have at various occasions voiced their fears about the future of Prolog, noting that there are too many incompatible Prolog systems around, resulting in a fragmented community and an ISO standard that few systems conform to. We see Web Prolog and the programmable Prolog Web as the two main ingredients in a recipe for bringing the community back together and making logic programming and Prolog great again.
+</p>
+
+<li><p>
+    As it is based on the ISO standard of Prolog, the <i>de facto</i> standard of Erlang, and a number of well-established web standards, Web Prolog does not aspire to much originality or novelty, except perhaps in the ways underlying concepts, models and mechanisms are <i>combined</i> in our ambition to introduce Web Prolog as an embedded and sandboxed scripting language for the Web. When it comes to standardisation, a lack of originality and novelty may actually be an advantage, since it makes it more probable that a standardisation effort might actually succeed. Few hitherto unknown problems are likely to surface, so by as much as possible borrowing rather than inventing we should be able to create a viable and trustworthy standard much quicker than would otherwise have been the case.
+</p>
+
+<li><p>
+    The Prolog community may be able to defragment itself by having not only a common Web Prolog language but also a Prolog Web in common - a social network of Prolog programmers and of pengines and other actors. 
+</p>
+
 </ul>
 
+<hr>
+
+
+
+
 <p>
-    We thus have three abstractions: the <i>actor</i>, the <i>pengine</i> (built on top of the actor abstraction) and the <i>non-deterministic remote procedure call</i> (built on top of the pengine abstraction). Moreover, we may want to treat the <i>node</i> as a fourth abstraction (also built on top of the pengine abstraction).
+    A lot of details remain to be worked out, and for this we depend on the Prolog community as well as the Erlang community. Wishful thinking. There are bugs to squash.
+</p>
+
+
+<p>
+    the language of Web Prolog would serve to open a line of communication between (subsets of) the two communities,
+<p>
+    We have a chance here to form an open, collaborative, community of communities. 
 </p>
 
 <p>
-    A lot of details remain to be worked out, and for this we depend on the Prolog community as well as the Erlang community.
+    This would presumably work as a service to the logic programming community at large, many members of which will be able to present their work through an API that exposes their research systems to the Prolog Web for others to easily try out and perhaps also use, regardless of if its written in Prolog or not.
 </p>
-
 
 <!--
      
