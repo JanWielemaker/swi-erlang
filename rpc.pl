@@ -71,11 +71,6 @@
 rpc(URI, Query) :-
     rpc(URI, Query, []).
 
-% This clause is experiment mapping rpc/2-3 to pengine_rpc/2-3 in library(pengines).
-rpc('https://swish.swi-prolog.org', Query, Options0) :-
-    !,
-    maplist(map_option, Options0, Options),
-    pengines:pengine_rpc('https://swish.swi-prolog.org', Query, Options).
 rpc(URI, Query, Options) :-
     select_option(transport(Transport), Options, RestOptions, http),
     (   Transport == http
@@ -239,7 +234,7 @@ reference_uuid(Reference) :-
 %   which the previous call to promise/3-4 was made, otherwise it will
 %   not return.
 
-yield(Reference, value-Message) :-
+yield(Reference, Message) :-
     must_be(atom, Reference),
     thread_get_message(Reference-Message).
 
@@ -247,8 +242,9 @@ yield(Reference, Message, Options) :-
     must_be(atom, Reference),
     thread_self(Q),
     (   thread_get_message(Q, Reference-Msg, Options)
-    ->  Message = value-Msg
-    ;   Message = timeout
+    ->  Message = Msg
+    ;   option(on_timeout(Goal), Options, true),
+        call(Goal)
     ).
 
 
