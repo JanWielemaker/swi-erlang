@@ -243,7 +243,7 @@ yield(Reference, Message, Options) :-
     thread_self(Q),
     (   thread_get_message(Q, Reference-Msg, Options)
     ->  Message = Msg
-    ;   option(on_timeout(Goal), Options, true),
+    ;   option(on_timeout(Goal), Options, fail),
         call(Goal)
     ).
 
