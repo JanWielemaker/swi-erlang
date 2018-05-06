@@ -88,8 +88,7 @@ http_pengine_ask(Request) :-
 
 find_answer(Query, Template, Offset, Limit, Timeout, Answer) :-
     query_id(Template-Query, QueryID),
-    (   query_pengine(QueryID, Index, Pid),
-        Offset == Index
+    (   query_pengine(QueryID, Offset, Pid)
     ->  self(Self),
         pengine_next(Pid, [
             reply_to(Self),
