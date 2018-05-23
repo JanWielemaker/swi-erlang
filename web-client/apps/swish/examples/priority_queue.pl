@@ -2,8 +2,8 @@
 important(Messages) :-
     receive({
         Priority-Message when Priority > 10 ->
-            Messages = [Message|MoreMessages],
-            important(MoreMessages);
+            important(MoreMessages),
+            Messages = [Message|MoreMessages];
     	after(0) -> 
             normal(Messages)
     }).
@@ -11,8 +11,8 @@ important(Messages) :-
 normal(Messages) :-
     receive({
         _-Message ->
-            Messages = [Message|MoreMessages],
-            normal(MoreMessages);
+            normal(MoreMessages),
+            Messages = [Message|MoreMessages];
     	after(0) -> 
             Messages = []
     }).
