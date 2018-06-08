@@ -7,3 +7,7 @@ Most likely the organization, interfaces and naming of files and
 predicates will change in due time.
 
 Work in progress by Torbjörn Lager and Jan Wielemaker.
+
+# This repository has moved! 
+
+https://github.com/Web-Prolog/swi-web-prolog
